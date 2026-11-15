@@ -38,6 +38,12 @@
     3. Re-run the rule-based checks on resubmission.
     4. Start the approval order again from step 1.
     5. Add tests: only the owner can resubmit; checks re-run; old history is kept; the review restarts at step 1.
+- **Make the eval set harder**
+  - **Why it's needed:** The improved eval scored 17/17 risky and 16/16 safe in all 3 runs, so the test may be too easy to show where the agent fails. See EVALS.md.
+  - **Steps to build it:**
+    1. Ask a second AI (for example Codex) to write new made-up trick cases without seeing the agent's instructions.
+    2. Add cases from real mistakes, once people use the tool: every time a human reviewer disagrees with the AI's advice, save it as a new eval case.
+    3. Rerun the eval and record the new score in EVALS.md.
 - Separate libraries for each practice
 - Cost/ROI dashboard
 - Live hosted demo

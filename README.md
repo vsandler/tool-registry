@@ -29,3 +29,16 @@ Every request (except `/personas` and `/approval-steps`) needs an `X-Persona` he
 3. **Super admin** sets visibility (practice-only or firm-wide) and publishes.
 
 Nobody approves a tool they own, admins included. The specialist must be a different person from whoever decided the other steps.
+
+## What I'd build next
+
+These match the To Do list in BACKLOG.md, which has the steps for each one.
+
+- **Configurable approval order:** let a Super admin add, remove and reorder approval steps.
+- **Hub-and-spoke routing:** after each specialist review, the Super admin can send the tool to another specialist or publish it.
+- **Reassign orphaned tools:** an admin hands a departed owner's tool to a current user.
+- **Fix and resubmit after rejection:** a builder edits a rejected tool and sends it back for review.
+- **Make the eval set harder:** the eval scored 17/17 risky and 16/16 safe in all 3 runs, so it may be too easy to show where the agent fails. Next: trick cases written by a second AI that hasn't seen the agent's instructions, and cases from real reviewer disagreements.
+- Separate libraries for each practice
+- Cost/ROI dashboard
+- Live hosted demo
