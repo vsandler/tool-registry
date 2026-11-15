@@ -11,12 +11,17 @@ _Terms used in this project, defined in plain language._
 - **Approval history:** The list of every approve or reject decision on a tool: who made it, at which step, when, and any comment.
 - **Approval step:** One stage in the approval order, naming the role that decides it, for example "step 1, decided by a Super admin".
 - **Back end:** The part of the app that stores data and applies rules, behind the screens people see.
+- **Baseline:** The first measured score, used as the starting point to compare later changes against.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.
 - **Effort (Claude):** A setting that controls how hard the model thinks before answering. Higher effort is more careful but slower and uses more tokens.
 - **Endpoint:** One address in the API, such as `GET /tools` (list the catalogue).
 - **Environment variable:** A named value the computer hands to a running program, such as `ANTHROPIC_API_KEY`. python-dotenv fills these in from `.env`.
+- **Eval (evaluation):** A fixed set of test cases with known right answers, used to measure how well the AI agent does.
+- **Eval set:** The list of test submissions used in an eval. Ours is `evals/submissions.json`.
 - **Fail safe:** Designing so that when something goes wrong, the result is the cautious one. For us, any agent failure means "flag for a human", never "approve".
 - **Fake client (test double):** A stand-in for the real Claude API used in tests, so tests are free, fast and don't need the internet.
+- **False negative (miss):** A risky submission the agent wrongly calls safe. The worst kind of mistake for us.
+- **False positive:** A safe submission the agent wrongly flags as risky. Annoying, but a human catches it.
 - **FastAPI:** The Python library we use to build the API. It also creates the clickable `/docs` page.
 - **Fixture (pytest):** A reusable setup step for tests, such as "give me a fresh database with the five personas in it".
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
@@ -25,6 +30,7 @@ _Terms used in this project, defined in plain language._
 - **JSON:** A simple text format for structured data, like `{"verdict": "safe", "issues": []}`.
 - **JSON Lines (.jsonl):** A log file with one JSON record per line. Easy to add to and easy to read back.
 - **JSON schema:** A description of the exact shape a JSON answer must have: which fields, what type each is, which values are allowed.
+- **Label:** The right answer for a test case (risky or safe), written down before the agent sees it.
 - **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.

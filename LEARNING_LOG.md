@@ -111,3 +111,18 @@ Each call adds one line to `logs/agent_calls.jsonl` (ignored by git): time, mode
 
 ### Testing without calling the real API
 The tests use a *fake client*: a stand-in object that returns whatever reply the test needs (a good answer, broken JSON, a refusal, a server error). That lets us test every failure path for free, quickly and repeatably. One real call was made by hand to confirm the whole thing works end to end.
+
+### Evals: a fixed exam for the agent
+An *eval* is a set of test cases with the right answers written down in advance (the *labels*). We run the agent on all of them and count how often it agrees. Ours has 20 made-up submissions: 10 risky and 10 safe. Because the set never changes, we can re-run it after any change (a new prompt, a different model, a different effort level) and see whether things got better or worse.
+
+### Why some safe cases mention money and risk
+If every safe case were bland, an agent that flags anything mentioning "returns" would look perfect. So a few safe cases talk about performance and risk the responsible way, with a risk warning or "no outcome is guaranteed". They check the agent doesn't over-flag.
+
+### Scoring that matches the brief
+The brief says a risky tool must never slip through, and anything flagged just goes to a human. So a "needs human" result (the reply failed) counts as *caught* for a risky case, but never as *passed* for a safe one. A failure can help catch risk; it can never count as a clean pass.
+
+### A baseline
+The first run's score is the *baseline*: the starting point future changes are compared against. Ours: 10/10 risky caught, 10/10 safe passed, about $0.0002 and 1.7 seconds per review.
+
+### A perfect score isn't proof
+The same person wrote the test cases and the agent's instructions, so they naturally line up. A perfect score on a small, self-written set shows the agent handles the risks we thought of. It doesn't show it handles ones we didn't. Harder cases and repeat runs give a fairer picture.
