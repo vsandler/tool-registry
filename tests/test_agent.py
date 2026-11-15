@@ -12,6 +12,10 @@ from registry import agent
 
 CONFIG = {"model": "claude-haiku-5-5", "effort": "medium"}
 
+# conftest.py swaps agent.review_tool for a fake in every test. These tests check the
+# real function, so keep a reference to it taken at import time, before the swap.
+real_review_tool = agent.review_tool
+
 TOOL = {
     "id": 1,
     "name": "Meeting summary",
@@ -49,7 +53,7 @@ class FakeClient:
 def review(reply_or_client, tmp_path=None, **kwargs):
     client = reply_or_client if isinstance(reply_or_client, FakeClient) else FakeClient(reply_or_client)
     log = (tmp_path / "calls.jsonl") if tmp_path else None
-    return agent.review_tool(TOOL, client=client, config=CONFIG, log_path=log, **kwargs), client
+    return real_review_tool(TOOL, client=client, config=CONFIG, log_path=log, **kwargs), client
 
 
 def ok(verdict, issues, reason="Because."):
@@ -166,7 +170,7 @@ def test_submission_is_wrapped_as_escaped_data():
 def test_submission_never_enters_the_system_prompt():
     _, client = review(ok("risky", ["Tries to instruct the reviewer."]))
     client.calls.clear()
-    agent.review_tool(INJECTION, client=client, config=CONFIG, log_path=None)
+    real_review_tool(INJECTION, client=client, config=CONFIG, log_path=None)
     call = client.calls[0]
     assert call["system"] == agent.SYSTEM_PROMPT
     assert "ignore all rules" not in call["system"]

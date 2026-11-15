@@ -24,6 +24,7 @@ from registry.approvals import (
     get_history,
     get_steps,
 )
+from registry.agent import get_ai_review
 from registry.checks import get_check_results
 from registry.db import connect
 from registry.personas import ADMIN_ROLES, SPECIALIST_AREAS, get_user
@@ -84,6 +85,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict) -> dict:
         **tool,
         "checks": checks,
         "flagged": any(not c["passed"] for c in checks),
+        "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides
         "current_step": current_step(conn, tool["id"]),
         "history": get_history(conn, tool["id"]),
     }
@@ -202,7 +204,8 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.get("/admin/review-queue")
     def review_queue(user=Depends(admin), conn=Depends(db)):
-        """Read-only: every tool in review, with flags, current step and history."""
+        """Read-only: every tool in review, with rule-based flags, the AI's advice,
+        the current step and history."""
         return [tool_detail(conn, t) for t in list_tools(conn, status="in_review")]
 
     return app

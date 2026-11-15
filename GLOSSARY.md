@@ -4,12 +4,14 @@ _Terms used in this project, defined in plain language._
 
 - **Action (approval step):** What deciding a step does: `route` (send to a specialist area), `review` (specialist approves), or `publish` (set visibility and make it available).
 - **Admin route:** An API address only admins can use. Ours is `/admin/review-queue`, a read-only list of tools waiting for review.
+- **Advice only:** The AI's verdict is shown to reviewers to help them, but it never approves, rejects or moves a tool along. Humans decide.
 - **AI pre-review:** A first look at a submission by an AI model, before a human reviews it. It flags problems but never approves or rejects.
 - **API (Application Programming Interface):** The set of requests the back end understands and answers, like a menu a front end orders from.
 - **API key:** A secret password that lets our code use the Claude API. Kept in `.env`, never shown, logged or committed.
 - **Append-only:** A record you only add to. Old entries are never changed or removed. Our approval history works this way.
 - **Approval history:** The list of every approve or reject decision on a tool: who made it, at which step, when, and any comment.
 - **Approval step:** One stage in the approval order, naming the role that decides it, for example "step 1, decided by a Super admin".
+- **Autouse fixture (pytest):** A test setup step that runs for every test automatically. Ours swaps in a fake AI so tests never call the real API.
 - **Back end:** The part of the app that stores data and applies rules, behind the screens people see.
 - **Baseline:** The first measured score, used as the starting point to compare later changes against.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.

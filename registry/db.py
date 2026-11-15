@@ -42,6 +42,23 @@ CREATE TABLE IF NOT EXISTS check_results (
     checked_at TEXT NOT NULL
 );
 
+-- AI pre-review advice, one row per submission. Advice only: it never approves
+-- or rejects. verdict 'needs_human' means the AI call or its reply failed.
+CREATE TABLE IF NOT EXISTS ai_reviews (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    tool_id          INTEGER NOT NULL REFERENCES tools(id),
+    verdict          TEXT NOT NULL CHECK (verdict IN ('risky', 'safe', 'needs_human')),
+    issues           TEXT NOT NULL DEFAULT '[]',  -- JSON list of short issue strings
+    reason           TEXT NOT NULL DEFAULT '',
+    model            TEXT NOT NULL,
+    input_tokens     INTEGER NOT NULL DEFAULT 0,
+    output_tokens    INTEGER NOT NULL DEFAULT 0,
+    cost_usd         REAL,
+    response_seconds REAL NOT NULL DEFAULT 0,
+    error            TEXT,
+    reviewed_at      TEXT NOT NULL
+);
+
 -- The approval order, stored as an ordered list of steps (DECISIONS.md #1).
 CREATE TABLE IF NOT EXISTS approval_steps (
     position         INTEGER PRIMARY KEY,

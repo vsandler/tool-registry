@@ -1,7 +1,6 @@
 """Checks on the eval set itself and on the scoring, without calling the real API."""
 
 import json
-from types import SimpleNamespace
 
 from evals.run_eval import load_submissions, run, score
 from registry import agent
@@ -72,17 +71,10 @@ def test_score_checks_every_target():
     assert s["meets_targets"]["every_review_under_10_seconds"] is False
 
 
-def test_run_uses_the_agent_for_each_case_with_a_fake_client():
-    class Fake:
-        def __init__(self):
-            self.messages = self
-
-        def create(self, **kwargs):
-            text = json.dumps({"verdict": "risky", "issues": ["x"], "reason": "y"})
-            return SimpleNamespace(content=[SimpleNamespace(type="text", text=text)],
-                                   stop_reason="end_turn",
-                                   usage=SimpleNamespace(input_tokens=10, output_tokens=5))
-
-    rows = run(SUBMISSIONS[:3], client=Fake(), config={"model": "claude-haiku-5-5"}, log_path=None)
+def test_run_uses_the_agent_for_each_case(fake_ai):
+    fake_ai.verdict = "risky"
+    rows = run(SUBMISSIONS[:3], client=object(), config={"model": "claude-haiku-5-5"},
+               log_path=None)
     assert [r["id"] for r in rows] == [s["id"] for s in SUBMISSIONS[:3]]
     assert all(r["verdict"] == "risky" for r in rows)
+    assert len(fake_ai.calls) == 3

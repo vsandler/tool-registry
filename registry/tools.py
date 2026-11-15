@@ -85,12 +85,18 @@ def get_tool(conn: sqlite3.Connection, tool_id: int) -> dict | None:
 
 
 def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
-    """Send a draft for review. The rule-based checks run, and their results are saved.
+    """Send a draft for review. The rule-based checks and the AI pre-review both run,
+    and their results are saved.
 
     Flagged tools still go into review: a human decides. Nothing is auto-rejected.
-    Returns {"tool": ..., "checks": [...], "flagged": bool}.
+    The AI's verdict is advice only: it doesn't change the status or the approval
+    steps, and if the AI call fails the tool is still submitted (marked needs_human).
+    Returns {"tool": ..., "checks": [...], "flagged": bool, "ai_review": {...}}.
+    `flagged` is the rule-based checks only; the AI's own flag is in `ai_review`.
     """
-    from registry.checks import run_checks, save_check_results  # avoids a circular import
+    # Imported here to avoid circular imports (both modules import from this one).
+    from registry import agent
+    from registry.checks import run_checks, save_check_results
 
     tool = get_tool(conn, tool_id)
     if tool is None:
@@ -100,13 +106,16 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
     if tool["status"] != "draft":
         raise NotAllowed(f"Only drafts can be submitted; this tool is {tool['status']}")
     results = run_checks(conn, tool)
+    ai_result = agent.review_for_submission(tool)  # never raises
     save_check_results(conn, tool_id, results)
+    agent.save_ai_review(conn, tool_id, ai_result)
     conn.execute("UPDATE tools SET status = 'in_review' WHERE id = ?", (tool_id,))
     conn.commit()
     return {
         "tool": get_tool(conn, tool_id),
         "checks": [r.__dict__ for r in results],
         "flagged": any(not r.passed for r in results),
+        "ai_review": agent.get_ai_review(conn, tool_id),
     }
 
 

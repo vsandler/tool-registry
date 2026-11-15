@@ -292,6 +292,50 @@ def review_tool(
     return result
 
 
+def review_for_submission(tool: dict) -> ReviewResult:
+    """Run the pre-review during a submit. Never raises, so it can't block a submission.
+
+    `review_tool` already turns API and reply problems into needs_human; this also
+    covers anything unexpected (for example an unreadable config.json).
+    """
+    try:
+        return review_tool(tool)
+    except Exception as exc:  # noqa: BLE001 - a broken AI step must never stop a submit
+        logger.warning("AI pre-review failed unexpectedly: %s", type(exc).__name__)
+        return _needs_human("unknown", f"unexpected error ({type(exc).__name__})")
+
+
+def save_ai_review(conn, tool_id: int, result: ReviewResult) -> None:
+    """Store the advice. The caller commits."""
+    conn.execute(
+        "INSERT INTO ai_reviews (tool_id, verdict, issues, reason, model, input_tokens, "
+        "output_tokens, cost_usd, response_seconds, error, reviewed_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (tool_id, result.verdict, json.dumps(result.issues), result.reason, result.model,
+         result.input_tokens, result.output_tokens, result.cost_usd,
+         round(result.response_seconds, 3), result.error, now()),
+    )
+
+
+def get_ai_review(conn, tool_id: int) -> dict | None:
+    """The latest AI advice for a tool, shaped for reviewers. None if never reviewed."""
+    row = conn.execute(
+        "SELECT verdict, issues, reason, model, reviewed_at FROM ai_reviews "
+        "WHERE tool_id = ? ORDER BY id DESC LIMIT 1", (tool_id,),
+    ).fetchone()
+    if row is None:
+        return None
+    return {
+        "advice_only": True,  # the AI never approves or rejects; humans decide
+        "verdict": row["verdict"],
+        "flagged": row["verdict"] != "safe",
+        "issues": json.loads(row["issues"]),
+        "reason": row["reason"],
+        "model": row["model"],
+        "reviewed_at": row["reviewed_at"],
+    }
+
+
 def _result_from_response(response, model: str) -> ReviewResult:
     u = getattr(response, "usage", None)
     input_tokens = int(getattr(u, "input_tokens", 0) or 0)

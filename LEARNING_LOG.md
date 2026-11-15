@@ -126,3 +126,15 @@ The first run's score is the *baseline*: the starting point future changes are c
 
 ### A perfect score isn't proof
 The same person wrote the test cases and the agent's instructions, so they naturally line up. A perfect score on a small, self-written set shows the agent handles the risks we thought of. It doesn't show it handles ones we didn't. Harder cases and repeat runs give a fairer picture.
+
+### The agent runs on every submit, as advice only
+When a builder submits a tool, the six rule-based checks run first, then the AI pre-review. Both results are saved: the checks in `check_results`, the AI's verdict, issues and reason in a new `ai_reviews` table. Reviewers see the AI's advice in the admin review queue under `ai_review`, marked `advice_only: true`. The AI's verdict never changes the tool's status or the approval steps. A "safe" tool still waits for the Super admin at step 1, and a "risky" one can still be published if the humans approve it.
+
+### Keeping the two kinds of flag apart
+The existing `flagged` field still means "a rule-based check failed". The AI's flag lives separately, in `ai_review.flagged`. A reviewer can tell at a glance which warning came from a fixed rule and which came from the AI's judgement.
+
+### A broken AI can't block a submission
+If the AI call fails in any way, including something unexpected like a broken config file, the tool is still submitted and the AI's advice says `needs_human`. The submit step never fails because of the AI.
+
+### Swapping in a fake AI for every test automatically
+A pytest fixture marked `autouse=True` runs for every test without being asked for. Ours replaces the real AI with a fake one, so no test can accidentally call the paid API. Tests can still tell the fake what to answer ("risky", "safe", "needs_human") or make it crash. The agent's own tests keep a reference to the real function so they still test it.
