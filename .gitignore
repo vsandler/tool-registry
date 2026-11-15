@@ -22,6 +22,9 @@ __pycache__/
 # Python virtual environment
 .venv/
 
+# Local SQLite database (rebuilt from seed data)
+*.db
+
 # OS junk files
 .DS_Store
 Thumbs.db
