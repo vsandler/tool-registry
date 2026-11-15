@@ -1,15 +1,43 @@
 # Status
 
 ## Current phase
-Phase 7: Backend
+Phase 7: Back end (branch `phase-7-backend`). Paused, waiting on the questions below.
 
 ## Done
 - Set up permissions for autonomous building (.claude/settings.local.json)
 - Created Python virtual environment (.venv) and ignored it in git
 - Created branch phase-7-backend
+- **Database and personas:** SQLite tables, and the five made-up personas (one per role, all `@example.com`)
+- **Tools:** templates with `{{variables}}` and a visibility label (`practice-only` / `firm-wide`)
+- **Rule-based checks (6):** variables match, no client data, rationale, owner active, practice set, unique name. They flag only and never auto-reject.
+- **Seed data:** two safe tools and one deliberately failing submission ("Client welcome letter"), which trips 4 checks
+- **Approval engine:** the order is stored as a list of steps in the database. It enforces strict order, the right role per step, no self-approval (admins included), and one step per person per tool, and it keeps an add-only approval history.
+- **Tests:** 59 passing, covering every check and every approval rule, including admins trying to approve or reject their own tools
 
 ## In progress
-- (nothing yet)
+- Nothing. Stopped at the decision below.
+
+## Not started (waiting on the decision)
+- Setting the real default approval order
+- Simple API, including the admin route
+- Wiring the seed data into the default order
 
 ## Blocked / questions for Vanessa
-- (none yet)
+
+**1. Who decides each step of the fixed approval order?**
+DECISIONS.md #1 says "AI enablement approves first, then one other approver." But "AI enablement" isn't one of the five personas (Builder, Practice admin, Super admin, Specialist reviewer, Tool user), and "one other approver" doesn't say which role. Options:
+- **A.** Step 1 AI enablement = **Super admin**. Step 2 = **Practice admin** for practice-only tools, **Specialist reviewer** for firm-wide tools. This uses the visibility label to pick step 2.
+- **B.** Step 1 = **Super admin**. Step 2 = **Specialist reviewer**, always.
+- **C.** Step 1 = **Super admin**. Step 2 = **Practice admin**, always.
+- **D.** Add "AI enablement" as a sixth persona. This changes "five personas", so I haven't done it.
+
+Whichever you pick, it's a one-line change. The engine already reads the order from a list, and option A only needs a small addition so step 2 can depend on the visibility label.
+
+**2. What should the admin route do?**
+My proposal: `GET /admin/review-queue`, which only Practice and Super admins can open. It would show every tool in review with its flags, its current step and its approval history. It would be read-only, so admins can't override or skip steps through it (no self-approval still applies). Is that what you had in mind, or should admins be able to do something more, such as reassign an orphaned tool to a new owner?
+
+**Assumptions I made (tell me if any are wrong):**
+- Any persona can create and submit a tool. Only the tool's owner can submit it.
+- One person can't decide two steps of the same tool, so each step gets a different reviewer.
+- A rejection is final for now. There's no "fix and resubmit" yet.
+- For the API, I plan to use FastAPI (a common, beginner-friendly Python web framework), installed into `.venv`.
