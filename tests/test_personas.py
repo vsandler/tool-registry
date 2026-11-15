@@ -2,12 +2,18 @@ import sqlite3
 
 import pytest
 
-from registry.personas import ROLES, get_user, is_admin
+from registry.personas import ROLES, SPECIALIST_AREAS, get_user, is_admin
 
 
-def test_five_personas_one_per_role(conn):
-    roles = [r["role"] for r in conn.execute("SELECT role FROM users")]
-    assert sorted(roles) == sorted(ROLES)
+def test_all_five_persona_roles_present(conn):
+    roles = {r["role"] for r in conn.execute("SELECT role FROM users")}
+    assert roles == set(ROLES) and len(ROLES) == 5
+
+
+def test_one_specialist_per_area(conn):
+    areas = [r["specialty"] for r in conn.execute(
+        "SELECT specialty FROM users WHERE role = 'specialist_reviewer'")]
+    assert sorted(areas) == sorted(SPECIALIST_AREAS)
 
 
 def test_persona_emails_are_made_up(conn):

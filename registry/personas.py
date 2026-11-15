@@ -8,6 +8,13 @@ import sqlite3
 ROLES = ("builder", "practice_admin", "super_admin", "specialist_reviewer", "tool_user")
 ADMIN_ROLES = ("practice_admin", "super_admin")
 
+# Specialist reviewer areas. "technology" is the AI enablement team.
+SPECIALIST_AREAS = {
+    "technology": "AI enablement (technology)",
+    "compliance": "Compliance",
+    "marketing": "Marketing",
+}
+
 PERSONAS = [
     {"id": "u-builder", "name": "Avery Quill", "email": "avery.quill@example.com",
      "role": "builder", "practice": "Tax", "specialty": None},
@@ -17,6 +24,10 @@ PERSONAS = [
      "role": "super_admin", "practice": None, "specialty": None},
     {"id": "u-specialist", "name": "Sam Thistle", "email": "sam.thistle@example.com",
      "role": "specialist_reviewer", "practice": None, "specialty": "compliance"},
+    {"id": "u-specialist-tech", "name": "Devon Marsh", "email": "devon.marsh@example.com",
+     "role": "specialist_reviewer", "practice": None, "specialty": "technology"},
+    {"id": "u-specialist-marketing", "name": "Quinn Harrow", "email": "quinn.harrow@example.com",
+     "role": "specialist_reviewer", "practice": None, "specialty": "marketing"},
     {"id": "u-tool-user", "name": "Jamie Larkspur", "email": "jamie.larkspur@example.com",
      "role": "tool_user", "practice": "Audit", "specialty": None},
 ]

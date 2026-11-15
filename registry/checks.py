@@ -88,7 +88,7 @@ def check_unique_name(tool: dict, conn: sqlite3.Connection) -> CheckResult:
     """Avoid building the same tool twice: flag a name already in the catalogue."""
     clash = conn.execute(
         "SELECT id FROM tools WHERE lower(trim(name)) = lower(trim(?)) AND id != ? "
-        "AND status IN ('in_review', 'approved')",
+        "AND status IN ('in_review', 'published')",
         (tool["name"], tool["id"]),
     ).fetchone()
     if clash is None:

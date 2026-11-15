@@ -50,7 +50,10 @@ FAILING_TOOL = dict(
 
 def seed(conn: sqlite3.Connection) -> dict:
     """Load personas and sample tools, and submit them all. Returns the tool ids."""
+    from registry.approvals import ensure_default_steps
+
     seed_personas(conn)
+    ensure_default_steps(conn)
     ids = {}
     for spec in SAFE_TOOLS + [FAILING_TOOL]:
         tool_id = create_tool(conn, owner_id="u-builder", **spec)

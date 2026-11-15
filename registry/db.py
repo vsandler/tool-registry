@@ -27,7 +27,9 @@ CREATE TABLE IF NOT EXISTS tools (
     owner_id    TEXT NOT NULL REFERENCES users(id),
     rationale   TEXT NOT NULL DEFAULT '',     -- why it was built this way
     status      TEXT NOT NULL DEFAULT 'draft' CHECK (status IN (
-                    'draft', 'in_review', 'approved', 'rejected')),
+                    'draft', 'in_review', 'published', 'rejected')),
+    routed_to   TEXT CHECK (routed_to IS NULL OR routed_to IN (
+                    'compliance', 'marketing', 'technology')),
     created_at  TEXT NOT NULL
 );
 
@@ -42,9 +44,11 @@ CREATE TABLE IF NOT EXISTS check_results (
 
 -- The approval order, stored as an ordered list of steps (DECISIONS.md #1).
 CREATE TABLE IF NOT EXISTS approval_steps (
-    position      INTEGER PRIMARY KEY,
-    name          TEXT NOT NULL,
-    approver_role TEXT NOT NULL
+    position         INTEGER PRIMARY KEY,
+    name             TEXT NOT NULL,
+    approver_role    TEXT NOT NULL,
+    action           TEXT NOT NULL CHECK (action IN ('route', 'review', 'publish')),
+    different_person INTEGER NOT NULL DEFAULT 0  -- 1 = must be someone who decided no other step
 );
 
 -- Approval history: one row per decision, never edited or deleted.
@@ -56,6 +60,7 @@ CREATE TABLE IF NOT EXISTS approvals (
     approver_id TEXT NOT NULL REFERENCES users(id),
     decision    TEXT NOT NULL CHECK (decision IN ('approved', 'rejected')),
     comment     TEXT NOT NULL DEFAULT '',
+    detail      TEXT NOT NULL DEFAULT '',     -- e.g. "routed to compliance"
     decided_at  TEXT NOT NULL
 );
 """

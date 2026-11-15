@@ -45,5 +45,19 @@ The self-approval check comes first so an admin gets the clear reason ("you can'
 ### An approval history you only add to
 Every decision becomes a new row: who, which step, approved or rejected, a comment and the time. Rows are never edited or deleted, so the history is a trustworthy record of how each tool got approved.
 
+### The three-step flow: route, review, publish
+Each step in the stored list now has an *action* as well as a role:
+1. **Route:** the Super admin picks one specialist area (AI enablement/technology, compliance or marketing). The choice is saved on the tool.
+2. **Review:** only a specialist from *that* area can decide this step. A marketing specialist can't approve a tool routed to compliance.
+3. **Publish:** the tool comes back to the Super admin, who chooses its final visibility and publishes it.
+
+Whatever is chosen (the area, or "published as firm-wide") is written into the history next to the decision.
+
+### "Different person" is a setting on a step, not a blanket rule
+The same Super admin is allowed to do steps 1 and 3. So instead of "nobody may decide two steps", the review step carries a `different_person` flag. Whoever decides it must not have decided any other step of that tool. No self-approval is separate and applies to every step and every role.
+
+### Changing a test because the rule changed
+The earlier test "the same person can't decide two steps" was replaced, not weakened. Vanessa's decision changed the rule itself, so the old test described behaviour we no longer want. New tests cover the new rule from both sides: the same Super admin *may* route and publish, and the specialist *must* be a different person.
+
 ### Throwaway test databases
 Each test gets a brand-new database that exists only in memory and vanishes when the test ends. Tests can't affect each other, and nothing is left on disk.

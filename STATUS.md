@@ -46,6 +46,6 @@ My proposal: `GET /admin/review-queue`, which only Practice and Super admins can
 
 **✅ Assumptions confirmed by Vanessa:**
 - Any persona can create and submit a tool. Only the tool's owner can submit it.
-- One person can't decide two steps of the same tool, so each step gets a different reviewer.
+- The same Super admin may decide steps 1 and 3. The specialist (step 2) must be a different person from whoever decided any other step. Nobody approves or rejects a tool they own, admins included. _(This replaces my earlier "one person can't decide two steps" assumption.)_
 - A rejection is final for now. There's no "fix and resubmit" yet.
 - For the API, I plan to use FastAPI (a common, beginner-friendly Python web framework), installed into `.venv`.
