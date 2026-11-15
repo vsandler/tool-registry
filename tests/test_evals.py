@@ -8,10 +8,11 @@ from registry import agent
 SUBMISSIONS = load_submissions()
 
 
-def test_eval_set_has_about_20_cases_half_risky_half_safe():
+def test_eval_set_is_about_half_risky_half_safe():
+    """At least 18 cases, with the risky and safe counts within 2 of each other."""
     labels = [s["label"] for s in SUBMISSIONS]
-    assert 18 <= len(labels) <= 22
-    assert labels.count("risky") == labels.count("safe")
+    assert 18 <= len(labels) <= 40
+    assert abs(labels.count("risky") - labels.count("safe")) <= 2
     assert set(labels) == {"risky", "safe"}
 
 
@@ -22,9 +23,24 @@ def test_eval_ids_are_unique():
 
 def test_eval_set_covers_required_risk_types():
     categories = {s["category"] for s in SUBMISSIONS if s["label"] == "risky"}
-    for required in ("client data", "promise about returns", "missing rationale",
+    for required in ("client data", "promise about returns", "meaningless rationale",
                      "tries to trick the agent"):
         assert required in categories
+
+
+def test_ai_eval_set_has_no_missing_or_short_rationales(conn):
+    """Missing or empty rationales belong to the rule-based check (tests/test_checks.py).
+    Every AI eval case must have a rationale the rule-based check lets through, so the
+    AI is only judging rationales that are present."""
+    from registry.checks import check_has_rationale
+    for s in SUBMISSIONS:
+        assert check_has_rationale(s["tool"], conn).passed, s["id"]
+
+
+def test_ai_eval_set_has_at_least_two_meaningless_rationale_cases():
+    meaningless = [s for s in SUBMISSIONS if s["category"] == "meaningless rationale"]
+    assert len(meaningless) >= 2
+    assert all(s["label"] == "risky" for s in meaningless)
 
 
 def test_every_case_has_the_fields_the_agent_sends():

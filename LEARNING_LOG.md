@@ -138,3 +138,10 @@ If the AI call fails in any way, including something unexpected like a broken co
 
 ### Swapping in a fake AI for every test automatically
 A pytest fixture marked `autouse=True` runs for every test without being asked for. Ours replaces the real AI with a fake one, so no test can accidentally call the paid API. Tests can still tell the fake what to answer ("risky", "safe", "needs_human") or make it crash. The agent's own tests keep a reference to the real function so they still test it.
+
+### Splitting the rationale check between rules and the AI
+Two different questions get two different checkers:
+- **Is there a rationale at all?** A fixed rule answers this: is the text at least 20 characters long? It's free, instant and never wrong about it. Empty and "n/a" rationales are its job, so those two cases moved out of the AI eval set and into the rule-based tests.
+- **Does the rationale make sense?** Only judgement can answer this, so it's the AI's job. Three new AI eval cases have a rationale long enough to pass the rule but meaningless: one goes in circles ("built because we needed to build this tool"), one is placeholder filler ("Lorem ipsum…"), one is unrelated (a broken coffee machine).
+
+A test now checks that every case in the AI eval set passes the rule-based rationale check, so the two jobs stay separate. The AI's instructions were updated to match: judge whether a rationale that's there makes sense, and don't flag emptiness on its own.

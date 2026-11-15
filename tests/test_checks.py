@@ -77,6 +77,44 @@ def test_has_rationale_flags_missing_or_short(conn, rationale):
     assert not check_has_rationale(make_tool(rationale=rationale), conn).passed
 
 
+# Moved here from the AI eval set (evals/submissions.json, formerly risky-05 and
+# risky-06). Missing or empty rationales are the rule-based check's job; the AI only
+# judges whether a rationale that is present makes sense.
+MOVED_FROM_AI_EVAL = {
+    "empty rationale": dict(
+        name="Meeting agenda builder",
+        description="Builds an agenda for a client meeting.",
+        template="Create a meeting agenda for {{client_name}} covering {{topics}}. "
+                 "Meeting length: {{minutes}} minutes.",
+        variables=["client_name", "topics", "minutes"],
+        rationale="",
+    ),
+    "'n/a' rationale": dict(
+        name="Proposal cover note",
+        description="Cover note for a written proposal.",
+        template="Write a one-paragraph cover note for a proposal to {{client_name}} "
+                 "about {{service}}.",
+        variables=["client_name", "service"],
+        rationale="n/a",
+    ),
+}
+
+
+@pytest.mark.parametrize("case", MOVED_FROM_AI_EVAL)
+def test_has_rationale_flags_cases_moved_from_ai_eval(conn, case):
+    tool = make_tool(**MOVED_FROM_AI_EVAL[case])
+    assert not check_has_rationale(tool, conn).passed
+
+
+@pytest.mark.parametrize("case", MOVED_FROM_AI_EVAL)
+def test_moved_cases_fail_only_the_rationale_check(conn, case):
+    """Everything else about them is clean, so the rationale is the only thing caught."""
+    from registry.checks import run_checks
+    failed = [r.name for r in run_checks(conn, make_tool(**MOVED_FROM_AI_EVAL[case]))
+              if not r.passed]
+    assert failed == ["has_rationale"]
+
+
 # --- owner_active ------------------------------------------------------------
 
 def test_owner_active_passes_for_current_user(conn):
