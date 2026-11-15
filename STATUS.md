@@ -1,27 +1,38 @@
 # Status
 
 ## Current phase
-Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a and 8b are done and committed. Stopped before 8c, as asked.** Not pushed.
+Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a, 8b and your four follow-ups are done and committed. Stopped before 8c, as asked.** Not pushed.
 
-## Baseline score (8b, 2026-11-15)
-Model `claude-haiku-5-5`, effort `medium`, 20 made-up submissions. Details in EVALS.md.
+## New baseline score (run 2, 2026-11-15)
+Model `claude-haiku-5-5`, effort `medium`. 33 made-up cases (17 risky, 16 safe), each run 3 times = 99 calls. Details in EVALS.md.
 
 | Measure | Result | Target | Met? |
 |---|---|---|---|
-| Risky caught | 10 / 10 | All | ✅ |
-| Safe passed | 10 / 10 | At least 8 / 10 | ✅ |
-| Cost per review | avg $0.00019, max $0.00026 | Under 1 cent | ✅ |
-| Response time | avg 1.73 s, max 2.89 s | Under 10 s | ✅ |
+| Risky caught in every run | **17 / 17** | All | ✅ |
+| Safe passed in every run | **16 / 16** (100% each run) | At least 80% (8 of 10) in every run | ✅ |
+| Cost per review | avg $0.00020, max $0.00027 | Under 1 cent | ✅ |
+| Response time | avg 1.49 s, max 2.55 s | Under 10 s | ✅ |
 
-The agent caught the trick submission and named both tricks in it. Caution: the set is small, I wrote it, and it ran only once, so treat 10/10 as "handles the risks we thought of" rather than proof.
+- **Missed cases:** none. No risky case slipped through in any run, and no safe case was flagged in any run.
+- **Cases with different answers across runs:** none. All 33 cases got the same verdict all 3 times.
+- **Failed replies (needs human):** 0 of 99.
+- **Previous baseline (run 1):** 10/10 risky, 10/10 safe, 20 cases × 1 run.
+
+I read the agent's issues for every new risky case, and each names the real problem, so these are right answers for the right reasons. Still, a perfect score on a set I wrote means it may be too easy to show where the agent fails. "Make the eval set harder" is now in BACKLOG.md and the README.
 
 ## Done
-### Phase 8
-- **8a: AI pre-review agent** (`registry/agent.py`). It reads the model and effort level from `config.json` and loads the API key from `.env` with python-dotenv. Our code never reads, prints or logs the key. It returns `risky` / `safe` + issues + reason, checked against a strict schema. Any bad, missing, refused or failed reply becomes `needs_human` (flagged for a person). The submission is sent as escaped JSON inside `<submission>` tags and treated as data. Every call is logged to `logs/agent_calls.jsonl` (git-ignored) with tokens, cost, response time and outcome. 31 new tests use a fake client, so the test suite never calls the real API.
-- **8b: Eval set and script.** `evals/submissions.json` (10 risky, 10 safe, all made up), `evals/run_eval.py`, baseline results in `evals/results/` and EVALS.md. 8 new tests check the set itself and the scoring.
-- **Tests:** 149 passing (110 from phase 7 + 39 new).
-- **New packages** (in `.venv`, pinned in requirements.txt): `anthropic` 2.8.0, `python-dotenv` 1.2.4. `pydantic` 2.14.3 was already installed with FastAPI and is now pinned too because the agent uses it directly.
-- **config.json** now also holds `"effort": "medium"` (how hard the model thinks). Medium is Haiku 5.5's default. I made it explicit so it can be tuned.
+### Phase 8 follow-ups (your answers of 2026-11-15)
+- **Agent runs on every submit, as advice only.** `submit_tool` runs the rule-based checks and then the AI. The AI's verdict, issues and reason are saved in a new `ai_reviews` table. They show under `ai_review` (marked `advice_only: true`) in tool details and the admin review queue. The AI never changes the status or the approval steps. If the AI fails in any way, the tool is still submitted and marked `needs_human`. The rule-based `flagged` field is unchanged, so the two kinds of flag stay apart.
+- **Rationale check split.** The empty and "n/a" rationale cases moved from the AI eval set into the rule-based tests (`tests/test_checks.py`). The AI's instructions now say: judge whether a rationale that's present makes sense, and don't flag emptiness on its own. There are 3 new AI cases with long-enough but meaningless rationales (circular, filler, unrelated), and a test that keeps empty rationales out of the AI set.
+- **12 harder cases + 3 runs each.** Subtle client data, soft return promises, disguised tricks, and 6 safe cases built to look risky. The eval script now runs every case 3 times and reports any case whose answer changes.
+- **Backlog:** added "Make the eval set harder", and added a "What I'd build next" section to the README that mirrors the BACKLOG.md To Do list (the README didn't have one before).
+- **Test changes (both explained in their commit messages):** the eval-set balance test now allows the risky and safe counts to differ by up to 2 (was exactly equal), to match "about half and half". The scoring tests were rewritten for multi-run results, keeping every old check.
+
+### Phase 8a and 8b
+- **8a: AI pre-review agent** (`registry/agent.py`). It reads the model and effort level from `config.json` and loads the API key from `.env` with python-dotenv. Our code never reads, prints or logs the key. It returns `risky` / `safe` + issues + reason, checked against a strict schema. Any bad, missing, refused or failed reply becomes `needs_human`. The submission is sent as escaped JSON inside `<submission>` tags and treated as data. Every call logs tokens, cost, response time and outcome to `logs/` (git-ignored).
+- **8b: Eval set and script** (`evals/`), with results in `evals/results/` and EVALS.md.
+- **New packages** (pinned in requirements.txt): `anthropic` 2.8.0, `python-dotenv` 1.2.4, and `pydantic` 2.14.3 (already installed, now pinned).
+- **Tests:** 171 passing. A fake AI is swapped in for every test automatically, so the test suite never calls the real API.
 
 ### Phase 7 (earlier)
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
@@ -31,17 +42,20 @@ The agent caught the trick submission and named both tricks in it. Caution: the 
 
 ## Blocked / questions for Vanessa
 
-**1. Should the agent run automatically on submit?**
-For now the agent is a standalone function (`review_tool`). It isn't wired into `submit_tool` or the API yet, because I didn't want to guess at 8c. Options: (A) run it on every submit and show its verdict and issues next to the rule-based flags in the review queue; (B) an admin presses a button to run it; (C) leave wiring for 8c. If it runs on submit, a failed AI call would just add a "needs human" flag. It would never block the submission.
+**1. Real API calls when the app first starts.**
+Starting the app with no `registry.db` loads the sample data and submits its 3 tools, so it now makes 3 real AI calls (about $0.0006 in total). Without a key in `.env`, those tools just show `needs_human`. Is that OK, or should the sample data skip the AI (for example, store fixed sample advice instead)?
 
-**2. Make the eval harder?**
-10/10 on both sides suggests the set is too easy to tell versions apart. That matters for DECISIONS.md #4 (Haiku 5.5 vs Sonnet 5.5). I'd suggest adding about 10 trickier cases: subtle promises ("comfortably beat inflation"), a lone real-looking name, a polite injection hidden in a variable name, and safe tools that use words like "guarantee" correctly. I could also run each case 3 times to check the results are consistent. Each full run costs under half a cent on Haiku.
+**2. 8d: what decides Haiku vs Sonnet if both score 100%?**
+Haiku 5.5 didn't miss or waver on a single case, so Sonnet 5.5 can't beat it on accuracy with this set. If Sonnet also scores 100%, should cost and speed decide (which favours Haiku), or would you rather do the "make the eval set harder" backlog item first so the comparison means something?
 
-**3. Compare against Sonnet 5.5 now?**
-DECISIONS.md #4 says to run both models on the same evals before committing. Changing `config.json` is a one-line change, and a Sonnet run would cost about $0.08. Should I do this before or after making the set harder?
+**3. What is 8c?**
+I've stopped before it as asked. When you're ready, tell me what it covers.
 
-**4. Is "missing rationale" really *risky*?**
-I labelled empty or meaningless rationales as risky, and the agent agrees. The rule-based `has_rationale` check already flags short ones. Are you happy for the AI to flag these as well, or should the AI focus on content risks?
+**✅ Answered on 2026-11-15:**
+1. Run the agent on every submit, shown to reviewers as advice only. **Done.**
+2. Add about 10 harder cases and run each 3 times. **Done** (12 cases).
+3. Compare with Sonnet 5.5 after the harder set, in 8d. **Not started**, waiting for 8d.
+4. Split the rationale check between rules and the AI. **Done.**
 
 _Earlier questions, both answered on 2026-11-14:_
 
