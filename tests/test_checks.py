@@ -1,0 +1,166 @@
+import pytest
+
+from registry.checks import (
+    check_has_rationale,
+    check_no_client_data,
+    check_owner_active,
+    check_practice_for_practice_only,
+    check_unique_name,
+    check_variables_match,
+)
+from registry.seed import seed
+from registry.tools import ToolError, create_tool, get_tool, submit_tool
+
+
+def make_tool(**overrides):
+    """A clean tool as a plain dict, for testing one check at a time."""
+    tool = dict(
+        id=999, name="Clean tool", description="Does a thing.",
+        template="Hello {{name}}", variables=["name"], visibility="firm-wide",
+        practice=None, owner_id="u-builder",
+        rationale="Kept short so it's easy to reuse.",
+    )
+    tool.update(overrides)
+    return tool
+
+
+# --- variables_match ---------------------------------------------------------
+
+def test_variables_match_passes_when_declared_equals_used(conn):
+    assert check_variables_match(make_tool(), conn).passed
+
+
+def test_variables_match_flags_undeclared_variable(conn):
+    r = check_variables_match(make_tool(template="{{name}} {{year}}"), conn)
+    assert not r.passed and "year" in r.message
+
+
+def test_variables_match_flags_declared_but_unused(conn):
+    r = check_variables_match(make_tool(variables=["name", "extra"]), conn)
+    assert not r.passed and "extra" in r.message
+
+
+# --- no_client_data ----------------------------------------------------------
+
+def test_no_client_data_passes_clean_template(conn):
+    assert check_no_client_data(make_tool(), conn).passed
+
+
+@pytest.mark.parametrize("pasted, kind", [
+    ("Email casey.sample@example.com", "email"),
+    ("Call (555) 010-0199", "phone"),
+    ("Call 555-010-0199", "phone"),
+    ("Account 12345678", "account"),
+])
+def test_no_client_data_flags_pasted_details(conn, pasted, kind):
+    r = check_no_client_data(make_tool(template="Hello {{name}}. " + pasted), conn)
+    assert not r.passed and kind in r.message
+
+
+def test_no_client_data_also_scans_rationale(conn):
+    r = check_no_client_data(make_tool(rationale="Built for casey.sample@example.com last year"), conn)
+    assert not r.passed
+
+
+def test_no_client_data_allows_short_numbers_like_years(conn):
+    assert check_no_client_data(make_tool(template="Hello {{name}}, see you in 2027."), conn).passed
+
+
+# --- has_rationale -----------------------------------------------------------
+
+def test_has_rationale_passes(conn):
+    assert check_has_rationale(make_tool(), conn).passed
+
+
+@pytest.mark.parametrize("rationale", ["", "   ", "too short"])
+def test_has_rationale_flags_missing_or_short(conn, rationale):
+    assert not check_has_rationale(make_tool(rationale=rationale), conn).passed
+
+
+# --- owner_active ------------------------------------------------------------
+
+def test_owner_active_passes_for_current_user(conn):
+    assert check_owner_active(make_tool(), conn).passed
+
+
+def test_owner_active_flags_departed_owner(conn):
+    conn.execute("UPDATE users SET active = 0 WHERE id = 'u-builder'")
+    assert not check_owner_active(make_tool(), conn).passed
+
+
+# --- practice_set ------------------------------------------------------------
+
+def test_practice_set_passes_for_firm_wide_without_practice(conn):
+    assert check_practice_for_practice_only(make_tool(), conn).passed
+
+
+def test_practice_set_passes_for_practice_only_with_practice(conn):
+    tool = make_tool(visibility="practice-only", practice="Tax")
+    assert check_practice_for_practice_only(tool, conn).passed
+
+
+def test_practice_set_flags_practice_only_without_practice(conn):
+    tool = make_tool(visibility="practice-only", practice=None)
+    assert not check_practice_for_practice_only(tool, conn).passed
+
+
+# --- unique_name -------------------------------------------------------------
+
+def test_unique_name_passes_when_no_clash(conn):
+    assert check_unique_name(make_tool(), conn).passed
+
+
+def test_unique_name_flags_existing_tool_ignoring_case(conn):
+    tid = create_tool(conn, name="Clean Tool", template="x", owner_id="u-builder",
+                      visibility="firm-wide")
+    conn.execute("UPDATE tools SET status = 'in_review' WHERE id = ?", (tid,))
+    assert not check_unique_name(make_tool(name="  clean tool "), conn).passed
+
+
+def test_unique_name_ignores_drafts(conn):
+    create_tool(conn, name="Clean tool", template="x", owner_id="u-builder", visibility="firm-wide")
+    assert check_unique_name(make_tool(), conn).passed
+
+
+# --- submitting --------------------------------------------------------------
+
+def test_submit_clean_tool_goes_to_review_unflagged(conn):
+    tid = create_tool(conn, name="Clean tool", template="Hello {{name}}", owner_id="u-builder",
+                      visibility="firm-wide", rationale="Kept short so it's easy to reuse.")
+    result = submit_tool(conn, tid, "u-builder")
+    assert result["flagged"] is False
+    assert get_tool(conn, tid)["status"] == "in_review"
+
+
+def test_only_owner_can_submit(conn):
+    tid = create_tool(conn, name="T", template="x", owner_id="u-builder", visibility="firm-wide")
+    with pytest.raises(ToolError, match="owner"):
+        submit_tool(conn, tid, "u-practice-admin")
+
+
+def test_cannot_submit_twice(conn):
+    tid = create_tool(conn, name="T", template="x", owner_id="u-builder", visibility="firm-wide")
+    submit_tool(conn, tid, "u-builder")
+    with pytest.raises(ToolError, match="drafts"):
+        submit_tool(conn, tid, "u-builder")
+
+
+# --- the seeded, deliberately failing submission ------------------------------
+
+def test_seeded_failing_submission_is_flagged_but_not_rejected(conn):
+    ids = seed(conn)
+    bad = ids["Client welcome letter"]
+    failed = {r["check_name"] for r in conn.execute(
+        "SELECT check_name FROM check_results WHERE tool_id = ? AND passed = 0", (bad,))}
+    assert failed == {"no_client_data", "variables_match", "has_rationale", "practice_set"}
+    # Flagged goes to a human; nothing is auto-rejected.
+    assert get_tool(conn, bad)["status"] == "in_review"
+
+
+def test_seeded_safe_submissions_pass_every_check(conn):
+    ids = seed(conn)
+    for name in ("Meeting summary", "Engagement letter draft"):
+        failed = conn.execute(
+            "SELECT count(*) FROM check_results WHERE tool_id = ? AND passed = 0", (ids[name],)
+        ).fetchone()[0]
+        assert failed == 0, name

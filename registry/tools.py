@@ -76,6 +76,32 @@ def get_tool(conn: sqlite3.Connection, tool_id: int) -> dict | None:
     return tool
 
 
+def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
+    """Send a draft for review. The rule-based checks run, and their results are saved.
+
+    Flagged tools still go into review: a human decides. Nothing is auto-rejected.
+    Returns {"tool": ..., "checks": [...], "flagged": bool}.
+    """
+    from registry.checks import run_checks, save_check_results  # avoids a circular import
+
+    tool = get_tool(conn, tool_id)
+    if tool is None:
+        raise ToolError(f"Tool {tool_id} not found")
+    if tool["owner_id"] != user_id:
+        raise ToolError("Only the tool's owner can submit it")
+    if tool["status"] != "draft":
+        raise ToolError(f"Only drafts can be submitted; this tool is {tool['status']}")
+    results = run_checks(conn, tool)
+    save_check_results(conn, tool_id, results)
+    conn.execute("UPDATE tools SET status = 'in_review' WHERE id = ?", (tool_id,))
+    conn.commit()
+    return {
+        "tool": get_tool(conn, tool_id),
+        "checks": [r.__dict__ for r in results],
+        "flagged": any(not r.passed for r in results),
+    }
+
+
 def list_tools(conn: sqlite3.Connection, status: str | None = None) -> list[dict]:
     if status:
         rows = conn.execute("SELECT id FROM tools WHERE status = ? ORDER BY id", (status,))
