@@ -23,11 +23,19 @@ Rules:
 import sqlite3
 
 from registry.personas import ROLES, SPECIALIST_AREAS, get_user
-from registry.tools import VISIBILITIES, ToolError, get_tool, now
+from registry.tools import VISIBILITIES, NotAllowed, NotFound, get_tool, now
 
 
-class ApprovalError(ToolError):
+class ApprovalError(NotAllowed):
     """Raised when an approval decision isn't allowed."""
+
+
+class ApprovalInputError(ApprovalError):
+    """The decision is missing something or has a bad value (e.g. no route area)."""
+
+
+class ApprovalNotFound(ApprovalError, NotFound):
+    """The tool or user in the decision doesn't exist."""
 
 
 DECISIONS = ("approved", "rejected")
@@ -46,12 +54,12 @@ DEFAULT_APPROVAL_STEPS = [
 def set_steps(conn: sqlite3.Connection, steps: list[dict]) -> None:
     """Replace the approval order with an ordered list of steps."""
     if not steps:
-        raise ApprovalError("The approval order needs at least one step")
+        raise ApprovalInputError("The approval order needs at least one step")
     for step in steps:
         if step["approver_role"] not in ROLES:
-            raise ApprovalError(f"Unknown role {step['approver_role']!r}")
+            raise ApprovalInputError(f"Unknown role {step['approver_role']!r}")
         if step["action"] not in ACTIONS:
-            raise ApprovalError(f"Unknown action {step['action']!r}")
+            raise ApprovalInputError(f"Unknown action {step['action']!r}")
     conn.execute("DELETE FROM approval_steps")
     conn.executemany(
         "INSERT INTO approval_steps (position, name, approver_role, action, different_person) "
@@ -116,13 +124,13 @@ def decide(
       practice (given here, or already on the tool).
     """
     if decision not in DECISIONS:
-        raise ApprovalError(f"Decision must be one of {DECISIONS}")
+        raise ApprovalInputError(f"Decision must be one of {DECISIONS}")
     tool = get_tool(conn, tool_id)
     if tool is None:
-        raise ApprovalError(f"Tool {tool_id} not found")
+        raise ApprovalNotFound(f"Tool {tool_id} not found")
     user = get_user(conn, user_id)
     if user is None:
-        raise ApprovalError(f"User {user_id} not found")
+        raise ApprovalNotFound(f"User {user_id} not found")
 
     # No self-approval comes first, so the reason is clear whatever the role.
     if tool["owner_id"] == user_id:
@@ -152,16 +160,16 @@ def decide(
     updates: dict = {}
     if decision == "approved" and step["action"] == "route":
         if route_to not in SPECIALIST_AREAS:
-            raise ApprovalError(
+            raise ApprovalInputError(
                 f"Choose a specialist area to route to: {', '.join(SPECIALIST_AREAS)}")
         updates["routed_to"] = route_to
         detail = f"routed to {route_to}"
     elif decision == "approved" and step["action"] == "publish":
         if visibility not in VISIBILITIES:
-            raise ApprovalError(f"Set visibility to one of {VISIBILITIES} before publishing")
+            raise ApprovalInputError(f"Set visibility to one of {VISIBILITIES} before publishing")
         final_practice = (practice or tool["practice"] or "").strip() or None
         if visibility == "practice-only" and not final_practice:
-            raise ApprovalError("Name the practice for a practice-only tool")
+            raise ApprovalInputError("Name the practice for a practice-only tool")
         updates["visibility"] = visibility
         updates["practice"] = final_practice if visibility == "practice-only" else tool["practice"]
         detail = f"published as {visibility}" + (

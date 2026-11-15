@@ -12,7 +12,15 @@ VARIABLE_PATTERN = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
 
 
 class ToolError(ValueError):
-    """Raised when a tool request can't be carried out."""
+    """Raised when a tool request can't be carried out (bad input)."""
+
+
+class NotFound(ToolError):
+    """The tool or user doesn't exist."""
+
+
+class NotAllowed(ToolError):
+    """The person isn't allowed to do this."""
 
 
 def now() -> str:
@@ -86,11 +94,11 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
 
     tool = get_tool(conn, tool_id)
     if tool is None:
-        raise ToolError(f"Tool {tool_id} not found")
+        raise NotFound(f"Tool {tool_id} not found")
     if tool["owner_id"] != user_id:
-        raise ToolError("Only the tool's owner can submit it")
+        raise NotAllowed("Only the tool's owner can submit it")
     if tool["status"] != "draft":
-        raise ToolError(f"Only drafts can be submitted; this tool is {tool['status']}")
+        raise NotAllowed(f"Only drafts can be submitted; this tool is {tool['status']}")
     results = run_checks(conn, tool)
     save_check_results(conn, tool_id, results)
     conn.execute("UPDATE tools SET status = 'in_review' WHERE id = ?", (tool_id,))

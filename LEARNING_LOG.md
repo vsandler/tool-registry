@@ -59,5 +59,27 @@ The same Super admin is allowed to do steps 1 and 3. So instead of "nobody may d
 ### Changing a test because the rule changed
 The earlier test "the same person can't decide two steps" was replaced, not weakened. Vanessa's decision changed the rule itself, so the old test described behaviour we no longer want. New tests cover the new rule from both sides: the same Super admin *may* route and publish, and the specialist *must* be a different person.
 
+### An API: a menu of requests the back end answers
+The API is a list of web addresses (endpoints) that a front end, or a person using the `/docs` page, can call. For example, `POST /tools/5/decisions` means "record a decision on tool 5". FastAPI checks each request's shape (for example "decision must be text") before our code runs, and it builds the `/docs` page automatically.
+
+### Saying who you are with a header
+Instead of signing in, each request carries an `X-Persona` header naming the persona, which stands in for the dropdown. An unknown persona gets a 401 ("who are you?"). A known persona doing something they're not allowed to do gets a 403 ("not allowed").
+
+### Status codes tell the front end what went wrong
+- **200 / 201:** worked (201 = something new was created).
+- **400:** your request is missing something or has a bad value. Fix it and try again.
+- **401:** we don't know who you are.
+- **403:** we know who you are, but you're not allowed (for example, approving your own tool).
+- **404:** that tool doesn't exist.
+- **405:** that kind of request isn't allowed here. This is how we prove the admin review queue is read-only.
+
+Our errors are grouped into families (not found, not allowed, bad input), and each family maps to one code.
+
+### A read-only admin route
+`GET /admin/review-queue` shows admins every tool waiting for review, with its flags, current step and history. It only supports *reading*. There's no way to approve, skip or change anything through it, so it can't be used to get round the approval rules.
+
+### Who sees what in the catalogue
+Firm-wide published tools are visible to everyone. Practice-only published tools are visible only to people in that practice (and to Super admins). Unpublished tools never appear in the catalogue.
+
 ### Throwaway test databases
 Each test gets a brand-new database that exists only in memory and vanishes when the test ends. Tests can't affect each other, and nothing is left on disk.
