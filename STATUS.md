@@ -1,30 +1,32 @@
 # Status
 
 ## Current phase
-Phase 7: Back end (branch `phase-7-backend`). Paused, waiting on the questions below.
+Phase 7: Back end (branch `phase-7-backend`). Built and tested. Ready for your review. Not pushed.
 
 ## Done
 - Set up permissions for autonomous building (.claude/settings.local.json)
 - Created Python virtual environment (.venv) and ignored it in git
 - Created branch phase-7-backend
-- **Database and personas:** SQLite tables, and the five made-up personas (one per role, all `@example.com`)
+- **Database and personas:** SQLite tables and the five made-up persona roles (all `@example.com`). There are 7 people in total, because there's one specialist for each of the three areas.
 - **Tools:** templates with `{{variables}}` and a visibility label (`practice-only` / `firm-wide`)
 - **Rule-based checks (6):** variables match, no client data, rationale, owner active, practice set, unique name. They flag only and never auto-reject.
 - **Seed data:** two safe tools and one deliberately failing submission ("Client welcome letter"), which trips 4 checks
-- **Approval engine:** the order is stored as a list of steps in the database. It enforces strict order, the right role per step, no self-approval (admins included), and one step per person per tool, and it keeps an add-only approval history.
-- **Tests:** 59 passing, covering every check and every approval rule, including admins trying to approve or reject their own tools
+- **Approval flow (DECISIONS.md #1):** stored as a list of 3 steps: route (Super admin), specialist review (routed area only, different person), publish (Super admin sets visibility). The same Super admin may do steps 1 and 3. No self-approval for anyone, admins included. Add-only approval history.
+- **API (FastAPI):** personas, approval steps, catalogue (respects visibility), create/submit, decisions, history, personalise, and the read-only admin review queue
+- **Tests:** 110 passing, covering every check, every approval rule (routing, the return to Super admin, setting visibility, self-approval by each admin type) and every endpoint
+- **Real server check:** started the server and confirmed the review queue shows the failing submission as flagged
 
 ## In progress
-- Nothing. Stopped at the decision below.
+- Nothing.
 
-## Not started (waiting on the decision)
-- Setting the real default approval order
-- Simple API, including the admin route
-- Wiring the seed data into the default order
+## Possible next steps (your call)
+- Front end with the persona dropdown
+- AI pre-review agent (DECISIONS.md #4)
+- Backlog items: configurable order, hub-and-spoke routing, reassigning orphaned tools, fix and resubmit
 
 ## Blocked / questions for Vanessa
 
-_Both questions answered on 2026-11-14 (details below). No open questions right now._
+_No open questions right now. Earlier questions, both answered on 2026-11-14:_
 
 **1. ✅ Answered: Who decides each step of the fixed approval order?**
 Answer: three steps. (1) The Super admin routes the tool to one specialist area (AI enablement/technology, compliance, or marketing). (2) That specialist approves. (3) It returns to the Super admin, who sets visibility and publishes. The same Super admin may do steps 1 and 3, the specialist must be a different person, and there's no self-approval. Recorded in DECISIONS.md #1.
