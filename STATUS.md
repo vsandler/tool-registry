@@ -1,32 +1,49 @@
 # Status
 
 ## Current phase
-Phase 7: Back end (branch `phase-7-backend`). Built and tested. Ready for your review. Not pushed.
+Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a and 8b are done and committed. Stopped before 8c, as asked.** Not pushed.
+
+## Baseline score (8b, 2026-11-15)
+Model `claude-haiku-5-5`, effort `medium`, 20 made-up submissions. Details in EVALS.md.
+
+| Measure | Result | Target | Met? |
+|---|---|---|---|
+| Risky caught | 10 / 10 | All | ✅ |
+| Safe passed | 10 / 10 | At least 8 / 10 | ✅ |
+| Cost per review | avg $0.00019, max $0.00026 | Under 1 cent | ✅ |
+| Response time | avg 1.73 s, max 2.89 s | Under 10 s | ✅ |
+
+The agent caught the trick submission and named both tricks in it. Caution: the set is small, I wrote it, and it ran only once, so treat 10/10 as "handles the risks we thought of" rather than proof.
 
 ## Done
-- Set up permissions for autonomous building (.claude/settings.local.json)
-- Created Python virtual environment (.venv) and ignored it in git
-- Created branch phase-7-backend
-- **Database and personas:** SQLite tables and the five made-up persona roles (all `@example.com`). There are 7 people in total, because there's one specialist for each of the three areas.
-- **Tools:** templates with `{{variables}}` and a visibility label (`practice-only` / `firm-wide`)
-- **Rule-based checks (6):** variables match, no client data, rationale, owner active, practice set, unique name. They flag only and never auto-reject.
-- **Seed data:** two safe tools and one deliberately failing submission ("Client welcome letter"), which trips 4 checks
-- **Approval flow (DECISIONS.md #1):** stored as a list of 3 steps: route (Super admin), specialist review (routed area only, different person), publish (Super admin sets visibility). The same Super admin may do steps 1 and 3. No self-approval for anyone, admins included. Add-only approval history.
-- **API (FastAPI):** personas, approval steps, catalogue (respects visibility), create/submit, decisions, history, personalise, and the read-only admin review queue
-- **Tests:** 110 passing, covering every check, every approval rule (routing, the return to Super admin, setting visibility, self-approval by each admin type) and every endpoint
-- **Real server check:** started the server and confirmed the review queue shows the failing submission as flagged
+### Phase 8
+- **8a: AI pre-review agent** (`registry/agent.py`). It reads the model and effort level from `config.json` and loads the API key from `.env` with python-dotenv. Our code never reads, prints or logs the key. It returns `risky` / `safe` + issues + reason, checked against a strict schema. Any bad, missing, refused or failed reply becomes `needs_human` (flagged for a person). The submission is sent as escaped JSON inside `<submission>` tags and treated as data. Every call is logged to `logs/agent_calls.jsonl` (git-ignored) with tokens, cost, response time and outcome. 31 new tests use a fake client, so the test suite never calls the real API.
+- **8b: Eval set and script.** `evals/submissions.json` (10 risky, 10 safe, all made up), `evals/run_eval.py`, baseline results in `evals/results/` and EVALS.md. 8 new tests check the set itself and the scoring.
+- **Tests:** 149 passing (110 from phase 7 + 39 new).
+- **New packages** (in `.venv`, pinned in requirements.txt): `anthropic` 2.8.0, `python-dotenv` 1.2.4. `pydantic` 2.14.3 was already installed with FastAPI and is now pinned too because the agent uses it directly.
+- **config.json** now also holds `"effort": "medium"` (how hard the model thinks). Medium is Haiku 5.5's default. I made it explicit so it can be tuned.
+
+### Phase 7 (earlier)
+- Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing.
-
-## Possible next steps (your call)
-- Front end with the persona dropdown
-- AI pre-review agent (DECISIONS.md #4)
-- Backlog items: configurable order, hub-and-spoke routing, reassigning orphaned tools, fix and resubmit
+- Nothing. Waiting for you before 8c.
 
 ## Blocked / questions for Vanessa
 
-_No open questions right now. Earlier questions, both answered on 2026-11-14:_
+**1. Should the agent run automatically on submit?**
+For now the agent is a standalone function (`review_tool`). It isn't wired into `submit_tool` or the API yet, because I didn't want to guess at 8c. Options: (A) run it on every submit and show its verdict and issues next to the rule-based flags in the review queue; (B) an admin presses a button to run it; (C) leave wiring for 8c. If it runs on submit, a failed AI call would just add a "needs human" flag. It would never block the submission.
+
+**2. Make the eval harder?**
+10/10 on both sides suggests the set is too easy to tell versions apart. That matters for DECISIONS.md #4 (Haiku 5.5 vs Sonnet 5.5). I'd suggest adding about 10 trickier cases: subtle promises ("comfortably beat inflation"), a lone real-looking name, a polite injection hidden in a variable name, and safe tools that use words like "guarantee" correctly. I could also run each case 3 times to check the results are consistent. Each full run costs under half a cent on Haiku.
+
+**3. Compare against Sonnet 5.5 now?**
+DECISIONS.md #4 says to run both models on the same evals before committing. Changing `config.json` is a one-line change, and a Sonnet run would cost about $0.08. Should I do this before or after making the set harder?
+
+**4. Is "missing rationale" really *risky*?**
+I labelled empty or meaningless rationales as risky, and the agent agrees. The rule-based `has_rationale` check already flags short ones. Are you happy for the AI to flag these as well, or should the AI focus on content risks?
+
+_Earlier questions, both answered on 2026-11-14:_
 
 **1. ✅ Answered: Who decides each step of the fixed approval order?**
 Answer: three steps. (1) The Super admin routes the tool to one specialist area (AI enablement/technology, compliance, or marketing). (2) That specialist approves. (3) It returns to the Super admin, who sets visibility and publishes. The same Super admin may do steps 1 and 3, the specialist must be a different person, and there's no self-approval. Recorded in DECISIONS.md #1.
