@@ -1,0 +1,25 @@
+# Secrets: never commit
+.env
+.env.*
+!.env.example
+
+# Private prep notes
+PREP/
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# JavaScript dependencies
+node_modules/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS junk files
+.DS_Store
+Thumbs.db
+desktop.ini
