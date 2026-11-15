@@ -28,6 +28,7 @@ _Terms used in this project, defined in plain language._
 - **Fixture (pytest):** A reusable setup step for tests, such as "give me a fresh database with the five personas in it".
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
 - **Header (HTTP):** A labelled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
+- **Inconsistent case:** An eval case that gets different verdicts in different runs. It shows where the model is unsure.
 - **In-memory database:** A database kept only in the computer's working memory. It disappears when the program stops, which is ideal for tests.
 - **JSON:** A simple text format for structured data, like `{"verdict": "safe", "issues": []}`.
 - **JSON Lines (.jsonl):** A log file with one JSON record per line. Easy to add to and easy to read back.
@@ -49,6 +50,7 @@ _Terms used in this project, defined in plain language._
 - **Response time (latency):** How long one AI call takes, from sending the request to getting the answer.
 - **Routing:** The Super admin sending a tool to one specialist area for review.
 - **Rule-based check:** A fixed, simple test (no AI) run on every submission, such as "does the template contain an email address?".
+- **Run (eval):** One pass through every case in the eval set. Ours does 3 runs to check the answers stay the same.
 - **Seed data:** Made-up sample records loaded into an empty database so there's something to work with.
 - **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
 - **Specialist area:** One of the three review teams: AI enablement (technology), compliance, or marketing.

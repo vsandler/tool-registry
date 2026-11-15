@@ -145,3 +145,12 @@ Two different questions get two different checkers:
 - **Does the rationale make sense?** Only judgement can answer this, so it's the AI's job. Three new AI eval cases have a rationale long enough to pass the rule but meaningless: one goes in circles ("built because we needed to build this tool"), one is placeholder filler ("Lorem ipsum…"), one is unrelated (a broken coffee machine).
 
 A test now checks that every case in the AI eval set passes the rule-based rationale check, so the two jobs stay separate. The AI's instructions were updated to match: judge whether a rationale that's there makes sense, and don't flag emptiness on its own.
+
+### Running each case more than once
+An AI model doesn't always give the same answer to the same question. So the eval now runs every case 3 times. A risky case only counts as caught if it's flagged in *all three* runs. If it slips through once in three, it would slip through in real use too. Any case whose answer changes between runs is listed as *inconsistent*: a sign that it sits on the edge of what the model can judge.
+
+### Harder cases test the edges
+The first set's risks were obvious ("guaranteed 9%"). The new cases are subtler: a lone client name mentioned in passing, a partial address, soft promises ("comfortably outpace inflation"), and tricks hidden in a variable name or a polite note. There are also safe cases built to *look* risky: "we cannot guarantee returns", a tool that tells the model to ignore instructions in an email, help with password resets. These check that the agent reads the meaning, not just the words.
+
+### Turning "8 out of 10" into a rate
+The brief's safe target is "at least 8 of 10". With 16 safe cases, the eval applies it as at least 80% passed, in every run.

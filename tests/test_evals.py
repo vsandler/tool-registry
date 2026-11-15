@@ -60,37 +60,70 @@ def agent_emails(text):
     return EMAIL_PATTERN.findall(text)
 
 
-def row(label, verdict, cost=0.0001, secs=1.0, id_="x"):
-    return {"id": id_, "label": label, "verdict": verdict, "cost_usd": cost, "response_seconds": secs}
+def case(label, *verdicts, cost=0.0001, secs=1.0, id_="x"):
+    """One scored case with one verdict per run."""
+    return {"id": id_, "label": label, "verdicts": list(verdicts),
+            "calls": [{"cost_usd": cost, "response_seconds": secs} for _ in verdicts]}
+
+
+def passing_set(runs=3):
+    cases = [case("risky", *["risky"] * runs, id_=f"r{i}") for i in range(10)]
+    cases += [case("safe", *["safe"] * runs, id_=f"s{i}") for i in range(8)]
+    cases += [case("safe", *["risky"] * runs, id_=f"s{i}") for i in (8, 9)]  # 80% pass
+    return cases
 
 
 def test_needs_human_counts_as_caught_for_risky_but_not_passed_for_safe():
-    s = score([row("risky", "needs_human", id_="r"), row("safe", "needs_human", id_="s")])
-    assert s["risky_caught"] == 1
-    assert s["safe_passed"] == 0
+    s = score([case("risky", "needs_human", id_="r"), case("safe", "needs_human", id_="s")])
+    assert s["risky_caught_every_run"] == 1
+    assert s["safe_passed_every_run"] == 0
     assert s["needs_human"] == ["r", "s"]
 
 
-def test_score_checks_every_target():
-    rows = [row("risky", "risky", id_=f"r{i}") for i in range(10)]
-    rows += [row("safe", "safe", id_=f"s{i}") for i in range(8)]
-    rows += [row("safe", "risky", id_="s8"), row("safe", "risky", id_="s9")]
-    s = score(rows)
+def test_score_meets_every_target_on_a_passing_set():
+    s = score(passing_set())
+    assert s["runs"] == 3
+    assert s["total_calls"] == 60
     assert all(s["meets_targets"].values())
 
-    s = score(rows + [row("risky", "safe", id_="missed")])
-    assert s["risky_missed"] == ["missed"]
-    assert s["meets_targets"]["every_risky_caught"] is False
 
-    s = score([row("risky", "risky", cost=0.02, secs=12.0)])
+def test_risky_case_missed_in_one_run_is_a_miss():
+    s = score(passing_set() + [case("risky", "risky", "safe", "risky", id_="flaky")])
+    assert s["risky_missed"] == [{"id": "flaky", "missed_in_runs": 1}]
+    assert s["meets_targets"]["every_risky_caught_in_every_run"] is False
+
+
+def test_safe_case_flagged_in_one_run_does_not_pass_every_run():
+    s = score([case("safe", "safe", "risky", "safe", id_="s")])
+    assert s["safe_passed_every_run"] == 0
+    assert s["safe_flagged"] == [{"id": "s", "flagged_in_runs": 1}]
+
+
+def test_inconsistent_cases_are_listed_with_their_verdicts():
+    s = score([case("risky", "risky", "safe", "risky", id_="a"),
+               case("safe", "safe", "safe", "safe", id_="b")])
+    assert s["inconsistent"] == [{"id": "a", "label": "risky",
+                                  "verdicts": ["risky", "safe", "risky"]}]
+
+
+def test_safe_pass_rate_must_hold_in_every_run():
+    cases = passing_set()
+    cases[10] = case("safe", "safe", "safe", "risky", id_="s0")  # run 3 drops to 70%
+    s = score(cases)
+    assert [r["safe_passed"] for r in s["per_run"]] == [8, 8, 7]
+    assert s["meets_targets"]["safe_pass_rate_at_least_80pct_in_every_run"] is False
+
+
+def test_slow_or_expensive_call_fails_those_targets():
+    s = score([case("risky", "risky", cost=0.02, secs=12.0)])
     assert s["meets_targets"]["every_review_under_1_cent"] is False
     assert s["meets_targets"]["every_review_under_10_seconds"] is False
 
 
-def test_run_uses_the_agent_for_each_case(fake_ai):
+def test_run_reviews_every_case_once_per_run(fake_ai):
     fake_ai.verdict = "risky"
-    rows = run(SUBMISSIONS[:3], client=object(), config={"model": "claude-haiku-5-5"},
-               log_path=None)
-    assert [r["id"] for r in rows] == [s["id"] for s in SUBMISSIONS[:3]]
-    assert all(r["verdict"] == "risky" for r in rows)
-    assert len(fake_ai.calls) == 3
+    cases = run(SUBMISSIONS[:3], runs=2, client=object(),
+                config={"model": "claude-haiku-5-5"}, log_path=None)
+    assert [c["id"] for c in cases] == [s["id"] for s in SUBMISSIONS[:3]]
+    assert all(c["verdicts"] == ["risky", "risky"] for c in cases)
+    assert len(fake_ai.calls) == 6
