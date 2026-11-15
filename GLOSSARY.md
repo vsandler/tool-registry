@@ -2,6 +2,9 @@
 
 _Terms used in this project, defined in plain language._
 
+- **Append-only:** A record you only add to. Old entries are never changed or removed. Our approval history works this way.
+- **Approval history:** The list of every approve or reject decision on a tool: who made it, at which step, when, and any comment.
+- **Approval step:** One stage in the approval order, naming the role that decides it, for example "step 1, decided by a Super admin".
 - **Back end:** The part of the app that stores data and applies rules, behind the screens people see.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
@@ -15,6 +18,7 @@ _Terms used in this project, defined in plain language._
 - **Regular expression (regex):** A compact pattern for finding text, such as "two curly braces, a name, two curly braces". We use them to find template variables and to spot things like email addresses.
 - **Rule-based check:** A fixed, simple test (no AI) run on every submission, such as "does the template contain an email address?".
 - **Render:** Filling in a template's blanks with real values to produce a finished copy.
+- **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
 - **Seed data:** Made-up sample records loaded into an empty database so there's something to work with.
 - **SQLite:** A small database stored in a single file, built into Python. No server needed.
 - **Submission:** A builder sending a draft tool in for review. The checks run at this moment.

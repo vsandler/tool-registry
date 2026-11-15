@@ -30,5 +30,20 @@ The sample data includes one submission ("Client welcome letter") built to break
 ### Testing many cases with one test
 `@pytest.mark.parametrize` runs the same test several times with different inputs, such as an email, two phone formats and an account number. Each run counts as its own test.
 
+### The approval order is data, not code
+The approval steps are saved as a numbered list in a database table. Each step says which role approves it. The approval code reads that list and never names a role itself. Changing the order later, including the configurable order in the backlog, means changing the list, not rewriting the code. The tests use their own two-step list, so they check the rules without depending on what the real order turns out to be.
+
+### Approval rules, and why they're checked in a set order
+For each decision, the code checks in this order:
+1. Is this your own tool? If so, refuse, whatever your role, admins included.
+2. Is the tool actually in review?
+3. Is it your role's turn?
+4. Have you already decided a step of this tool?
+
+The self-approval check comes first so an admin gets the clear reason ("you can't approve your own tool") rather than a confusing one. A refused attempt leaves no trace in the history.
+
+### An approval history you only add to
+Every decision becomes a new row: who, which step, approved or rejected, a comment and the time. Rows are never edited or deleted, so the history is a trustworthy record of how each tool got approved.
+
 ### Throwaway test databases
 Each test gets a brand-new database that exists only in memory and vanishes when the test ends. Tests can't affect each other, and nothing is left on disk.
