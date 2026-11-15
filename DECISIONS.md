@@ -6,11 +6,16 @@ _Key choices made for this project, why we made them, and what we gave up._
 
 ## 1. Fixed approval order
 
-**Decision:** Every tool follows the same approval order: AI enablement approves first, then one other approver. Admins can't change the order for now.
+**Decision:** Every tool follows the same three-step approval order:
+1. **Super admin routes it.** They approve it for review and send it to one specialist area: AI enablement (technology), compliance, or marketing.
+2. **That specialist approves it.** Only a Specialist reviewer from the chosen area can decide this step.
+3. **It returns to the Super admin, who publishes it.** They set the visibility (practice-only or firm-wide) and publish.
+
+The same Super admin may do steps 1 and 3. The specialist must be a different person. Nobody approves a tool they own, admins included. A rejection at any step is final for now. Admins can't change the order for now.
 
 **Why:** A configurable order needs more back-end work than we can finish by Saturday evening. The approval steps are saved as an ordered list, not hard-coded, so the configurable version can be added later without a rewrite.
 
-**Trade-off:** Every tool goes through the same path, even when a different order would suit it better. The configurable order is the first item in the BACKLOG.md To Do list.
+**Trade-off:** Every tool goes through the same path, and only one specialist area reviews it, even when a tool would benefit from more than one. The configurable order and hub-and-spoke routing (several specialists in turn) are in the BACKLOG.md To Do list.
 
 ---
 

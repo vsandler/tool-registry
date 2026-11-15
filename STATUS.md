@@ -24,7 +24,12 @@ Phase 7: Back end (branch `phase-7-backend`). Paused, waiting on the questions b
 
 ## Blocked / questions for Vanessa
 
-**1. Who decides each step of the fixed approval order?**
+_Both questions answered on 2026-11-14 (details below). No open questions right now._
+
+**1. ✅ Answered: Who decides each step of the fixed approval order?**
+Answer: three steps. (1) The Super admin routes the tool to one specialist area (AI enablement/technology, compliance, or marketing). (2) That specialist approves. (3) It returns to the Super admin, who sets visibility and publishes. The same Super admin may do steps 1 and 3, the specialist must be a different person, and there's no self-approval. Recorded in DECISIONS.md #1.
+
+_Original question:_
 DECISIONS.md #1 says "AI enablement approves first, then one other approver." But "AI enablement" isn't one of the five personas (Builder, Practice admin, Super admin, Specialist reviewer, Tool user), and "one other approver" doesn't say which role. Options:
 - **A.** Step 1 AI enablement = **Super admin**. Step 2 = **Practice admin** for practice-only tools, **Specialist reviewer** for firm-wide tools. This uses the visibility label to pick step 2.
 - **B.** Step 1 = **Super admin**. Step 2 = **Specialist reviewer**, always.
@@ -33,10 +38,13 @@ DECISIONS.md #1 says "AI enablement approves first, then one other approver." Bu
 
 Whichever you pick, it's a one-line change. The engine already reads the order from a list, and option A only needs a small addition so step 2 can depend on the visibility label.
 
-**2. What should the admin route do?**
+**2. ✅ Answered: What should the admin route do?**
+Answer: the read-only review queue, as proposed. Reassigning orphaned tools is now in BACKLOG.md.
+
+_Original question:_
 My proposal: `GET /admin/review-queue`, which only Practice and Super admins can open. It would show every tool in review with its flags, its current step and its approval history. It would be read-only, so admins can't override or skip steps through it (no self-approval still applies). Is that what you had in mind, or should admins be able to do something more, such as reassign an orphaned tool to a new owner?
 
-**Assumptions I made (tell me if any are wrong):**
+**✅ Assumptions confirmed by Vanessa:**
 - Any persona can create and submit a tool. Only the tool's owner can submit it.
 - One person can't decide two steps of the same tool, so each step gets a different reviewer.
 - A rejection is final for now. There's no "fix and resubmit" yet.
