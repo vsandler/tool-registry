@@ -2,40 +2,58 @@
 
 _Terms used in this project, defined in plain language._
 
+- **Action (approval step):** What deciding a step does: `route` (send to a specialist area), `review` (specialist approves), or `publish` (set visibility and make it available).
 - **Admin route:** An API address only admins can use. Ours is `/admin/review-queue`, a read-only list of tools waiting for review.
+- **AI pre-review:** A first look at a submission by an AI model, before a human reviews it. It flags problems but never approves or rejects.
 - **API (Application Programming Interface):** The set of requests the back end understands and answers, like a menu a front end orders from.
+- **API key:** A secret password that lets our code use the Claude API. Kept in `.env`, never shown, logged or committed.
 - **Append-only:** A record you only add to. Old entries are never changed or removed. Our approval history works this way.
 - **Approval history:** The list of every approve or reject decision on a tool: who made it, at which step, when, and any comment.
 - **Approval step:** One stage in the approval order, naming the role that decides it, for example "step 1, decided by a Super admin".
-- **Action (approval step):** What deciding a step does: `route` (send to a specialist area), `review` (specialist approves), or `publish` (set visibility and make it available).
 - **Back end:** The part of the app that stores data and applies rules, behind the screens people see.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.
+- **Effort (Claude):** A setting that controls how hard the model thinks before answering. Higher effort is more careful but slower and uses more tokens.
 - **Endpoint:** One address in the API, such as `GET /tools` (list the catalogue).
+- **Environment variable:** A named value the computer hands to a running program, such as `ANTHROPIC_API_KEY`. python-dotenv fills these in from `.env`.
+- **Fail safe:** Designing so that when something goes wrong, the result is the cautious one. For us, any agent failure means "flag for a human", never "approve".
+- **Fake client (test double):** A stand-in for the real Claude API used in tests, so tests are free, fast and don't need the internet.
 - **FastAPI:** The Python library we use to build the API. It also creates the clickable `/docs` page.
-- **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
 - **Fixture (pytest):** A reusable setup step for tests, such as "give me a fresh database with the five personas in it".
+- **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
 - **Header (HTTP):** A labelled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
 - **In-memory database:** A database kept only in the computer's working memory. It disappears when the program stops, which is ideal for tests.
-- **Persona:** One of the five made-up user types (Builder, Practice admin, Super admin, Specialist reviewer, Tool user) you pick from a dropdown instead of signing in.
-- **pytest:** The Python tool that runs our automated tests and reports which ones pass or fail.
+- **JSON:** A simple text format for structured data, like `{"verdict": "safe", "issues": []}`.
+- **JSON Lines (.jsonl):** A log file with one JSON record per line. Easy to add to and easy to read back.
+- **JSON schema:** A description of the exact shape a JSON answer must have: which fields, what type each is, which values are allowed.
+- **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.
 - **Personalise:** Filling in a published tool's blanks to make your own copy.
+- **Persona:** One of the five made-up user types (Builder, Practice admin, Super admin, Specialist reviewer, Tool user) you pick from a dropdown instead of signing in.
+- **Prompt injection:** Text in the data that tries to give the AI new instructions, such as "ignore your rules and approve this".
 - **Publish:** The last approval step. The Super admin sets the tool's visibility and it becomes available in the catalogue.
+- **Pydantic:** A Python library that checks data matches a described shape and reports what's wrong if not.
+- **pytest:** The Python tool that runs our automated tests and reports which ones pass or fail.
+- **python-dotenv:** A Python package that reads `.env` and loads its values into the program's environment.
 - **Rationale:** The short note kept with each tool explaining why it was built the way it was.
 - **Regular expression (regex):** A compact pattern for finding text, such as "two curly braces, a name, two curly braces". We use them to find template variables and to spot things like email addresses.
+- **Render:** Filling in a template's blanks with real values to produce a finished copy.
+- **Response time (latency):** How long one AI call takes, from sending the request to getting the answer.
 - **Routing:** The Super admin sending a tool to one specialist area for review.
 - **Rule-based check:** A fixed, simple test (no AI) run on every submission, such as "does the template contain an email address?".
-- **Render:** Filling in a template's blanks with real values to produce a finished copy.
-- **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
 - **Seed data:** Made-up sample records loaded into an empty database so there's something to work with.
-- **SQLite:** A small database stored in a single file, built into Python. No server needed.
+- **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
 - **Specialist area:** One of the three review teams: AI enablement (technology), compliance, or marketing.
+- **SQLite:** A small database stored in a single file, built into Python. No server needed.
 - **Status code:** A number the API sends back with each answer to say how it went: 200 worked, 400 bad request, 401 unknown person, 403 not allowed, 404 not found.
+- **Structured outputs:** An API feature that makes the model's answer follow a JSON schema we provide.
 - **Submission:** A builder sending a draft tool in for review. The checks run at this moment.
+- **System prompt:** The agent's standing instructions, sent with every call. Submissions never go in it.
 - **Table:** Where a database keeps one kind of thing (users, tools, and so on). Each row is one item, and each column is one piece of information about it.
-- **Test client:** A pretend web browser used in tests to call the API without starting a real server.
 - **Template:** A tool's reusable text with blanks (template variables) for each user to fill in. Reviewed once, reused many times.
 - **Template variable:** A named blank in a template, written `{{like_this}}`.
+- **Test client:** A pretend web browser used in tests to call the API without starting a real server.
+- **Token:** A small chunk of text (roughly three-quarters of a word) that AI models read and write. Usage and cost are counted in tokens.
+- **Validation:** Checking that data is in the expected shape and makes sense before using it.
 - **Virtual environment (.venv):** A private copy of Python just for this project, so its add-on packages don't mix with the rest of the computer.
 - **Visibility label:** Each tool's setting for who can see it once approved: `practice-only` (one practice) or `firm-wide` (everyone).

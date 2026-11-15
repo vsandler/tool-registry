@@ -22,6 +22,9 @@ __pycache__/
 # Python virtual environment
 .venv/
 
+# AI agent call logs (tokens, cost, timing; regenerated on every run)
+logs/
+
 # Local SQLite database (rebuilt from seed data)
 *.db
 
