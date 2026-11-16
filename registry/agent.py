@@ -126,6 +126,19 @@ RESPONSE_SCHEMA = {
     "additionalProperties": False,
 }
 
+def instructions_fingerprint(system_prompt: str | None = None,
+                             schema: dict | None = None) -> str:
+    """A short fingerprint (SHA-256 hash) of the agent's instructions: the system
+    prompt plus the reply schema. Any change to either, even one character, gives a
+    different fingerprint. Used to spot sample advice that is out of date."""
+    import hashlib
+
+    system_prompt = SYSTEM_PROMPT if system_prompt is None else system_prompt
+    schema = RESPONSE_SCHEMA if schema is None else schema
+    text = system_prompt + "\n---schema---\n" + json.dumps(schema, sort_keys=True)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 SUBMISSION_FIELDS = ("name", "description", "template", "variables", "rationale",
                      "visibility", "practice")
 
@@ -308,28 +321,33 @@ def review_for_submission(tool: dict) -> ReviewResult:
         return _needs_human("unknown", f"unexpected error ({type(exc).__name__})")
 
 
-def save_ai_review(conn, tool_id: int, result: ReviewResult) -> None:
-    """Store the advice. The caller commits."""
+SAMPLE_LABEL = ("Sample advice: pre-written for the demo data, copied from an earlier "
+                "real AI review. No AI call was made for this tool.")
+
+
+def save_ai_review(conn, tool_id: int, result: ReviewResult, *, is_sample: bool = False) -> None:
+    """Store the advice. The caller commits. `is_sample` marks pre-written demo advice."""
     conn.execute(
         "INSERT INTO ai_reviews (tool_id, verdict, issues, reason, model, input_tokens, "
-        "output_tokens, cost_usd, response_seconds, error, reviewed_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "output_tokens, cost_usd, response_seconds, error, is_sample, reviewed_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (tool_id, result.verdict, json.dumps(result.issues), result.reason, result.model,
          result.input_tokens, result.output_tokens, result.cost_usd,
-         round(result.response_seconds, 3), result.error, now()),
+         round(result.response_seconds, 3), result.error, int(is_sample), now()),
     )
 
 
 def get_ai_review(conn, tool_id: int) -> dict | None:
     """The latest AI advice for a tool, shaped for reviewers. None if never reviewed."""
     row = conn.execute(
-        "SELECT verdict, issues, reason, model, reviewed_at FROM ai_reviews "
+        "SELECT verdict, issues, reason, model, is_sample, reviewed_at FROM ai_reviews "
         "WHERE tool_id = ? ORDER BY id DESC LIMIT 1", (tool_id,),
     ).fetchone()
     if row is None:
         return None
-    return {
+    advice = {
         "advice_only": True,  # the AI never approves or rejects; humans decide
+        "sample": bool(row["is_sample"]),
         "verdict": row["verdict"],
         "flagged": row["verdict"] != "safe",
         "issues": json.loads(row["issues"]),
@@ -337,6 +355,9 @@ def get_ai_review(conn, tool_id: int) -> dict | None:
         "model": row["model"],
         "reviewed_at": row["reviewed_at"],
     }
+    if advice["sample"]:
+        advice["label"] = SAMPLE_LABEL
+    return advice
 
 
 def _result_from_response(response, model: str) -> ReviewResult:

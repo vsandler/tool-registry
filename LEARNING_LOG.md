@@ -154,3 +154,20 @@ The first set's risks were obvious ("guaranteed 9%"). The new cases are subtler:
 
 ### Turning "8 out of 10" into a rate
 The brief's safe target is "at least 8 of 10". With 16 safe cases, the eval applies it as at least 80% passed, in every run.
+
+### Fixed sample advice instead of live calls for the demo data
+The three seeded tools used to call the real AI every time the app started with a fresh database. Now they show fixed advice copied from a real AI review, labelled `"sample": true` so nobody mistakes it for a live review. Starting the app is free, needs no API key and looks the same every time. Two extra drafts are there for live demos: submitting one makes a real AI call. See DECISIONS.md #9.
+
+### A fingerprint (hash) to spot out-of-date advice
+A *hash* turns any text into a short code. The same text always gives the same code, and changing even one character gives a completely different one. We hash the agent's instructions and store that code with the sample advice, along with the model name. We also hash each seeded tool's content: only the fields the AI reads (name, description, template, variables, rationale, visibility, practice), not its database id or owner. A test compares all of these with the current ones, so editing a seeded tool in `registry/seed.py` makes it fail too. If either differs, the test fails with a step-by-step message: what changed, why it matters, and the command to refresh.
+
+This caught a real problem straight away: the advice first copied from the last real run had been made before the rationale split, so it no longer matched the current instructions. It was refreshed once by hand. The per-tool fingerprints were added afterwards without a new AI call. That was safe because the seeded tools hadn't changed since the refresh.
+
+### Refreshing only by hand
+`python -m registry.refresh_sample_advice` asks the real AI about the three seeded tools and rewrites the sample advice file. It never runs on its own, so spending money is always a choice. If any call fails, it keeps the old file instead of saving a half-finished one.
+
+### Checking who calls a function by reading the code
+To prove only the seed setup passes `sample_advice`, a test reads every Python file in `registry/` and `evals/` and lists every place that calls something with `sample_advice=`. Python's `ast` module turns code into a tree you can search, which is more reliable than searching the text. Another test sends fake sample advice to the API's submit route and checks it's ignored and the AI is still called.
+
+### Upgrading an existing database
+Adding a column to a table in the code doesn't change a `registry.db` file that already exists. So on startup, the code checks whether the `is_sample` column is there and adds it if not. That's a tiny *migration*.

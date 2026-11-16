@@ -44,6 +44,17 @@
     1. Ask a second AI (for example Codex) to write new made-up trick cases without seeing the agent's instructions.
     2. Add cases from real mistakes, once people use the tool: every time a human reviewer disagrees with the AI's advice, save it as a new eval case.
     3. Rerun the eval and record the new score in EVALS.md.
+- **Full audit trail for a real firm**
+  - **What it is:** A complete record of who did what and when, which nothing can delete or quietly change.
+  - **Why it was cut:** It isn't needed for a demo with made-up data. Today the approval history is already add-only, the database keeps every AI review (the review screen shows only the latest), git keeps every version of the sample advice, and `logs/` records each AI call with no set time limit.
+  - **Steps to build it:**
+    1. Never delete or overwrite AI reviews or approval decisions. Make them add-only in the database, so a change is a new row, not an edit.
+    2. Keep old AI reviews and show the full history in the review screen, not just the latest one.
+    3. Keep the rule-based check results from every submission too (today a new run replaces the old ones).
+    4. Keep AI call logs for a set time (a retention period agreed with compliance), then remove them on schedule.
+    5. Record who changed the sample advice and when, alongside the file itself.
+    6. Keep sample and demo data out of the live database entirely, in a separate demo or test environment, so sample reviews never mix with real records or reports. Today they share one database, kept apart by the `is_sample` label, which is fine for a demo.
+    7. Add tests: an update or delete of a review or decision is refused; history shows every review; old logs are removed only after the retention period.
 - Separate libraries for each practice
 - Cost/ROI dashboard
 - Live hosted demo

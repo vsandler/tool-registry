@@ -21,6 +21,15 @@ Model `claude-haiku-5-5`, effort `medium`. 33 made-up cases (17 risky, 16 safe),
 I read the agent's issues for every new risky case, and each names the real problem, so these are right answers for the right reasons. Still, a perfect score on a set I wrote means it may be too easy to show where the agent fails. "Make the eval set harder" is now in BACKLOG.md and the README.
 
 ## Done
+### Sample advice and audit trail (your answers of 2026-11-16)
+- **No AI calls at startup.** The 3 seeded submissions show fixed sample advice from `registry/sample_advice.json`, marked `"sample": true` with a label. Real submissions always call the AI. Only the seed setup can pass sample advice: a test sends fake sample advice to the API's submit route and checks it's ignored, and another scans the code for any other caller.
+- **Two demo drafts** for live demos: "Savings check-in note" (subtly risky: a soft promise about returns) and "Call notes tidy-up" (safe). Both pass all six rule-based checks. See the README's "Run a demo".
+- **Staleness warning:** the sample advice stores the model, a fingerprint of the agent's instructions and a fingerprint of each seeded tool. `tests/test_sample_advice.py` fails with step-by-step instructions if any of them changes.
+- **Manual refresh:** `.venv/Scripts/python -m registry.refresh_sample_advice`. It never runs automatically. I ran it once (3 calls, $0.00055) because the advice copied from the last real run had been made with the instructions from before the rationale split.
+- **DECISIONS.md #6–#9** record this session's choices.
+- **Backlog:** a full audit trail for a real firm, including a separate demo environment, added to BACKLOG.md and the README.
+- **Tests:** 192 passing.
+
 ### Phase 8 follow-ups (your answers of 2026-11-15)
 - **Agent runs on every submit, as advice only.** `submit_tool` runs the rule-based checks and then the AI. The AI's verdict, issues and reason are saved in a new `ai_reviews` table. They show under `ai_review` (marked `advice_only: true`) in tool details and the admin review queue. The AI never changes the status or the approval steps. If the AI fails in any way, the tool is still submitted and marked `needs_human`. The rule-based `flagged` field is unchanged, so the two kinds of flag stay apart.
 - **Rationale check split.** The empty and "n/a" rationale cases moved from the AI eval set into the rule-based tests (`tests/test_checks.py`). The AI's instructions now say: judge whether a rationale that's present makes sense, and don't flag emptiness on its own. There are 3 new AI cases with long-enough but meaningless rationales (circular, filler, unrelated), and a test that keeps empty rationales out of the AI set.
@@ -42,14 +51,13 @@ I read the agent's issues for every new risky case, and each names the real prob
 
 ## Blocked / questions for Vanessa
 
-**1. Real API calls when the app first starts.**
-Starting the app with no `registry.db` loads the sample data and submits its 3 tools, so it now makes 3 real AI calls (about $0.0006 in total). Without a key in `.env`, those tools just show `needs_human`. Is that OK, or should the sample data skip the AI (for example, store fixed sample advice instead)?
-
-**2. 8d: what decides Haiku vs Sonnet if both score 100%?**
+**1. 8d: what decides Haiku vs Sonnet if both score 100%?**
 Haiku 5.5 didn't miss or waver on a single case, so Sonnet 5.5 can't beat it on accuracy with this set. If Sonnet also scores 100%, should cost and speed decide (which favours Haiku), or would you rather do the "make the eval set harder" backlog item first so the comparison means something?
 
-**3. What is 8c?**
+**2. What is 8c?**
 I've stopped before it as asked. When you're ready, tell me what it covers.
+
+**✅ Answered on 2026-11-16:** Real API calls when the app first starts? Use fixed, labelled sample advice for the 3 seeded tools, with no AI calls at startup, plus two demo drafts. **Done** (DECISIONS.md #9).
 
 **✅ Answered on 2026-11-15:**
 1. Run the agent on every submit, shown to reviewers as advice only. **Done.**

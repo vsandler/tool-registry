@@ -11,10 +11,13 @@ _Terms used in this project, defined in plain language._
 - **Append-only:** A record you only add to. Old entries are never changed or removed. Our approval history works this way.
 - **Approval history:** The list of every approve or reject decision on a tool: who made it, at which step, when, and any comment.
 - **Approval step:** One stage in the approval order, naming the role that decides it, for example "step 1, decided by a Super admin".
+- **AST (abstract syntax tree):** Python code turned into a searchable tree of its parts, such as "a call with these arguments". Used in a test to find every place that passes `sample_advice`.
+- **Audit trail:** A complete, unchangeable record of who did what and when, kept so it can be checked later.
 - **Autouse fixture (pytest):** A test setup step that runs for every test automatically. Ours swaps in a fake AI so tests never call the real API.
 - **Back end:** The part of the app that stores data and applies rules, behind the screens people see.
 - **Baseline:** The first measured score, used as the starting point to compare later changes against.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.
+- **Demo draft:** One of the two made-up sample tools saved but not submitted, so a presenter can submit it and watch the real AI review it.
 - **Effort (Claude):** A setting that controls how hard the model thinks before answering. Higher effort is more careful but slower and uses more tokens.
 - **Endpoint:** One address in the API, such as `GET /tools` (list the catalogue).
 - **Environment variable:** A named value the computer hands to a running program, such as `ANTHROPIC_API_KEY`. python-dotenv fills these in from `.env`.
@@ -25,6 +28,7 @@ _Terms used in this project, defined in plain language._
 - **False negative (miss):** A risky submission the agent wrongly calls safe. The worst kind of mistake for us.
 - **False positive:** A safe submission the agent wrongly flags as risky. Annoying, but a human catches it.
 - **FastAPI:** The Python library we use to build the API. It also creates the clickable `/docs` page.
+- **Fingerprint (hash):** A short code made from a piece of text. The same text always gives the same code, and any change gives a different one. We use it to tell whether the agent's instructions changed.
 - **Fixture (pytest):** A reusable setup step for tests, such as "give me a fresh database with the five personas in it".
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
 - **Header (HTTP):** A labelled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
@@ -34,6 +38,7 @@ _Terms used in this project, defined in plain language._
 - **JSON Lines (.jsonl):** A log file with one JSON record per line. Easy to add to and easy to read back.
 - **JSON schema:** A description of the exact shape a JSON answer must have: which fields, what type each is, which values are allowed.
 - **Label:** The right answer for a test case (risky or safe), written down before the agent sees it.
+- **Migration (database):** A small change that upgrades an existing database to match new code, such as adding a missing column.
 - **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.
@@ -48,13 +53,16 @@ _Terms used in this project, defined in plain language._
 - **Regular expression (regex):** A compact pattern for finding text, such as "two curly braces, a name, two curly braces". We use them to find template variables and to spot things like email addresses.
 - **Render:** Filling in a template's blanks with real values to produce a finished copy.
 - **Response time (latency):** How long one AI call takes, from sending the request to getting the answer.
+- **Retention period:** How long records such as call logs are kept before they may be deleted.
 - **Routing:** The Super admin sending a tool to one specialist area for review.
 - **Rule-based check:** A fixed, simple test (no AI) run on every submission, such as "does the template contain an email address?".
 - **Run (eval):** One pass through every case in the eval set. Ours does 3 runs to check the answers stay the same.
+- **Sample advice:** Fixed, pre-written AI advice for the seeded demo tools, copied from a real AI review and clearly labelled. No AI call is made for it.
 - **Seed data:** Made-up sample records loaded into an empty database so there's something to work with.
 - **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
 - **Specialist area:** One of the three review teams: AI enablement (technology), compliance, or marketing.
 - **SQLite:** A small database stored in a single file, built into Python. No server needed.
+- **Stale:** Out of date. Sample advice is stale when the model or the agent's instructions have changed since it was written.
 - **Status code:** A number the API sends back with each answer to say how it went: 200 worked, 400 bad request, 401 unknown person, 403 not allowed, 404 not found.
 - **Structured outputs:** An API feature that makes the model's answer follow a JSON schema we provide.
 - **Submission:** A builder sending a draft tool in for review. The checks run at this moment.

@@ -84,7 +84,8 @@ def get_tool(conn: sqlite3.Connection, tool_id: int) -> dict | None:
     return tool
 
 
-def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
+def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
+                sample_advice=None) -> dict:
     """Send a draft for review. The rule-based checks and the AI pre-review both run,
     and their results are saved.
 
@@ -93,6 +94,10 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
     steps, and if the AI call fails the tool is still submitted (marked needs_human).
     Returns {"tool": ..., "checks": [...], "flagged": bool, "ai_review": {...}}.
     `flagged` is the rule-based checks only; the AI's own flag is in `ai_review`.
+
+    `sample_advice` (a ReviewResult) is used only by the seed data: it stores that
+    pre-written advice, labelled as sample advice, instead of calling the AI.
+    Real submissions never pass it, so they always call the AI.
     """
     # Imported here to avoid circular imports (both modules import from this one).
     from registry import agent
@@ -106,9 +111,12 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict:
     if tool["status"] != "draft":
         raise NotAllowed(f"Only drafts can be submitted; this tool is {tool['status']}")
     results = run_checks(conn, tool)
-    ai_result = agent.review_for_submission(tool)  # never raises
+    if sample_advice is None:
+        ai_result = agent.review_for_submission(tool)  # never raises
+    else:
+        ai_result = sample_advice
     save_check_results(conn, tool_id, results)
-    agent.save_ai_review(conn, tool_id, ai_result)
+    agent.save_ai_review(conn, tool_id, ai_result, is_sample=sample_advice is not None)
     conn.execute("UPDATE tools SET status = 'in_review' WHERE id = ?", (tool_id,))
     conn.commit()
     return {

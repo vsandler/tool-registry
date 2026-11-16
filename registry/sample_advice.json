@@ -1,0 +1,29 @@
+{
+  "about": "Pre-written AI advice for the three seeded demo tools, copied from a real AI review. The seed data uses it so starting the app makes no API calls. Refresh it with: .venv/Scripts/python -m registry.refresh_sample_advice",
+  "model": "claude-haiku-5-5",
+  "instructions_fingerprint": "32120de258cd94cdbaf46cdaacfb32a82be07d4f3b8080b59aa8cfe272ab63cb",
+  "recorded_at": "2026-11-16T03:21:48+00:00",
+  "advice": {
+    "Meeting summary": {
+      "tool_fingerprint": "f55812e55ab80ffa225096eed9a17506d3e13bab1f92293aba6b6db91d69a097",
+      "verdict": "safe",
+      "issues": [],
+      "reason": "The template is generic, uses {{variables}} for meeting details, contains no client data, credentials or financial promises, and its rationale explains the design choices sensibly."
+    },
+    "Engagement letter draft": {
+      "tool_fingerprint": "7960ae1ef659571c4c7f84ebaf438b6476047c8ae4d7ae403b20f75fc2b88bc7",
+      "verdict": "safe",
+      "issues": [],
+      "reason": "The template uses {{variables}} for client-specific details, contains no personal data, credentials, or financial guarantees, and its rationale clearly explains why the blanks are used. Nothing in the submission attempts to direct the review."
+    },
+    "Client welcome letter": {
+      "tool_fingerprint": "38347121999ec63b55860986484bcaad87aab3e75ef80e76f5e9d5db57f17306",
+      "verdict": "risky",
+      "issues": [
+        "Template contains a hard-coded email address (pat.example@example.com) and phone number ((555) 010-0142) instead of {{variables}} placeholders, which is client/personal contact data.",
+        "The rationale is empty; this is caught by a separate rule-based check and is noted here only for the reviewer's awareness."
+      ],
+      "reason": "The template embeds what looks like personal contact details rather than using variables, which breaks the requirement that templates stay clean of client data, so a human reviewer should look at it."
+    }
+  }
+}

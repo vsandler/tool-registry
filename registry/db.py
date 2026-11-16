@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS ai_reviews (
     cost_usd         REAL,
     response_seconds REAL NOT NULL DEFAULT 0,
     error            TEXT,
+    is_sample        INTEGER NOT NULL DEFAULT 0,  -- 1 = pre-written demo advice, not a live call
     reviewed_at      TEXT NOT NULL
 );
 
@@ -89,4 +90,17 @@ def connect(path: str = "registry.db") -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
+    _add_missing_columns(conn)
     return conn
+
+
+def _add_missing_columns(conn: sqlite3.Connection) -> None:
+    """Upgrade a database made by an older version of this code.
+
+    CREATE TABLE IF NOT EXISTS doesn't add new columns to a table that already
+    exists, so add them here. Safe to run every time.
+    """
+    columns = {r["name"] for r in conn.execute("PRAGMA table_info(ai_reviews)")}
+    if "is_sample" not in columns:
+        conn.execute("ALTER TABLE ai_reviews ADD COLUMN is_sample INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
