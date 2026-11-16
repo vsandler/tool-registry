@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS tools (
                     'draft', 'in_review', 'published', 'rejected')),
     routed_to   TEXT CHECK (routed_to IS NULL OR routed_to IN (
                     'compliance', 'marketing', 'technology')),
-    created_at  TEXT NOT NULL
+    created_at  TEXT NOT NULL,
+    submitted_at TEXT                         -- set when the owner submits it for review
 );
 
 CREATE TABLE IF NOT EXISTS check_results (
@@ -118,4 +119,14 @@ def _add_missing_columns(conn: sqlite3.Connection) -> None:
     columns = {r["name"] for r in conn.execute("PRAGMA table_info(ai_reviews)")}
     if "is_sample" not in columns:
         conn.execute("ALTER TABLE ai_reviews ADD COLUMN is_sample INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
+
+    columns = {r["name"] for r in conn.execute("PRAGMA table_info(tools)")}
+    if "submitted_at" not in columns:
+        conn.execute("ALTER TABLE tools ADD COLUMN submitted_at TEXT")
+        # Tools submitted before this column existed: use when their checks first ran,
+        # which happens at submission. Drafts stay empty.
+        conn.execute(
+            "UPDATE tools SET submitted_at = (SELECT MIN(checked_at) FROM check_results "
+            "WHERE check_results.tool_id = tools.id) WHERE status != 'draft'")
         conn.commit()

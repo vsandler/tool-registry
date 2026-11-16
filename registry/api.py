@@ -25,6 +25,7 @@ from registry.approvals import (
     get_progress,
     get_rejection,
     get_steps,
+    my_action,
 )
 from registry.agent import get_ai_review
 from registry.checks import get_check_results
@@ -83,7 +84,9 @@ def can_see_published(user: sqlite3.Row, tool: dict) -> bool:
     return bool(user["practice"]) and user["practice"] == tool["practice"]
 
 
-def tool_detail(conn: sqlite3.Connection, tool: dict) -> dict:
+def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None = None) -> dict:
+    """Everything the screens show about one tool. `my_action` is for the persona
+    viewing it: can they decide the current step, and if not, why (plain words)."""
     checks = get_check_results(conn, tool["id"])
     return {
         **tool,
@@ -94,6 +97,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict) -> dict:
         "steps": get_progress(conn, tool["id"]),  # every step, for the progress line
         "rejection": get_rejection(conn, tool["id"]),  # who, when, which step, why
         "history": get_history(conn, tool["id"]),
+        "my_action": my_action(conn, tool["id"], viewer["id"]) if viewer else None,
     }
 
 
@@ -174,7 +178,7 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     @app.get("/my-tools")
     def my_tools(user=Depends(persona), conn=Depends(db)):
         rows = conn.execute("SELECT id FROM tools WHERE owner_id = ? ORDER BY id", (user["id"],))
-        return [tool_detail(conn, get_tool(conn, r["id"])) for r in rows]
+        return [tool_detail(conn, get_tool(conn, r["id"]), user) for r in rows]
 
     @app.post("/tools", status_code=201)
     def new_tool(body: NewTool, user=Depends(persona), conn=Depends(db)):
@@ -188,7 +192,7 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
                    or can_see_published(user, tool))
         if not allowed:
             raise NotAllowed("You can't view this tool")
-        return tool_detail(conn, tool)
+        return tool_detail(conn, tool, user)
 
     @app.post("/tools/{tool_id}/submit")
     def submit(tool_id: int, user=Depends(persona), conn=Depends(db)):
@@ -199,7 +203,7 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
         load_tool(tool_id, conn)
         decide(conn, tool_id, user["id"], body.decision, body.comment,
                route_to=body.route_to, visibility=body.visibility, practice=body.practice)
-        return tool_detail(conn, get_tool(conn, tool_id))
+        return tool_detail(conn, get_tool(conn, tool_id), user)
 
     @app.get("/tools/{tool_id}/history")
     def history(tool_id: int, user=Depends(persona), conn=Depends(db)):
@@ -219,14 +223,16 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     def review_queue(user=Depends(queue_viewer), conn=Depends(db)):
         """Read-only: tools in review, with rule-based flags, the AI's advice, every
         approval step and the history. Admins see every tool in review; a Specialist
-        reviewer sees only tools whose current step is a review for their area."""
-        tools = list_tools(conn, status="in_review")
+        reviewer sees only tools whose current step is a review for their area.
+        Oldest submitted first, so tools that have waited longest come first."""
+        tools = sorted(list_tools(conn, status="in_review"),
+                       key=lambda t: (t["submitted_at"] or t["created_at"], t["id"]))
         if user["role"] == "specialist_reviewer":
             def waiting_for_me(tool):
                 step = current_step(conn, tool["id"])
                 return (step is not None and step["action"] == "review"
                         and step["area"] == user["specialty"])
             tools = [t for t in tools if waiting_for_me(t)]
-        return [tool_detail(conn, t) for t in tools]
+        return [tool_detail(conn, t, user) for t in tools]
 
     return app

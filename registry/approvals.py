@@ -186,6 +186,100 @@ def _save_tool_steps(conn: sqlite3.Connection, tool_id: int, steps: list[dict]) 
     )
 
 
+def _check_turn(conn: sqlite3.Connection, tool: dict, user: sqlite3.Row) -> dict:
+    """Is it this person's turn to decide this tool's current step? The one place
+    the "who may act" rules live: decide() and my_action() both use it.
+
+    Returns {"step", "steps", "refusal"}. `refusal` is None when they may decide,
+    otherwise (code, message): a short code my_action() turns into a plain sentence,
+    and the message decide() raises. The order of the checks matters: no
+    self-approval comes first, so the reason is clear whatever the role.
+    """
+    steps = get_tool_steps(conn, tool["id"])
+    step = current_step(conn, tool["id"])
+    found = {"step": step, "steps": steps, "refusal": None}
+
+    def refuse(code, message):
+        return {**found, "refusal": (code, message)}
+
+    if tool["owner_id"] == user["id"]:
+        return refuse("own_tool", "You can't approve or reject your own tool, even as an admin")
+    if tool["status"] != "in_review":
+        return refuse("not_in_review", f"This tool isn't in review (it is {tool['status']})")
+    if not steps:
+        return refuse("no_order", "No approval order has been set up")
+    if user["role"] != step["approver_role"]:
+        return refuse("wrong_role",
+                      f"Step {step['position']} ({step['name']}) must be decided by a "
+                      f"{step['approver_role']}, not a {user['role']}")
+    if step["action"] == "review" and user["specialty"] != step["area"]:
+        if step["area"] is None:
+            return refuse("wrong_area", "This tool hasn't been routed to a specialist area yet")
+        return refuse("wrong_area",
+                      f"Step {step['position']} is the {step['area']} review (this tool was "
+                      f"routed to {', then '.join(_routed_areas(steps))}); a "
+                      f"{user['specialty']} specialist can't decide it")
+    history = get_history(conn, tool["id"])
+    if step["different_person"] and any(h["approver_id"] == user["id"] for h in history):
+        return refuse("already_decided",
+                      "This step must be decided by someone who hasn't decided another "
+                      "step of this tool")
+    return found
+
+
+_NOT_IN_REVIEW = {
+    "draft": "This tool hasn't been submitted yet.",
+    "rejected": "This tool was rejected, so the review is over.",
+    "published": "This tool is already published.",
+}
+
+
+def my_action(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict | None:
+    """What the persona viewing a tool can do with it right now, for the screens.
+
+    {"can_decide", "reason", "needs", "step_position", "step_name", "final",
+     "reject_comment_min"}. `reason` is a plain sentence when they can't decide;
+    `needs` says what deciding asks for ("areas" to route, "visibility" to publish).
+    Uses exactly the same rules as decide(). None if the tool doesn't exist.
+    """
+    tool = get_tool(conn, tool_id)
+    if tool is None:
+        return None
+    user = get_user(conn, user_id)
+    if user is None:
+        return {"can_decide": False, "reason": "Pick a persona first.", "needs": None,
+                "step_position": None, "step_name": None, "final": False,
+                "reject_comment_min": MIN_REJECT_COMMENT}
+    turn = _check_turn(conn, tool, user)
+    step, steps = turn["step"], turn["steps"]
+    reason = None
+    if turn["refusal"]:
+        code = turn["refusal"][0]
+        if code == "own_tool":
+            reason = "You built this tool, so you can't approve or reject it."
+        elif code == "not_in_review":
+            reason = _NOT_IN_REVIEW.get(tool["status"], "This tool isn't in review.")
+        elif code == "no_order":
+            reason = "No approval order has been set up."
+        elif code == "already_decided":
+            reason = ("You've already decided another step of this tool, "
+                      "so someone else must decide this one.")
+        else:  # wrong_role, wrong_area
+            reason = f"Waiting for {_waiting_for(step)}."
+    needs = None
+    if step is not None and reason is None:
+        needs = {"route": "areas", "publish": "visibility"}.get(step["action"])
+    return {
+        "can_decide": reason is None,
+        "reason": reason,
+        "needs": needs,
+        "step_position": step["position"] if step else None,
+        "step_name": step["name"] if step else None,
+        "final": bool(step and steps and step["position"] == steps[-1]["position"]),
+        "reject_comment_min": MIN_REJECT_COMMENT,
+    }
+
+
 def get_rejection(conn: sqlite3.Connection, tool_id: int) -> dict | None:
     """Who rejected the tool, when, at which step and why. None if not rejected."""
     rejected = [h for h in get_history(conn, tool_id) if h["decision"] == "rejected"]
@@ -269,33 +363,10 @@ def decide(
     if user is None:
         raise ApprovalNotFound(f"User {user_id} not found")
 
-    # No self-approval comes first, so the reason is clear whatever the role.
-    if tool["owner_id"] == user_id:
-        raise ApprovalError("You can't approve or reject your own tool, even as an admin")
-    if tool["status"] != "in_review":
-        raise ApprovalError(f"This tool isn't in review (it is {tool['status']})")
-    if not get_steps(conn):
-        raise ApprovalError("No approval order has been set up")
-
-    step = current_step(conn, tool_id)
-    if user["role"] != step["approver_role"]:
-        raise ApprovalError(
-            f"Step {step['position']} ({step['name']}) must be decided by a "
-            f"{step['approver_role']}, not a {user['role']}"
-        )
-    steps = get_tool_steps(conn, tool_id)
-    if step["action"] == "review" and user["specialty"] != step["area"]:
-        if step["area"] is None:
-            raise ApprovalError("This tool hasn't been routed to a specialist area yet")
-        raise ApprovalError(
-            f"Step {step['position']} is the {step['area']} review (this tool was routed to "
-            f"{', then '.join(_routed_areas(steps))}); a {user['specialty']} specialist "
-            "can't decide it"
-        )
-    history = get_history(conn, tool_id)
-    if step["different_person"] and any(h["approver_id"] == user_id for h in history):
-        raise ApprovalError("This step must be decided by someone who hasn't decided another "
-                            "step of this tool")
+    turn = _check_turn(conn, tool, user)
+    if turn["refusal"]:
+        raise ApprovalError(turn["refusal"][1])
+    step, steps = turn["step"], turn["steps"]
 
     comment = (comment or "").strip()
     if decision == "rejected" and len(comment) < MIN_REJECT_COMMENT:

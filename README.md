@@ -49,7 +49,7 @@ This makes 3 real AI calls (well under 1 cent) and rewrites `registry/sample_adv
 2. **Each specialist**, in that order, approves (a rejection at any step ends the review). A rejection needs a comment of at least 10 characters, and the tool then shows who rejected it, when, at which step and why.
 3. **Super admin** sets visibility (practice-only or firm-wide) and publishes.
 
-Nobody approves a tool they own, admins included. Each specialist must be a different person from whoever decided the other steps. Each tool's detail includes `steps`: every approval step, marked done, waiting, rejected or not reached, with who and when. Specialist reviewers can open the Review queue, which shows only the tools waiting for their area.
+Nobody approves a tool they own, admins included. Each specialist must be a different person from whoever decided the other steps. Each tool's detail includes `steps`: every approval step, marked done, waiting, rejected or not reached, with who and when. Specialist reviewers can open the Review queue, which shows only the tools waiting for their area, oldest submitted first. Each tool's detail also includes `my_action` for the persona asking: whether they can decide the current step, and if not, a plain reason why.
 
 ## What I'd build next
 

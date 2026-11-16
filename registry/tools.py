@@ -117,7 +117,8 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
         ai_result = sample_advice
     save_check_results(conn, tool_id, results)
     agent.save_ai_review(conn, tool_id, ai_result, is_sample=sample_advice is not None)
-    conn.execute("UPDATE tools SET status = 'in_review' WHERE id = ?", (tool_id,))
+    conn.execute("UPDATE tools SET status = 'in_review', submitted_at = ? WHERE id = ?",
+                 (now(), tool_id))
     conn.commit()
     return {
         "tool": get_tool(conn, tool_id),

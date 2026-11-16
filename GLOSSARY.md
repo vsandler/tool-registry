@@ -16,6 +16,7 @@ _Terms used in this project, defined in plain language._
 - **Autouse fixture (pytest):** A test setup step that runs for every test automatically. Ours swaps in a fake AI so tests never call the real API.
 - **Back end:** The part of the app that stores data and applies rules, behind the screens people see.
 - **Baseline:** The first measured score, used as the starting point to compare later changes against.
+- **Boundary test:** A test of the values right at the edge of a rule, such as a 9-character comment (refused) and a 10-character one (accepted). Edges are where off-by-one mistakes hide.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.
 - **Demo draft:** One of the two made-up sample tools saved but not submitted, so a presenter can submit it and watch the real AI review it.
 - **Effort (Claude):** A setting that controls how hard the model thinks before answering. Higher effort is more careful but slower and uses more tokens.
@@ -41,6 +42,7 @@ _Terms used in this project, defined in plain language._
 - **Label:** The right answer for a test case (risky or safe), written down before the agent sees it.
 - **Migration (database):** A small change that upgrades an existing database to match new code, such as adding a missing column.
 - **Multi-specialist routing:** Sending one tool to several specialist areas, in an order the Super admin picks. Each area becomes its own review step.
+- **my_action:** The part of a tool's details that tells the persona viewing it whether they can decide the current step, and if not, why, in plain words.
 - **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.
@@ -63,6 +65,7 @@ _Terms used in this project, defined in plain language._
 - **Sample advice:** Fixed, pre-written AI advice for the seeded demo tools, copied from a real AI review and clearly labelled. No AI call is made for it.
 - **Seed data:** Made-up sample records loaded into an empty database so there's something to work with.
 - **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
+- **Single source of truth:** Keeping a rule in exactly one place so everything that needs it uses the same version. The approval rules live in one back-end check that both deciding and the screens use.
 - **Specialist area:** One of the three review teams: AI enablement (technology), compliance, or marketing.
 - **SQLite:** A small database stored in a single file, built into Python. No server needed.
 - **Stale:** Out of date. Sample advice is stale when the model or the agent's instructions have changed since it was written.
@@ -80,3 +83,4 @@ _Terms used in this project, defined in plain language._
 - **Validation:** Checking that data is in the expected shape and makes sense before using it.
 - **Virtual environment (.venv):** A private copy of Python just for this project, so its add-on packages don't mix with the rest of the computer.
 - **Visibility label:** Each tool's setting for who can see it once approved: `practice-only` (one practice) or `firm-wide` (everyone).
+- **Waiting on me:** The Review queue's default view: only the tools whose current step the viewing persona can decide.

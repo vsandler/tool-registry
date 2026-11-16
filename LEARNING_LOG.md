@@ -184,6 +184,12 @@ A rejection is final, so the builder must be told why. The back end refuses a re
 ### A clear "Rejected" note
 Every rejected tool's details now include `rejection`: who rejected it, when, at which step and their reason. The builder sees exactly what to fix, without reading the whole history.
 
+### One place for the "whose turn is it?" rules
+The screens need to know, for whoever is looking, "can I decide this, and if not, why?". Rather than copy the approval rules into the JavaScript, the back end works it out and sends it as `my_action`: `can_decide`, a plain reason such as "Waiting for a marketing specialist." or "You built this tool, so you can't approve or reject it.", and what deciding needs (areas to route, visibility to publish). Both `decide` and `my_action` call the same check, `_check_turn`, so they can't drift apart. One test makes sure of it: at each point in a review, everyone told "you can't" really is refused, and exactly one person is told "you can". This is called a *single source of truth*.
+
+### Oldest first, using when it was submitted
+Tools now record `submitted_at`, and the Review queue lists the longest-waiting first. Databases made before this column existed get it filled in from when each tool's checks ran, since the checks run at submission.
+
 ### A guard test for future routes
 Specialist reviewers can now open the Review queue. To make sure that doesn't leak into other admin pages later, a test lists every `/admin` address and fails if a new one appears. Its message tells whoever added it to keep the new route admins-only and to test that Specialists are refused.
 
