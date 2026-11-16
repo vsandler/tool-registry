@@ -60,6 +60,7 @@ These match the To Do list in BACKLOG.md, which has the steps for each one.
 - **Reassign orphaned tools:** an admin hands a departed owner's tool to a current user.
 - **Fix and resubmit after rejection:** a builder edits a rejected tool and sends it back for review.
 - **Make the eval set harder:** the eval scored 17/17 risky and 16/16 safe in all 3 runs, so it may be too easy to show where the agent fails. Next: trick cases written by a second AI that hasn't seen the agent's instructions, and cases from real reviewer disagreements.
+- **Model cascade:** the cheaper model reviews every submission, and anything it flags or is unsure about goes to a stronger model for a second opinion. Only worth building once a harder eval set shows the cheaper model missing things.
 - **Full audit trail for a real firm:** never delete or overwrite AI reviews or approval decisions, show the full review history in the review screen, keep call logs for a set time, record who changed the sample advice and when, and keep sample and demo data in a separate environment from live records.
 - Separate libraries for each practice
 - Cost/ROI dashboard

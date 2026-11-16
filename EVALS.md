@@ -84,6 +84,11 @@ The 99 calls cost $0.0196 in total.
 - **No case was borderline enough to split the runs.** Even the harder set didn't find the edge of what Haiku 5.5 can do. That makes it less useful for the Haiku-vs-Sonnet comparison in 8d: if both score 100%, cost and speed will decide.
 - **Three runs at one effort level.** Consistency was perfect here, but it could change at a lower effort level or with a different model.
 
+## 8c: review of missed cases (2026-11-16)
+Phase 8c was meant to study the cases the agent got wrong and fix the instructions for them. **The current baseline (run 2) has no missed cases:** no risky case slipped through in any run, no safe case was flagged in any run, and no case changed its answer between runs. So there was nothing to fix, and the instructions were not changed because of misses.
+
+Instead, 8c looks for a change that cuts input tokens without losing accuracy. The proposal is in STATUS.md and waits for approval. If it's approved, the full 3-run eval reruns, and the change is kept only if it still scores 17/17 risky and 16/16 safe with no inconsistent cases.
+
 ## Earlier runs
 | Run | Date | Set | Risky caught | Safe passed | Avg cost | Avg time | Results file |
 |---|---|---|---|---|---|---|---|

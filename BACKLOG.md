@@ -44,6 +44,14 @@
     1. Ask a second AI (for example Codex) to write new made-up trick cases without seeing the agent's instructions.
     2. Add cases from real mistakes, once people use the tool: every time a human reviewer disagrees with the AI's advice, save it as a new eval case.
     3. Rerun the eval and record the new score in EVALS.md.
+- **Model cascade**
+  - **What it is:** The cheaper model reviews every submission. Anything it flags or is unsure about (risky or needs_human) goes to a stronger model for a second opinion.
+  - **Why it was cut:** It's only worth building once a harder eval set shows the cheaper model missing things. Today Claude Haiku 5.5 scores 17/17 risky and 16/16 safe in all 3 runs, so a second model would add cost and time without catching anything more. See EVALS.md.
+  - **Steps to build it:**
+    1. Add a second model to config.json.
+    2. Route flagged or needs_human results to it.
+    3. Record both verdicts.
+    4. Compare cost and accuracy in EVALS.md.
 - **Full audit trail for a real firm**
   - **What it is:** A complete record of who did what and when, which nothing can delete or quietly change.
   - **Why it was cut:** It isn't needed for a demo with made-up data. Today the approval history is already add-only, the database keeps every AI review (the review screen shows only the latest), git keeps every version of the sample advice, and `logs/` records each AI call with no set time limit.
