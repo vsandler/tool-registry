@@ -117,7 +117,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 ---
 
-## 10. Front end: three screens and a persona dropdown (DRAFT, awaiting approval)
+## 10. Front end: three screens and a persona dropdown (approved 2026-11-16)
 
 **Persona dropdown (top bar, every screen).** Shows name, role and practice or specialist area ("Sam Specialist: Specialist reviewer, compliance"), under a banner: "Demo: pick a persona, no real sign-in". *Why:* an approver should always know whose eyes they're looking through, because that decides what they can see and do.
 
@@ -133,7 +133,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 **Catalog.** Published tools this persona may see, with visibility label, owner and rationale. "Personalise" fills in the blanks for your own copy. *Why:* approvers see what their approvals published, and users see why each tool exists before reusing it.
 
-**Depends on back-end changes:** Specialists opening the queue (option A), and routing to more than one area with each tool's own step list. Today the back end allows one area per tool and refuses Specialists at the queue.
+**Back-end support:** both changes this design needed are built: Specialists opening the queue (option A), and routing to one or more areas with each tool's own step list (#11). Tool details include `steps` for the progress line.
 
 ---
 
