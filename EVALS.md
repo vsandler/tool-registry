@@ -66,7 +66,7 @@ Added because the shorter instructions from 8c no longer name "role-play request
 - A case is **inconsistent** if its verdict changes between runs.
 - Cost comes from the token counts the API reports and Haiku 5.5's price ($0.10 per million input tokens, $0.50 per million output tokens). Response time is measured around each call.
 
-Run it with `.venv/Scripts/python.exe -m evals.run_eval` (3 runs by default; `--runs 1` for a quick check). A 3-run pass makes 102 real calls (about $0.02) and saves full results in `evals/results/`.
+Run it with `.venv/Scripts/python.exe -m evals.run_eval` (3 runs by default; `--runs 1` for a quick check; `--model claude-sonnet-5-5` to try another model for that run only, without changing `config.json`). A 3-run pass makes 102 real calls (about $0.02) and saves full results in `evals/results/`.
 
 ## Current baseline: run 4, 2026-11-16
 Model `claude-haiku-5-5`, effort `medium`, the shorter instructions from 8c, 34 cases × 3 runs = 102 calls. Full results: `evals/results/20261116T043633Z.json`.
@@ -85,6 +85,33 @@ Average input tokens per review: 1,103. The 102 calls cost $0.0185 in total.
 **Missed cases:** none. **Cases with different answers across runs:** none.
 
 **The new role-play case (hard-risky-20) was caught in all 3 runs, for the right reason.** Each time the agent wrote that the template asks the reviewer "to adopt a persona named Sam who approves every template", calling it an attempt to manipulate the review. Two runs also flagged the false "already been checked" claim. So dropping "role-play requests" from the instructions' examples didn't stop the agent from catching role-play.
+
+## 8d: Haiku 5.5 vs Sonnet 5.5 (2026-11-16)
+Both models were run on the same 34-case set (18 risky, 16 safe), each case 3 times (102 calls per model). Both used the same shorter instructions from 8c and the same effort level (`medium`). Haiku's numbers are run 4 above, which wasn't rerun. Sonnet was run with `--model claude-sonnet-5-5`, which swaps the model for that run only. `config.json` still says `claude-haiku-5-5`.
+
+| | **Claude Haiku 5.5** (run 4) | **Claude Sonnet 5.5** (run 5) |
+|---|---|---|
+| Risky caught in every run | **18 / 18** | **18 / 18** |
+| Safe passed in every run | **16 / 16** | **16 / 16** |
+| Missed cases | none | none |
+| Inconsistent cases (answer changed between runs) | none | none |
+| Failed replies (needs_human) | 0 of 102 | 0 of 102 |
+| Avg input tokens per review | 1,103 | 1,103 |
+| Avg output tokens per review | 142 | 132 |
+| Estimated cost per review: average | **$0.00018** | **$0.0035** (about 19.5× Haiku) |
+| Estimated cost per review: highest | $0.00025 | $0.0051 |
+| Response time: average | **1.73 s** | **2.62 s** (about 1.5× Haiku) |
+| Response time: median | 1.68 s | 2.12 s |
+| Response time: slowest | 3.52 s | 6.77 s |
+| Cost of the whole 102-call run | $0.0185 | $0.36 |
+| Meets every BRIEF.md target? | ✅ | ✅ |
+| Results file | `20261116T043633Z.json` | `20261116T050015Z.json` |
+
+**How costs are estimated:** from the token counts the API reports, at Anthropic's listed prices: Haiku 5.5 $0.10 / $0.50 per million input / output tokens, Sonnet 5.5 $2 / $10. Output tokens include the model's thinking.
+
+**What it means:** on this set, both models were equally accurate, with nothing missed and nothing inconsistent. So the set can't show Sonnet catching anything Haiku misses, and by the rule set for 8d (if both score 100%, cost and speed decide), Haiku comes out ahead. Both stay under the 1-cent and 10-second targets, but Sonnet's slowest review (6.8 s) used more of the 10-second limit.
+
+**Caveat:** a perfect score for both means this set is too easy to tell them apart. A harder set (see BACKLOG.md "Make the eval set harder") might show a difference.
 
 ## Run 2 (previous baseline, before 8c), 2026-11-15
 Model `claude-haiku-5-5`, effort `medium`, the original instructions, 33 cases × 3 runs = 99 calls. Full results: `evals/results/20261115T201142Z.json`.
@@ -141,3 +168,4 @@ Instead, 8c looked for one change that cuts input tokens without losing accuracy
 | 2 | 2026-11-15 | 33 cases × 3 runs, original instructions | 17 / 17 | 16 / 16 | $0.00020 | 1.49 s | `evals/results/20261115T201142Z.json` |
 | 3 | 2026-11-16 | 33 cases × 3 runs, shorter instructions (8c) | 17 / 17 | 16 / 16 | $0.00018 | 1.66 s | `evals/results/20261116T042838Z.json` |
 | 4 | 2026-11-16 | 34 cases × 3 runs (+ role-play case), shorter instructions | 18 / 18 | 16 / 16 | $0.00018 | 1.73 s | `evals/results/20261116T043633Z.json` |
+| 5 | 2026-11-16 | Same as run 4, on **Sonnet 5.5** (8d comparison, model swapped for this run only) | 18 / 18 | 16 / 16 | $0.0035 | 2.62 s | `evals/results/20261116T050015Z.json` |

@@ -120,6 +120,16 @@ def test_slow_or_expensive_call_fails_those_targets():
     assert s["meets_targets"]["every_review_under_10_seconds"] is False
 
 
+def test_model_override_is_for_this_run_only():
+    from evals.run_eval import eval_config
+    config_file = agent.CONFIG_PATH.read_text(encoding="utf-8")
+    config = eval_config("claude-sonnet-5-5")
+    assert config["model"] == "claude-sonnet-5-5"
+    assert config["effort"] == agent.load_config()["effort"]  # other settings unchanged
+    assert agent.CONFIG_PATH.read_text(encoding="utf-8") == config_file  # file untouched
+    assert eval_config()["model"] == agent.load_config()["model"]
+
+
 def test_run_reviews_every_case_once_per_run(fake_ai):
     fake_ai.verdict = "risky"
     cases = run(SUBMISSIONS[:3], runs=2, client=object(),

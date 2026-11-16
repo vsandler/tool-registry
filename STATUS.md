@@ -1,7 +1,24 @@
 # Status
 
 ## Current phase
-Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a, 8b, 8c and the follow-ups are done and committed. 8c's shorter instructions were applied and kept. Next is 8d (Haiku 5.5 vs Sonnet 5.5 on the 34-case set), not started.** Not pushed.
+Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a–8c are done. 8d: Sonnet 5.5 has been measured and compared with Haiku 5.5 (EVALS.md). The proposed choice is below. `config.json` is unchanged (still Haiku 5.5) and waits for your decision.** Not pushed.
+
+## 8d: Haiku 5.5 vs Sonnet 5.5, proposed choice (waiting for your decision)
+
+| | Haiku 5.5 | Sonnet 5.5 |
+|---|---|---|
+| Score (34 cases × 3 runs) | 18/18 risky, 16/16 safe | 18/18 risky, 16/16 safe |
+| Missed or inconsistent cases | none | none |
+| Cost per review (average) | $0.00018 | $0.0035 |
+| Response time (average / slowest) | 1.7 s / 3.5 s | 2.6 s / 6.8 s |
+
+**The trade-off in plain language:** on our test set, both models caught every risky tool and passed every safe one, every time. So we got nothing extra for Sonnet's higher price. Sonnet costs about 20 times as much per review. Over 10,000 reviews that's about $35 instead of about $2. It's also about half as slow again: reviewers would wait about 2.6 seconds instead of 1.7. Its slowest review took 6.8 s, which still meets the 10-second target but with less room to spare.
+
+**Proposal: keep Claude Haiku 5.5.** Your rule for 8d is "if both score 100%, cost and speed decide", and Haiku is cheaper and faster. No change to `config.json` is needed: it already says `claude-haiku-5-5`.
+
+**What could change this later:** if a harder eval set (BACKLOG.md "Make the eval set harder") shows Haiku missing risks that Sonnet catches, the "Model cascade" backlog item would let Haiku do every review and Sonnet give a second opinion only on flagged ones.
+
+**Once you decide,** I'll record the decision and this reasoning in DECISIONS.md (updating #4, "Start the AI agent on Claude Haiku 5.5").
 
 ## Current score (run 4, 2026-11-16)
 Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made-up cases (18 risky, 16 safe), each run 3 times = 102 calls. Details in EVALS.md.
@@ -21,6 +38,11 @@ Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made
 A perfect score on a set I wrote may still mean it's too easy to show where the agent fails. "Make the eval set harder" is in BACKLOG.md and the README.
 
 ## Done
+### 8d: model comparison (2026-11-16)
+- **Sonnet run:** Sonnet 5.5 was run on the same 34-case set, 3 times each, with the same instructions and effort level (102 calls, $0.36). Haiku 5.5 wasn't rerun; its numbers are run 4.
+- **How the model was swapped:** a new `--model` option in `evals/run_eval.py` swaps the model for that run only. A test checks that `config.json` is left untouched. Tests: 193 passing.
+- **Results:** side by side in EVALS.md ("8d").
+
 ### 8c: shorter instructions (approved 2026-11-16)
 - **Applied** the proposal below to `SYSTEM_PROMPT`, word for word as proposed.
 - **Run 3** (the same 33 cases × 3): 17/17 and 16/16, no inconsistent cases, so the change was **kept**. Input tokens fell from 1,307.5 to 1,101.5 per review (−15.8%, exactly as measured beforehand), and cost per review fell 10%.
@@ -55,7 +77,7 @@ A perfect score on a set I wrote may still mean it's too easy to show where the 
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing. Waiting for you before 8d.
+- Nothing. Waiting for your 8d decision (above).
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
@@ -105,7 +127,7 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 
 ## Blocked / questions for Vanessa
 
-_No open questions right now._
+**1. 8d: keep Haiku 5.5 (proposed), or switch to Sonnet 5.5?** Both scored 100%, and Haiku is about 20× cheaper and 1.5× faster. See the 8d section above. I won't change `config.json` or DECISIONS.md until you decide.
 
 **✅ Answered on 2026-11-16 (third round):** Approve the 8c proposal? Yes. **Done and kept** (runs 3 and 4). Add a role-play trick case and use the 34-case set for 8d. **Done.**
 

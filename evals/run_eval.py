@@ -3,6 +3,7 @@
 Usage (from the project root):
     .venv/Scripts/python.exe -m evals.run_eval            # 3 runs of every case
     .venv/Scripts/python.exe -m evals.run_eval --runs 1
+    .venv/Scripts/python.exe -m evals.run_eval --model claude-sonnet-5-5   # this run only
 
 Each run makes one real API call per submission, so it costs real money (about
 $0.007 per run of 33 cases on Claude Haiku 5.5). The model can answer differently
@@ -133,12 +134,23 @@ def run(submissions: list[dict], runs: int = DEFAULT_RUNS, client=None,
     return list(cases.values())
 
 
+def eval_config(model: str | None = None) -> dict:
+    """The settings for this eval run: config.json, with the model swapped for this
+    run only if `model` is given. config.json itself is never changed."""
+    config = dict(agent.load_config())
+    if model:
+        config["model"] = model
+    return config
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
+    parser.add_argument("--model", help="Use this model for this run only (config.json "
+                                        "is not changed), e.g. claude-sonnet-5-5")
     args = parser.parse_args(argv)
 
-    config = agent.load_config()
+    config = eval_config(args.model)
     cases = run(load_submissions(), runs=args.runs, config=config)
     summary = score(cases)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
