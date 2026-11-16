@@ -1,9 +1,9 @@
 # Status
 
 ## Current phase
-Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a–8c are done. 8d: Sonnet 5.5 has been measured and compared with Haiku 5.5 (EVALS.md). The proposed choice is below. `config.json` is unchanged (still Haiku 5.5) and waits for your decision.** Not pushed.
+Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a–8d are done. 8d decision: keep Claude Haiku 5.5 (recorded in DECISIONS.md #4). `config.json` needed no change.** Not pushed.
 
-## 8d: Haiku 5.5 vs Sonnet 5.5, proposed choice (waiting for your decision)
+## 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
 
 | | Haiku 5.5 | Sonnet 5.5 |
 |---|---|---|
@@ -18,7 +18,7 @@ Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend
 
 **What could change this later:** if a harder eval set (BACKLOG.md "Make the eval set harder") shows Haiku missing risks that Sonnet catches, the "Model cascade" backlog item would let Haiku do every review and Sonnet give a second opinion only on flagged ones.
 
-**Once you decide,** I'll record the decision and this reasoning in DECISIONS.md (updating #4, "Start the AI agent on Claude Haiku 5.5").
+**Decided:** keep Haiku 5.5. The decision, numbers and cascade path are recorded in DECISIONS.md #4.
 
 ## Current score (run 4, 2026-11-16)
 Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made-up cases (18 risky, 16 safe), each run 3 times = 102 calls. Details in EVALS.md.
@@ -77,7 +77,7 @@ A perfect score on a set I wrote may still mean it's too easy to show where the 
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing. Waiting for your 8d decision (above).
+- Nothing. Phase 8 is complete.
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
@@ -127,7 +127,9 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 
 ## Blocked / questions for Vanessa
 
-**1. 8d: keep Haiku 5.5 (proposed), or switch to Sonnet 5.5?** Both scored 100%, and Haiku is about 20× cheaper and 1.5× faster. See the 8d section above. I won't change `config.json` or DECISIONS.md until you decide.
+_No open questions right now._
+
+**✅ Answered on 2026-11-16 (fourth round):** 8d: keep Claude Haiku 5.5. **Recorded** in DECISIONS.md #4.
 
 **✅ Answered on 2026-11-16 (third round):** Approve the 8c proposal? Yes. **Done and kept** (runs 3 and 4). Add a role-play trick case and use the 34-case set for 8d. **Done.**
 

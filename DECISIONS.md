@@ -39,13 +39,25 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 ---
 
-## 4. Start the AI agent on Claude Haiku 5.5
+## 4. The AI agent uses Claude Haiku 5.5 (confirmed after comparing with Sonnet 5.5)
 
-**Decision:** The AI pre-review agent starts on Claude Haiku 5.5.
+**Decision:** The AI pre-review agent uses Claude Haiku 5.5. It started on Haiku, and the 8d comparison on 2026-11-16 confirmed that choice. `config.json` stays `claude-haiku-5-5`.
 
-**Why:** It's fast and cheap, which fits the targets of under 1 cent and under 10 seconds per review.
+**How we compared:** both models ran the same eval: 34 made-up cases (18 risky, 16 safe), each 3 times, with the same instructions and effort level. Full table in EVALS.md ("8d").
 
-**Trade-off:** A smaller model might miss risks that a larger one catches. Before we commit, we'll run Haiku 5.5 and Sonnet 5.5 through the same evals (the test set of safe and risky submissions) and choose based on the results.
+| | Haiku 5.5 | Sonnet 5.5 |
+|---|---|---|
+| Score | 18/18 risky, 16/16 safe in every run | 18/18 risky, 16/16 safe in every run |
+| Missed or inconsistent cases | none | none |
+| Cost per review (average) | $0.00018 | $0.0035 (about 19.5× Haiku) |
+| Cost per 10,000 reviews (estimate) | about $2 | about $35 |
+| Response time (average / slowest) | 1.73 s / 3.52 s | 2.62 s / 6.77 s |
+
+**Why Haiku:** the rule set before the comparison was "if both score 100%, cost and speed decide". Both scored 100%, so Sonnet's extra cost bought nothing we could measure. Haiku is about 20 times cheaper and about 1.5 times faster, and its slowest review leaves more room under the 10-second target.
+
+**Trade-off:** a smaller model might still miss risks a larger one would catch. Our test set may simply be too easy to show the difference, since both models got every case right.
+
+**The path if that changes:** if a harder eval set (BACKLOG.md "Make the eval set harder") shows Haiku missing risks that Sonnet catches, build the model cascade (BACKLOG.md "Model cascade"). Haiku would keep reviewing every submission, and anything it flags or is unsure about would go to Sonnet for a second opinion. Most reviews would stay at Haiku's cost, with Sonnet's judgement where it matters. Then compare cost and accuracy in EVALS.md before switching it on.
 
 ---
 
