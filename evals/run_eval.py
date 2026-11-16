@@ -27,8 +27,8 @@ RESULTS_DIR = EVAL_DIR / "results"
 LOG_PATH = agent.PROJECT_ROOT / "logs" / "eval_calls.jsonl"
 DEFAULT_RUNS = 3
 
-# Targets from BRIEF.md "Success Metrics". "At least 8 of 10 safe" is applied as
-# at least 80% of the safe cases, in every run.
+# Targets from BRIEF.md "Success Metrics". The safe target (at least 80% of safe
+# cases passed) must be met in every run.
 TARGETS = {
     "safe_pass_rate_min": 0.8,
     "max_cost_usd": 0.01,          # under 1 cent per review

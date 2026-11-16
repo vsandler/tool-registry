@@ -44,10 +44,20 @@ def test_staleness_check_spots_an_instructions_change():
     assert len(problems) == 1 and "instructions changed" in problems[0]
 
 
+def current_data():
+    """The stored sample advice, but stamped as up to date for the current model and
+    instructions, so a test only sees the one problem it sets up itself."""
+    return {**sample_advice.load(), "model": "claude-haiku-5-5",
+            "instructions_fingerprint": agent.instructions_fingerprint()}
+
+
+HAIKU = {"model": "claude-haiku-5-5"}
+
+
 def test_staleness_check_spots_a_changed_seeded_tool():
     tools = sample_advice.seeded_tools()
     tools[2] = {**tools[2], "template": tools[2]["template"] + " Extra sentence."}
-    problems = sample_advice.staleness_problems(tools=tools)
+    problems = sample_advice.staleness_problems(current_data(), HAIKU, tools)
     assert problems == [
         "A seeded tool changed: 'Client welcome letter' in registry/seed.py is different "
         "from the version the sample advice was written for."
@@ -57,12 +67,13 @@ def test_staleness_check_spots_a_changed_seeded_tool():
 
 def test_staleness_check_spots_a_new_seeded_tool_without_advice():
     tools = sample_advice.seeded_tools() + [{"name": "Brand new tool", "template": "x"}]
-    problems = sample_advice.staleness_problems(tools=tools)
+    problems = sample_advice.staleness_problems(current_data(), HAIKU, tools)
     assert len(problems) == 1 and "'Brand new tool'" in problems[0]
 
 
 def test_staleness_check_spots_advice_for_a_removed_seeded_tool():
-    problems = sample_advice.staleness_problems(tools=sample_advice.seeded_tools()[:2])
+    problems = sample_advice.staleness_problems(current_data(), HAIKU,
+                                                sample_advice.seeded_tools()[:2])
     assert len(problems) == 1 and "no longer a seeded tool" in problems[0]
 
 

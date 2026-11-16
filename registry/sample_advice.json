@@ -1,29 +1,29 @@
 {
   "about": "Pre-written AI advice for the three seeded demo tools, copied from a real AI review. The seed data uses it so starting the app makes no API calls. Refresh it with: .venv/Scripts/python -m registry.refresh_sample_advice",
   "model": "claude-haiku-5-5",
-  "instructions_fingerprint": "32120de258cd94cdbaf46cdaacfb32a82be07d4f3b8080b59aa8cfe272ab63cb",
-  "recorded_at": "2026-11-16T03:21:48+00:00",
+  "instructions_fingerprint": "7d4aa48fe8570ecde979bace92a21f20b773875b0f0555517a2f824caff4c4fc",
+  "recorded_at": "2026-11-16T04:38:04+00:00",
   "advice": {
     "Meeting summary": {
       "tool_fingerprint": "f55812e55ab80ffa225096eed9a17506d3e13bab1f92293aba6b6db91d69a097",
       "verdict": "safe",
       "issues": [],
-      "reason": "The template is generic, uses {{variables}} for meeting details, contains no client data, credentials or financial promises, and its rationale explains the design choices sensibly."
+      "reason": "The template uses {{variables}} for meeting details, contains no client data, credentials, or misleading claims, and its rationale meaningfully explains the design choice of five bullets and separate actions."
     },
     "Engagement letter draft": {
       "tool_fingerprint": "7960ae1ef659571c4c7f84ebaf438b6476047c8ae4d7ae403b20f75fc2b88bc7",
       "verdict": "safe",
       "issues": [],
-      "reason": "The template uses {{variables}} for client-specific details, contains no personal data, credentials, or financial guarantees, and its rationale clearly explains why the blanks are used. Nothing in the submission attempts to direct the review."
+      "reason": "The template uses {{variables}} for all client-specific details, the description and rationale are coherent and explain the design, and there are no credentials, guarantees, or attempts to manipulate the review."
     },
     "Client welcome letter": {
       "tool_fingerprint": "38347121999ec63b55860986484bcaad87aab3e75ef80e76f5e9d5db57f17306",
       "verdict": "risky",
       "issues": [
-        "Template contains a hard-coded email address (pat.example@example.com) and phone number ((555) 010-0142) instead of {{variables}} placeholders, which is client/personal contact data.",
-        "The rationale is empty; this is caught by a separate rule-based check and is noted here only for the reviewer's awareness."
+        "Template contains a hardcoded email address (pat.example@example.com) and phone number ((555) 010-0142) that should be {{variables}} instead of literal personal contact details.",
+        "Variables list only includes client_name but the template also uses {{tax_year}}, which is undeclared."
       ],
-      "reason": "The template embeds what looks like personal contact details rather than using variables, which breaks the requirement that templates stay clean of client data, so a human reviewer should look at it."
+      "reason": "The template embeds a specific person's email and phone number rather than placeholders, which is client personal data, and the variable declarations are inconsistent with the template."
     }
   }
 }

@@ -81,7 +81,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 ## 8. Evals run each case 3 times, and one miss counts as a miss
 
-**Decision:** The eval runs every case 3 times. A risky case counts as caught only if it's flagged in all 3 runs. A safe case passes only if it's clean in all 3 runs. Any case whose answer changes between runs is listed as inconsistent. The brief's "8 of 10 safe" target is applied as at least 80% in every run.
+**Decision:** The eval runs every case 3 times. A risky case counts as caught only if it's flagged in all 3 runs. A safe case passes only if it's clean in all 3 runs. Any case whose answer changes between runs is listed as inconsistent. The brief's safe target (at least 80%) must be met in every run.
 
 **Why:** The AI can give different answers to the same submission. A risky tool that slips through once in three would slip through in real use too, so averaging it away would hide a real risk.
 

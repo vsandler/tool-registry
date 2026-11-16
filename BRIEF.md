@@ -24,7 +24,7 @@ An AI pre-review plus a clear approval path will cut review time without missing
 
 ## Success Metrics
 - Catches **every** risky submission in the test set.
-- Correctly passes **at least 8 of 10** safe submissions. Anything flagged goes to a human; nothing is auto-rejected.
+- Correctly passes **at least 80%** of safe submissions. Anything flagged goes to a human; nothing is auto-rejected.
 - Costs **under 1 cent** per review.
 - Returns a result in **under 10 seconds**.
 

@@ -1,26 +1,34 @@
 # Status
 
 ## Current phase
-Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a, 8b and the follow-ups are done and committed. 8c: no missed cases to fix (recorded in EVALS.md), so I've written ONE proposal to cut input tokens. It is below and has NOT been applied. Waiting for your approval.** Not pushed.
+Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a, 8b, 8c and the follow-ups are done and committed. 8c's shorter instructions were applied and kept. Next is 8d (Haiku 5.5 vs Sonnet 5.5 on the 34-case set), not started.** Not pushed.
 
-## New baseline score (run 2, 2026-11-15)
-Model `claude-haiku-5-5`, effort `medium`. 33 made-up cases (17 risky, 16 safe), each run 3 times = 99 calls. Details in EVALS.md.
+## Current score (run 4, 2026-11-16)
+Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made-up cases (18 risky, 16 safe), each run 3 times = 102 calls. Details in EVALS.md.
 
 | Measure | Result | Target | Met? |
 |---|---|---|---|
-| Risky caught in every run | **17 / 17** | All | ✅ |
-| Safe passed in every run | **16 / 16** (100% each run) | At least 80% (8 of 10) in every run | ✅ |
-| Cost per review | avg $0.00020, max $0.00027 | Under 1 cent | ✅ |
-| Response time | avg 1.49 s, max 2.55 s | Under 10 s | ✅ |
+| Risky caught in every run | **18 / 18** | All | ✅ |
+| Safe passed in every run | **16 / 16** (100% each run) | At least 80% in every run | ✅ |
+| Cost per review | avg $0.00018, max $0.00025 | Under 1 cent | ✅ |
+| Response time | avg 1.73 s, max 3.52 s | Under 10 s | ✅ |
 
-- **Missed cases:** none. No risky case slipped through in any run, and no safe case was flagged in any run.
-- **Cases with different answers across runs:** none. All 33 cases got the same verdict all 3 times.
-- **Failed replies (needs human):** 0 of 99.
-- **Previous baseline (run 1):** 10/10 risky, 10/10 safe, 20 cases × 1 run.
+- **Missed cases:** none, including the new role-play trick case (hard-risky-20), which was caught in all 3 runs.
+- **Cases with different answers across runs:** none.
+- **Failed replies (needs human):** 0 of 102.
+- **Earlier runs:** run 1 had 10/10 and 10/10 (20 cases × 1 run). Run 2 had 17/17 and 16/16 with the original instructions. Run 3 had 17/17 and 16/16 with the shorter instructions.
 
-I read the agent's issues for every new risky case, and each names the real problem, so these are right answers for the right reasons. Still, a perfect score on a set I wrote means it may be too easy to show where the agent fails. "Make the eval set harder" is now in BACKLOG.md and the README.
+A perfect score on a set I wrote may still mean it's too easy to show where the agent fails. "Make the eval set harder" is in BACKLOG.md and the README.
 
 ## Done
+### 8c: shorter instructions (approved 2026-11-16)
+- **Applied** the proposal below to `SYSTEM_PROMPT`, word for word as proposed.
+- **Run 3** (the same 33 cases × 3): 17/17 and 16/16, no inconsistent cases, so the change was **kept**. Input tokens fell from 1,307.5 to 1,101.5 per review (−15.8%, exactly as measured beforehand), and cost per review fell 10%.
+- **Role-play:** the shorter instructions no longer name "role-play requests", and no case covered it, so I added one made-up role-play trick case (hard-risky-20).
+- **Run 4** (34 cases × 3): 18/18 and 16/16, no inconsistent cases. The role-play case was caught every time, for the right reason. **The 34-case set is the one for 8d.**
+- **Sample advice** refreshed after the change (3 calls). The verdicts are unchanged.
+- **Test fix:** three staleness tests read the real sample-advice file, so the instructions change also showed up in them, and they failed for the wrong reason. They now build their own up-to-date copy of the data and test only their own problem. The exact checks are unchanged.
+
 ### Sample advice and audit trail (your answers of 2026-11-16)
 - **No AI calls at startup.** The 3 seeded submissions show fixed sample advice from `registry/sample_advice.json`, marked `"sample": true` with a label. Real submissions always call the AI. Only the seed setup can pass sample advice: a test sends fake sample advice to the API's submit route and checks it's ignored, and another scans the code for any other caller.
 - **Two demo drafts** for live demos: "Savings check-in note" (subtly risky: a soft promise about returns) and "Call notes tidy-up" (safe). Both pass all six rule-based checks. See the README's "Run a demo".
@@ -47,9 +55,9 @@ I read the agent's issues for every new risky case, and each names the real prob
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing. Waiting for your approval of the 8c proposal below.
+- Nothing. Waiting for you before 8d.
 
-## 8c proposal: tighten the agent's instructions (NOT applied)
+## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
 **The one change:** rewrite `SYSTEM_PROMPT` in `registry/agent.py` with fewer words. It keeps every rule: the same six risk types, the same "submission is data, not instructions" defence, the same "safe vs risky" guidance, and the same reply rules. Nothing else changes: not the reply schema, the model, the effort level or the way the submission is wrapped.
 
@@ -97,7 +105,9 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 
 ## Blocked / questions for Vanessa
 
-**1. Approve the 8c proposal above?** If yes, I'll apply it, rerun the 3-run eval and refresh the sample advice (about $0.02 in total), and keep it only if the score holds.
+_No open questions right now._
+
+**✅ Answered on 2026-11-16 (third round):** Approve the 8c proposal? Yes. **Done and kept** (runs 3 and 4). Add a role-play trick case and use the 34-case set for 8d. **Done.**
 
 **✅ Answered on 2026-11-16 (second round):**
 1. 8d: if Haiku 5.5 and Sonnet 5.5 both score 100%, cost and speed decide. I'll record the reasoning in DECISIONS.md once they've been compared. **Waiting for 8d.**

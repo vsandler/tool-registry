@@ -153,7 +153,7 @@ An AI model doesn't always give the same answer to the same question. So the eva
 The first set's risks were obvious ("guaranteed 9%"). The new cases are subtler: a lone client name mentioned in passing, a partial address, soft promises ("comfortably outpace inflation"), and tricks hidden in a variable name or a polite note. There are also safe cases built to *look* risky: "we cannot guarantee returns", a tool that tells the model to ignore instructions in an email, help with password resets. These check that the agent reads the meaning, not just the words.
 
 ### Turning "8 out of 10" into a rate
-The brief's safe target is "at least 8 of 10". With 16 safe cases, the eval applies it as at least 80% passed, in every run.
+The brief's safe target was "at least 8 of 10", written for a 10-case set. With 16 safe cases, the eval applies it as at least 80% passed, in every run. The brief now says "at least 80%" directly.
 
 ### Fixed sample advice instead of live calls for the demo data
 The three seeded tools used to call the real AI every time the app started with a fresh database. Now they show fixed advice copied from a real AI review, labelled `"sample": true` so nobody mistakes it for a live review. Starting the app is free, needs no API key and looks the same every time. Two extra drafts are there for live demos: submitting one makes a real AI call. See DECISIONS.md #9.
