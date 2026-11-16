@@ -81,6 +81,19 @@
     2. Turn the shared pieces (persona dropdown, progress line, flag and AI advice panels) into components.
     3. Rebuild the screens one at a time, keeping the same API calls.
     4. Add component tests, and browser tests if not already done.
+- **Notifications**
+  - **What it is:** When a tool reaches someone's step, notify them by email or a chat tool such as Microsoft Teams, with a link to the tool. Also notify the builder when their tool is approved, rejected (with the reason) or published.
+  - **Why it was cut:** It needs a real email or chat service, and this is a demo with no real systems (BRIEF.md "Out of Scope"). The Review queue's "Waiting on me" view covers the need for now.
+  - **Steps to build it:**
+    1. After each decision, work out who needs to know: whoever must act next (Super admin, or the specialists for the next area), and the builder.
+    2. Send a short message with a link to the tool, through a replaceable "notifier" so email and Teams can be swapped.
+    3. For a rejection, include the reviewer's reason (DECISIONS.md #12).
+    4. Record each notification sent, so it's possible to check who was told and when.
+    5. Add tests with a pretend notifier: the right people are told at each step, the builder gets the reason on rejection, and a failing notifier doesn't stop the decision.
+  - **Open questions:**
+    - **Avoiding notification overload:** one message per event, or a daily digest? Should people choose?
+    - **Reminders:** after how long should a tool waiting at someone's step trigger a reminder, and who else is told if it keeps waiting?
+    - **If the notification service is down:** decisions and the Review queue must keep working regardless. Should missed notifications be retried later, and how are duplicates avoided?
 - **Ticketing integration**
   - **What it is:** When a tool reaches a specialist step, create a ticket in that reviewer's ticketing system (generic, for example Jira or ServiceNow), with a link back to the tool. When the ticket is approved or rejected, update the tool.
   - **Why it was cut:** It needs a real outside system, and this is a demo with no real systems (BRIEF.md "Out of Scope").

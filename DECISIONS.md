@@ -159,9 +159,14 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
    - **Why:** nothing new to install, one command starts the app, and the pages and API share one address, so there's no cross-site setup. The code stays short and readable for three screens.
    - **Trade-off:** shared pieces (the progress line, the persona dropdown) are plain functions rather than reusable components, and keeping the screen in step with the data is done by hand. That gets harder as screens and live updates grow. "Move the front end to React" in BACKLOG.md says when to switch.
 
-2. **The back end refuses a rejection without a comment.** Not just the screen.
+2. **The back end refuses a rejection without a proper comment.** Not just the screen.
+   - **The rule:** the comment must be at least 10 characters once spaces around it are ignored. Empty, spaces-only and shorter comments are refused. The API answers with this plain-language message and says it belongs to the comment box (`"field": "comment"`), so the screen shows it right next to the box, not as a bare error code: *"Add a comment of at least 10 characters explaining why you're rejecting this tool. The builder will see it."* The "who may act" checks still come first, so the tool's owner is told "your own tool", not "comment too short".
    - **Why:** a rejection is final, so the builder needs to know why. If only the screen asked, anyone calling the API directly could skip it. Putting the rule in the back end means it holds everywhere and is tested in Python.
-   - **Trade-off:** a reviewer can't reject in one click, and existing calls that reject without a comment now get a 400 error.
+   - **Trade-off:** a reviewer can't reject in one click, and existing calls that reject without a comment now get a 400 error. Ten characters stops empty or "no" comments, but not unhelpful ones; reviewers still need to write something useful.
+
+4. **Every rejected tool shows a clear "Rejected" note:** who rejected it, when, at which step and their reason. Each tool's details include it as `rejection`. The note appears on the builder's view of the tool (their tool page and "My tools") and in the Review queue detail panel, next to the progress line.
+   - **Why:** the builder learns exactly what to fix, and reviewers see where and why a review ended without reading the whole history.
+   - **Trade-off:** rejected tools leave the Review queue, because it lists tools still in review. So the detail panel shows the note right after the reviewer rejects, and afterwards through the tool's page. A "recently decided" view in the queue would need its own filter.
 
 3. **No automated browser tests (Playwright) for now.** The approval rules and the "can I act / why not" logic live in the back end and are tested in Python. Each page gets a test that it loads, and the screens are checked by hand as each persona.
    - **Why:** Playwright needs a large browser download and about 30–45 minutes to set up. The risky logic is already tested, and the screens are mostly display.

@@ -23,6 +23,7 @@ from registry.approvals import (
     ensure_default_steps,
     get_history,
     get_progress,
+    get_rejection,
     get_steps,
 )
 from registry.agent import get_ai_review
@@ -91,6 +92,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict) -> dict:
         "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides
         "current_step": current_step(conn, tool["id"]),
         "steps": get_progress(conn, tool["id"]),  # every step, for the progress line
+        "rejection": get_rejection(conn, tool["id"]),  # who, when, which step, why
         "history": get_history(conn, tool["id"]),
     }
 
@@ -116,7 +118,10 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.exception_handler(ApprovalInputError)
     async def _bad_decision(request: Request, exc: ApprovalInputError):
-        return JSONResponse(status_code=400, content={"detail": str(exc)})
+        content = {"detail": str(exc)}
+        if getattr(exc, "field", None):  # tells a form which box the message belongs to
+            content["field"] = exc.field
+        return JSONResponse(status_code=400, content=content)
 
     @app.exception_handler(NotFound)
     @app.exception_handler(ApprovalNotFound)  # listed explicitly: it is also a NotAllowed

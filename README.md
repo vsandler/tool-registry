@@ -46,7 +46,7 @@ This makes 3 real AI calls (well under 1 cent) and rewrites `registry/sample_adv
 ## Approval flow
 
 1. **Super admin** routes the tool to one or more specialist areas, in order: AI enablement (technology), compliance and/or marketing. Each chosen area becomes its own review step.
-2. **Each specialist**, in that order, approves (a rejection at any step ends the review).
+2. **Each specialist**, in that order, approves (a rejection at any step ends the review). A rejection needs a comment of at least 10 characters, and the tool then shows who rejected it, when, at which step and why.
 3. **Super admin** sets visibility (practice-only or firm-wide) and publishes.
 
 Nobody approves a tool they own, admins included. Each specialist must be a different person from whoever decided the other steps. Each tool's detail includes `steps`: every approval step, marked done, waiting, rejected or not reached, with who and when. Specialist reviewers can open the Review queue, which shows only the tools waiting for their area.
@@ -64,6 +64,7 @@ These match the To Do list in BACKLOG.md, which has the steps for each one.
 - **Parallel approvals:** let the Super admin choose, per tool, whether specialist reviews happen in order or at the same time. In parallel mode the tool moves to publish only when every area has approved, and any rejection ends the review. Open questions: how the progress line shows steps happening at once, and what happens to an open review when another specialist rejects.
 - **Browser tests (Playwright):** automated tests that click through the real pages as each persona. Skipped for now because the rules are tested in Python.
 - **Move the front end to React:** switch when there are more than a handful of screens, shared pieces like the progress line are reused in many places, there's a lot of live-updating state, or several people work on the front end.
+- **Notifications:** tell people by email or a chat tool such as Microsoft Teams when a tool reaches their step, with a link, and tell the builder when their tool is approved, rejected (with the reason) or published. Open questions: avoiding overload (for example a daily digest), reminders for tools waiting too long, and what happens if the notification service is down (the queue still works).
 - **Ticketing integration:** when a tool reaches a specialist step, open a ticket in that reviewer's ticketing system (for example Jira or ServiceNow) that links back to the tool, and update the tool when the ticket is approved or rejected. Open questions: how decisions sync back, how no self-approval is enforced across both systems, and what happens if the ticketing system is down.
 - **Full audit trail for a real firm:** never delete or overwrite AI reviews or approval decisions, show the full review history in the review screen, keep call logs for a set time, record who changed the sample advice and when, and keep sample and demo data in a separate environment from live records.
 - Separate libraries for each practice

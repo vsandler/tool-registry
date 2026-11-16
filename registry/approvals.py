@@ -42,6 +42,19 @@ class ApprovalNotFound(ApprovalError, NotFound):
     """The tool or user in the decision doesn't exist."""
 
 
+class CommentRequired(ApprovalInputError):
+    """A rejection needs a comment. `field` tells a form which box the message is for."""
+
+    field = "comment"
+
+
+# A rejection is final, so the builder must be told why (DECISIONS.md #12).
+MIN_REJECT_COMMENT = 10
+REJECT_COMMENT_MESSAGE = (
+    f"Add a comment of at least {MIN_REJECT_COMMENT} characters explaining why you're "
+    "rejecting this tool. The builder will see it."
+)
+
 DECISIONS = ("approved", "rejected")
 ACTIONS = ("route", "review", "publish")
 
@@ -173,6 +186,17 @@ def _save_tool_steps(conn: sqlite3.Connection, tool_id: int, steps: list[dict]) 
     )
 
 
+def get_rejection(conn: sqlite3.Connection, tool_id: int) -> dict | None:
+    """Who rejected the tool, when, at which step and why. None if not rejected."""
+    rejected = [h for h in get_history(conn, tool_id) if h["decision"] == "rejected"]
+    if not rejected:
+        return None
+    r = rejected[-1]
+    return {"by": r["approver_name"], "by_id": r["approver_id"], "at": r["decided_at"],
+            "step_position": r["position"], "step_name": r["step_name"],
+            "reason": r["comment"]}
+
+
 def _waiting_for(step: dict) -> str:
     if step["action"] == "review":
         return f"a {step['area']} specialist" if step["area"] else "a specialist (not routed yet)"
@@ -272,6 +296,10 @@ def decide(
     if step["different_person"] and any(h["approver_id"] == user_id for h in history):
         raise ApprovalError("This step must be decided by someone who hasn't decided another "
                             "step of this tool")
+
+    comment = (comment or "").strip()
+    if decision == "rejected" and len(comment) < MIN_REJECT_COMMENT:
+        raise CommentRequired(REJECT_COMMENT_MESSAGE)
 
     detail = ""
     updates: dict = {}

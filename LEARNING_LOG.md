@@ -178,6 +178,12 @@ Before, every tool followed one shared list: route, one specialist, publish. Now
 ### Tests first, then code
 For this change the tests were written before the code, and the list of test names was agreed first. At that point they couldn't even run, because the functions they call didn't exist yet. Then the code was written until all of them passed. The tests describe what "working" means before any code is written.
 
+### Rejections need a reason, checked in the back end
+A rejection is final, so the builder must be told why. The back end refuses a rejection whose comment is shorter than 10 characters once spaces around it are ignored, so "", "   " and "Too vague" (9 characters) are all refused and "Not useful" (exactly 10) is accepted. Testing exactly 9 and exactly 10 is called testing the *boundary*: it's where mistakes like "less than" versus "less than or equal" show up. The refusal comes back as a plain sentence with `"field": "comment"`, so the screen can put it right next to the comment box.
+
+### A clear "Rejected" note
+Every rejected tool's details now include `rejection`: who rejected it, when, at which step and their reason. The builder sees exactly what to fix, without reading the whole history.
+
 ### A guard test for future routes
 Specialist reviewers can now open the Review queue. To make sure that doesn't leak into other admin pages later, a test lists every `/admin` address and fails if a new one appears. Its message tells whoever added it to keep the new route admins-only and to test that Specialists are refused.
 
