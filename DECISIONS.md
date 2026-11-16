@@ -148,3 +148,21 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 **Why:** some tools need more than one kind of expert, for example compliance *and* marketing. Each review is its own visible step, so the progress line (#10) shows exactly who has checked the tool and who hasn't.
 
 **Trade-off:** the areas are chosen up front, in a fixed order. The Super admin can't add another area after seeing the first review. That's what's left of the "Hub-and-spoke routing" backlog item.
+
+---
+
+## 12. Front-end technology, the reject-comment rule, and browser tests
+
+**Decisions (2026-11-16):**
+
+1. **Plain HTML and JavaScript, served by the existing FastAPI server.** No framework and no build step.
+   - **Why:** nothing new to install, one command starts the app, and the pages and API share one address, so there's no cross-site setup. The code stays short and readable for three screens.
+   - **Trade-off:** shared pieces (the progress line, the persona dropdown) are plain functions rather than reusable components, and keeping the screen in step with the data is done by hand. That gets harder as screens and live updates grow. "Move the front end to React" in BACKLOG.md says when to switch.
+
+2. **The back end refuses a rejection without a comment.** Not just the screen.
+   - **Why:** a rejection is final, so the builder needs to know why. If only the screen asked, anyone calling the API directly could skip it. Putting the rule in the back end means it holds everywhere and is tested in Python.
+   - **Trade-off:** a reviewer can't reject in one click, and existing calls that reject without a comment now get a 400 error.
+
+3. **No automated browser tests (Playwright) for now.** The approval rules and the "can I act / why not" logic live in the back end and are tested in Python. Each page gets a test that it loads, and the screens are checked by hand as each persona.
+   - **Why:** Playwright needs a large browser download and about 30–45 minutes to set up. The risky logic is already tested, and the screens are mostly display.
+   - **Trade-off:** a broken button or a display mistake won't be caught automatically, only by hand. "Browser tests (Playwright)" in BACKLOG.md covers adding them later.

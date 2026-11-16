@@ -64,6 +64,23 @@
   - **Open questions:**
     - **Progress line:** how does it show steps happening at once? For example, the parallel reviews stacked side by side between "Route" and "Publish", each marked done or waiting.
     - **A rejection while another review is still open:** does the other specialist's open review close at once and show "not reached"? Can they still add a comment? Is the tool's owner told which review rejected it?
+- **Browser tests (Playwright)**
+  - **What it is:** Automated tests that open the real pages in a browser and click through them as each persona: submit a tool, route it to two areas, approve each review, publish, and check what each persona sees.
+  - **Why it was cut:** The approval rules and the "can I act / why not" logic are tested in Python, and Playwright needs a large browser download and setup time. See DECISIONS.md #12.
+  - **Steps to build it:**
+    1. Install Playwright for Python and its browser into `.venv` (not committed).
+    2. Start the app on a throwaway database with the fake AI, so tests never call the real API.
+    3. Write a few journeys: the full multi-specialist approval, a refused self-approval message, a rejection that needs a comment, and the Specialist's filtered queue.
+    4. Run them with the rest of the tests, and make them easy to skip on a computer without the browser.
+- **Move the front end to React**
+  - **What it is:** Rebuild the plain HTML and JavaScript screens in React, with reusable components (for example the progress line and the persona dropdown).
+  - **Why it was cut:** Three screens don't need a framework, a build step or Node.js. See DECISIONS.md #12.
+  - **When to switch:** when there are more than a handful of screens, when shared pieces like the progress line are reused in many places, when there's a lot of live-updating state, or when several people work on the front end.
+  - **Steps to build it:**
+    1. Set up React with Vite, and have FastAPI serve the built files.
+    2. Turn the shared pieces (persona dropdown, progress line, flag and AI advice panels) into components.
+    3. Rebuild the screens one at a time, keeping the same API calls.
+    4. Add component tests, and browser tests if not already done.
 - **Ticketing integration**
   - **What it is:** When a tool reaches a specialist step, create a ticket in that reviewer's ticketing system (generic, for example Jira or ServiceNow), with a link back to the tool. When the ticket is approved or rejected, update the tool.
   - **Why it was cut:** It needs a real outside system, and this is a demo with no real systems (BRIEF.md "Out of Scope").
