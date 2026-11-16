@@ -22,6 +22,7 @@ from registry.approvals import (
     decide,
     ensure_default_steps,
     get_history,
+    get_progress,
     get_steps,
 )
 from registry.agent import get_ai_review
@@ -58,7 +59,9 @@ class NewTool(BaseModel):
 class Decision(BaseModel):
     decision: str  # "approved" or "rejected"
     comment: str = ""
-    route_to: str | None = None    # step 1: technology, compliance or marketing
+    # Step 1: one area, or a list of areas in review order
+    # (technology, compliance, marketing).
+    route_to: str | list[str] | None = None
     visibility: str | None = None  # step 3: practice-only or firm-wide
     practice: str | None = None    # step 3, practice-only
 
@@ -87,6 +90,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict) -> dict:
         "flagged": any(not c["passed"] for c in checks),
         "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides
         "current_step": current_step(conn, tool["id"]),
+        "steps": get_progress(conn, tool["id"]),  # every step, for the progress line
         "history": get_history(conn, tool["id"]),
     }
 
@@ -129,9 +133,13 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
             raise HTTPException(401, f"Unknown persona {x_persona!r}")
         return user
 
-    def admin(user: sqlite3.Row = Depends(persona)) -> sqlite3.Row:
-        if user["role"] not in ADMIN_ROLES:
-            raise HTTPException(403, "Admins only (Practice admin or Super admin)")
+    def queue_viewer(user: sqlite3.Row = Depends(persona)) -> sqlite3.Row:
+        """Admins see the whole Review queue; Specialist reviewers see only their
+        area's work (DECISIONS.md #10, option A). Everyone else is refused."""
+        if user["role"] not in ADMIN_ROLES + ("specialist_reviewer",):
+            raise HTTPException(
+                403, "Admins and Specialist reviewers only (Practice admin, Super admin, "
+                     "Specialist reviewer)")
         return user
 
     def load_tool(tool_id: int, conn: sqlite3.Connection) -> dict:
@@ -203,9 +211,17 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     # -- admin --
 
     @app.get("/admin/review-queue")
-    def review_queue(user=Depends(admin), conn=Depends(db)):
-        """Read-only: every tool in review, with rule-based flags, the AI's advice,
-        the current step and history."""
-        return [tool_detail(conn, t) for t in list_tools(conn, status="in_review")]
+    def review_queue(user=Depends(queue_viewer), conn=Depends(db)):
+        """Read-only: tools in review, with rule-based flags, the AI's advice, every
+        approval step and the history. Admins see every tool in review; a Specialist
+        reviewer sees only tools whose current step is a review for their area."""
+        tools = list_tools(conn, status="in_review")
+        if user["role"] == "specialist_reviewer":
+            def waiting_for_me(tool):
+                step = current_step(conn, tool["id"])
+                return (step is not None and step["action"] == "review"
+                        and step["area"] == user["specialty"])
+            tools = [t for t in tools if waiting_for_me(t)]
+        return [tool_detail(conn, t) for t in tools]
 
     return app

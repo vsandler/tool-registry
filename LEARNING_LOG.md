@@ -169,5 +169,17 @@ This caught a real problem straight away: the advice first copied from the last 
 ### Checking who calls a function by reading the code
 To prove only the seed setup passes `sample_advice`, a test reads every Python file in `registry/` and `evals/` and lists every place that calls something with `sample_advice=`. Python's `ast` module turns code into a tree you can search, which is more reliable than searching the text. Another test sends fake sample advice to the API's submit route and checks it's ignored and the AI is still called.
 
+### Each tool gets its own list of approval steps
+Before, every tool followed one shared list: route, one specialist, publish. Now, when the Super admin routes a tool to, say, compliance and then marketing, the tool gets its own list: route → compliance review → marketing review → publish. The list is saved in a new `tool_steps` table, so later changes to the shared list don't change a tool that's already on its way. Tools routed before this change have no list of their own, and they carry on with the shared list, so nothing breaks.
+
+### Progress for the progress line
+`get_progress` turns a tool's steps and its approval history into one list the front end can draw. Each step is marked done, waiting, rejected or not reached, says who decided it and when, and flags the final step, so the screen can warn "Approving publishes the tool".
+
+### Tests first, then code
+For this change the tests were written before the code, and the list of test names was agreed first. At that point they couldn't even run, because the functions they call didn't exist yet. Then the code was written until all of them passed. The tests describe what "working" means before any code is written.
+
+### A guard test for future routes
+Specialist reviewers can now open the Review queue. To make sure that doesn't leak into other admin pages later, a test lists every `/admin` address and fails if a new one appears. Its message tells whoever added it to keep the new route admins-only and to test that Specialists are refused.
+
 ### Upgrading an existing database
 Adding a column to a table in the code doesn't change a `registry.db` file that already exists. So on startup, the code checks whether the `is_sample` column is there and adds it if not. That's a tiny *migration*.

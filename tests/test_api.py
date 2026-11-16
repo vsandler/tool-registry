@@ -202,7 +202,10 @@ def test_admin_review_queue_open_to_admins(client, admin):
     assert all(t["current_step"]["action"] == "route" for t in queue)
 
 
-@pytest.mark.parametrize("persona", ["u-builder", "u-specialist", "u-tool-user"])
+# Specialist reviewers were removed from this list on purpose: DECISIONS.md #10
+# (option A) lets them open the queue, showing only their area's work. That is tested
+# in tests/test_api_routing.py.
+@pytest.mark.parametrize("persona", ["u-builder", "u-tool-user"])
 def test_admin_review_queue_closed_to_non_admins(client, persona):
     assert client.get("/admin/review-queue", headers=as_(persona)).status_code == 403
 

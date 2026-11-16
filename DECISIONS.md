@@ -114,3 +114,37 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 **How it stays current:** The file records the model and a fingerprint (hash) of the agent's instructions it was made with, plus a fingerprint of each seeded tool's content. A test fails if the model or instructions no longer match `config.json` and the current code, or if a seeded tool is changed, added or removed. Its message explains step by step what changed and which command to run. The advice is refreshed only by hand, with `.venv/Scripts/python -m registry.refresh_sample_advice`. That command never runs automatically, and it keeps the old file if any AI call fails.
 
 **Trade-off:** Someone has to run the refresh command and commit the result after changing the model or instructions. The test makes sure they can't forget, but it does add a manual step.
+
+---
+
+## 10. Front end: three screens and a persona dropdown (DRAFT, awaiting approval)
+
+**Persona dropdown (top bar, every screen).** Shows name, role and practice or specialist area ("Sam Specialist: Specialist reviewer, compliance"), under a banner: "Demo: pick a persona, no real sign-in". *Why:* an approver should always know whose eyes they're looking through, because that decides what they can see and do.
+
+**Review queue (the approver's main screen).**
+- **Who sees it:** Super and Practice admins see every tool in review. Specialist reviewers see only tools waiting for their area (option A). The queue is read-only; decisions go through the buttons below. *Why:* Specialists need to find their work, and a short, relevant list helps.
+- **The list:** one row per tool: name, current step, who must act next. It opens on **"Waiting on me"**, oldest first, with a switch to "All in review". *Why:* an approver's first question is "what do I need to do?", and oldest first is fair to builders.
+- **Two kinds of warning, kept apart:** **"Rule flags"** (facts from the fixed checks) and **"AI advice: you decide"** (the AI's issues and reason, labelled "Sample advice" where it applies). *Why:* an approver can tell a fixed rule from an AI opinion, and never mistakes advice for a decision.
+- **Progress line** at the top of the detail panel, built from **this tool's own list of approval steps**, so a tool sent to two specialists shows four steps, e.g. "1 Route → 2 Compliance review → 3 Marketing review → 4 Publish". Each step shows **done** (who, when) or **waiting** (who must act). After a rejection it shows where the tool stopped, with later steps marked "not reached". On the last step, a clear note reads: **"This is the final approval. Approving publishes the tool."** *Why:* an approver sees what's been checked, by whom, what's still to come, and whether their click puts the tool in front of users.
+- **Detail panel:** template, rationale, every check, the AI's notes and the full history with comments.
+- **Decision buttons appear only when it's your turn.** Step 1: the Super admin picks **one or more specialist areas, in order**. Each becomes its own review step. Review steps: approve or reject. Last step: set visibility (practice-only or firm-wide, with the practice) and publish. When you can't act, a plain sentence says why ("You built this tool, so you can't approve it"; "Waiting for marketing"). Rejecting asks for a comment, because a rejection is final. *Why:* no dead buttons and no guessing; the rules explain themselves.
+
+**Submit (builder's screen).** A form for the name, description, template, visibility, practice and rationale. The `{{variables}}` found are listed as you type, and the rationale box asks "Why did you build it this way?". After submitting, the builder sees the same rule flags and AI advice as the approver, plus "Flags don't block submission: a person reviews every tool". *Why:* builders fix problems early, so approvers get cleaner submissions.
+
+**Catalog.** Published tools this persona may see, with visibility label, owner and rationale. "Personalise" fills in the blanks for your own copy. *Why:* approvers see what their approvals published, and users see why each tool exists before reusing it.
+
+**Depends on back-end changes:** Specialists opening the queue (option A), and routing to more than one area with each tool's own step list. Today the back end allows one area per tool and refuses Specialists at the queue.
+
+---
+
+## 11. Route one tool through one or more specialist areas, in order
+
+**Decision (2026-11-16):** at step 1 the Super admin picks **one or more** specialist areas, in order. Each chosen area becomes its own review step, so every routed tool gets its own list of approval steps: route → review (area 1) → review (area 2) → … → publish. Built now, before the front end. This extends #1, which allowed one area.
+
+**Rules:** reviews happen strictly in the chosen order, and only a specialist from that step's area can decide it. Each specialist must be a different person from whoever decided any other step. No self-approval at any step, for anyone. A rejection at any review ends the review. An area can't be picked twice, and at least one area is needed.
+
+**Older tools keep working:** a tool routed before this change has no step list of its own. It carries on with the shared three-step list and its single area. A routed tool's own list is fixed: later changes to the shared list don't affect it.
+
+**Why:** some tools need more than one kind of expert, for example compliance *and* marketing. Each review is its own visible step, so the progress line (#10) shows exactly who has checked the tool and who hasn't.
+
+**Trade-off:** the areas are chosen up front, in a fixed order. The Super admin can't add another area after seeing the first review. That's what's left of the "Hub-and-spoke routing" backlog item.

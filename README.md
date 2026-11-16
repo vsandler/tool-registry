@@ -45,22 +45,24 @@ This makes 3 real AI calls (well under 1 cent) and rewrites `registry/sample_adv
 
 ## Approval flow
 
-1. **Super admin** routes the tool to one specialist area: AI enablement (technology), compliance, or marketing.
-2. **That specialist** approves.
+1. **Super admin** routes the tool to one or more specialist areas, in order: AI enablement (technology), compliance and/or marketing. Each chosen area becomes its own review step.
+2. **Each specialist**, in that order, approves (a rejection at any step ends the review).
 3. **Super admin** sets visibility (practice-only or firm-wide) and publishes.
 
-Nobody approves a tool they own, admins included. The specialist must be a different person from whoever decided the other steps.
+Nobody approves a tool they own, admins included. Each specialist must be a different person from whoever decided the other steps. Each tool's detail includes `steps`: every approval step, marked done, waiting, rejected or not reached, with who and when. Specialist reviewers can open the Review queue, which shows only the tools waiting for their area.
 
 ## What I'd build next
 
 These match the To Do list in BACKLOG.md, which has the steps for each one.
 
 - **Configurable approval order:** let a Super admin add, remove and reorder approval steps.
-- **Hub-and-spoke routing:** after each specialist review, the Super admin can send the tool to another specialist or publish it.
+- **Hub-and-spoke routing (partly done):** tools can already go through several specialists in an order picked up front. What's left is letting the Super admin add the next specialist after seeing each review.
 - **Reassign orphaned tools:** an admin hands a departed owner's tool to a current user.
 - **Fix and resubmit after rejection:** a builder edits a rejected tool and sends it back for review.
 - **Make the eval set harder:** the eval scored 17/17 risky and 16/16 safe in all 3 runs, so it may be too easy to show where the agent fails. Next: trick cases written by a second AI that hasn't seen the agent's instructions, and cases from real reviewer disagreements.
 - **Model cascade:** the cheaper model reviews every submission, and anything it flags or is unsure about goes to a stronger model for a second opinion. Only worth building once a harder eval set shows the cheaper model missing things.
+- **Parallel approvals:** let the Super admin choose, per tool, whether specialist reviews happen in order or at the same time. In parallel mode the tool moves to publish only when every area has approved, and any rejection ends the review. Open questions: how the progress line shows steps happening at once, and what happens to an open review when another specialist rejects.
+- **Ticketing integration:** when a tool reaches a specialist step, open a ticket in that reviewer's ticketing system (for example Jira or ServiceNow) that links back to the tool, and update the tool when the ticket is approved or rejected. Open questions: how decisions sync back, how no self-approval is enforced across both systems, and what happens if the ticketing system is down.
 - **Full audit trail for a real firm:** never delete or overwrite AI reviews or approval decisions, show the full review history in the review screen, keep call logs for a set time, record who changed the sample advice and when, and keep sample and demo data in a separate environment from live records.
 - Separate libraries for each practice
 - Cost/ROI dashboard

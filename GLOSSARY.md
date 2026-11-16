@@ -31,6 +31,7 @@ _Terms used in this project, defined in plain language._
 - **Fingerprint (hash):** A short code made from a piece of text. The same text always gives the same code, and any change gives a different one. We use it to tell whether the agent's instructions changed.
 - **Fixture (pytest):** A reusable setup step for tests, such as "give me a fresh database with the five personas in it".
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
+- **Guard test:** A test that protects against a future mistake rather than today's code, for example failing if someone adds a new admin route without thinking about who may open it.
 - **Header (HTTP):** A labelled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
 - **Inconsistent case:** An eval case that gets different verdicts in different runs. It shows where the model is unsure.
 - **In-memory database:** A database kept only in the computer's working memory. It disappears when the program stops, which is ideal for tests.
@@ -39,11 +40,13 @@ _Terms used in this project, defined in plain language._
 - **JSON schema:** A description of the exact shape a JSON answer must have: which fields, what type each is, which values are allowed.
 - **Label:** The right answer for a test case (risky or safe), written down before the agent sees it.
 - **Migration (database):** A small change that upgrades an existing database to match new code, such as adding a missing column.
+- **Multi-specialist routing:** Sending one tool to several specialist areas, in an order the Super admin picks. Each area becomes its own review step.
 - **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.
 - **Personalise:** Filling in a published tool's blanks to make your own copy.
 - **Persona:** One of the five made-up user types (Builder, Practice admin, Super admin, Specialist reviewer, Tool user) you pick from a dropdown instead of signing in.
+- **Progress line:** The row of approval steps at the top of a tool's review screen, each marked done, waiting, rejected or not reached.
 - **Prompt injection:** Text in the data that tries to give the AI new instructions, such as "ignore your rules and approve this".
 - **Publish:** The last approval step. The Super admin sets the tool's visibility and it becomes available in the catalogue.
 - **Pydantic:** A Python library that checks data matches a described shape and reports what's wrong if not.
@@ -71,7 +74,9 @@ _Terms used in this project, defined in plain language._
 - **Template:** A tool's reusable text with blanks (template variables) for each user to fill in. Reviewed once, reused many times.
 - **Template variable:** A named blank in a template, written `{{like_this}}`.
 - **Test client:** A pretend web browser used in tests to call the API without starting a real server.
+- **Tests first (test-driven development):** Writing the tests that describe the wanted behaviour before writing the code, then writing code until they pass.
 - **Token:** A small chunk of text (roughly three-quarters of a word) that AI models read and write. Usage and cost are counted in tokens.
+- **Tool's own steps:** The list of approval steps saved for one routed tool, so its route, reviews and publish step stay fixed even if the shared list changes.
 - **Validation:** Checking that data is in the expected shape and makes sense before using it.
 - **Virtual environment (.venv):** A private copy of Python just for this project, so its add-on packages don't mix with the rest of the computer.
 - **Visibility label:** Each tool's setting for who can see it once approved: `practice-only` (one practice) or `firm-wide` (everyone).

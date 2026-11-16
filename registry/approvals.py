@@ -1,17 +1,21 @@
-"""The approval flow (DECISIONS.md #1).
+"""The approval flow (DECISIONS.md #1 and #11).
 
-The order is stored as an ordered list of steps in the `approval_steps` table,
-so a configurable order (BACKLOG.md) can replace it later without a rewrite.
+The shared order is stored as an ordered list of steps in the `approval_steps`
+table, so a configurable order (BACKLOG.md) can replace it later without a rewrite.
 Each step names the role that decides it and what deciding it does:
 
-  1. route   - Super admin approves and sends it to one specialist area
-  2. review  - a Specialist reviewer from that area approves
+  1. route   - Super admin approves and sends it to one or more specialist areas
+  2. review  - a Specialist reviewer from that area approves (one step per area)
   3. publish - back to the Super admin, who sets visibility and publishes
+
+When a tool is routed, it gets its own list of steps (`tool_steps`): the shared
+list, with the review step repeated once per chosen area, in the chosen order.
+Tools not yet routed, or routed before this existed, use the shared list.
 
 Rules:
   - Steps happen strictly in order.
-  - Only the role named on the current step can decide it; for the review step,
-    only a specialist from the area the tool was routed to.
+  - Only the role named on the current step can decide it; for a review step,
+    only a specialist from that step's area.
   - Nobody can approve or reject their own tool, admins included.
   - The same Super admin may decide steps 1 and 3, but a step marked
     `different_person` (the specialist review) must be decided by someone who
@@ -94,16 +98,124 @@ def get_history(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_tool_steps(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
+    """This tool's approval steps, in order. Each step has an `area`: the specialist
+    area for a review step (None if not routed yet), and None for other steps.
+
+    A routed tool has its own list. Otherwise the shared list is used; for a tool
+    routed before multi-area routing existed, its review step takes the tool's
+    single `routed_to` area.
+    """
+    rows = conn.execute(
+        "SELECT position, name, approver_role, action, area, different_person "
+        "FROM tool_steps WHERE tool_id = ? ORDER BY position", (tool_id,)).fetchall()
+    if rows:
+        return [{**dict(r), "different_person": bool(r["different_person"])} for r in rows]
+    tool = get_tool(conn, tool_id)
+    routed_to = tool["routed_to"] if tool else None
+    return [{**s, "area": routed_to if s["action"] == "review" else None}
+            for s in get_steps(conn)]
+
+
 def current_step(conn: sqlite3.Connection, tool_id: int) -> dict | None:
     """The next step waiting for a decision, or None if the review is over."""
     tool = get_tool(conn, tool_id)
     if tool is None or tool["status"] != "in_review":
         return None
     done = {h["position"] for h in get_history(conn, tool_id) if h["decision"] == "approved"}
-    for step in get_steps(conn):
+    for step in get_tool_steps(conn, tool_id):
         if step["position"] not in done:
             return step
     return None
+
+
+def _routed_areas(steps: list[dict]) -> list[str]:
+    return [s["area"] for s in steps if s["action"] == "review" and s["area"]]
+
+
+def _check_areas(route_to) -> list[str]:
+    """Turn route_to (one area as text, or a list of areas in order) into a checked list."""
+    areas = [route_to] if isinstance(route_to, str) or route_to is None else list(route_to)
+    choices = ", ".join(SPECIALIST_AREAS)
+    if not areas:
+        raise ApprovalInputError(f"Choose at least one specialist area to route to: {choices}")
+    for area in areas:
+        if area not in SPECIALIST_AREAS:
+            raise ApprovalInputError(f"Choose a specialist area to route to: {choices}")
+    repeated = sorted({a for a in areas if areas.count(a) > 1})
+    if repeated:
+        raise ApprovalInputError(
+            f"Each specialist area can only be chosen once; picked more than once: "
+            f"{', '.join(repeated)}")
+    return areas
+
+
+def _expand_for_areas(steps: list[dict], route_position: int, areas: list[str]) -> list[dict]:
+    """The tool's own step list: every review step after the route step becomes one
+    review step per chosen area, in order. Positions are renumbered from 1."""
+    expanded = []
+    for step in steps:
+        if step["action"] == "review" and step["position"] > route_position:
+            for area in areas:
+                expanded.append({**step, "name": f"{SPECIALIST_AREAS[area]} review",
+                                 "area": area})
+        else:
+            expanded.append({**step, "area": step["area"] if step["action"] == "review" else None})
+    return [{**s, "position": i} for i, s in enumerate(expanded, start=1)]
+
+
+def _save_tool_steps(conn: sqlite3.Connection, tool_id: int, steps: list[dict]) -> None:
+    conn.executemany(
+        "INSERT INTO tool_steps (tool_id, position, name, approver_role, action, area, "
+        "different_person) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [(tool_id, s["position"], s["name"], s["approver_role"], s["action"], s["area"],
+          int(s["different_person"])) for s in steps],
+    )
+
+
+def _waiting_for(step: dict) -> str:
+    if step["action"] == "review":
+        return f"a {step['area']} specialist" if step["area"] else "a specialist (not routed yet)"
+    return "a " + step["approver_role"].replace("_", " ")
+
+
+def get_progress(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
+    """Every approval step of this tool, for the progress line (DECISIONS.md #10).
+
+    Each step has a `status`: "done" (approved), "rejected", "waiting" (not decided
+    yet) or "not_reached" (after a rejection). `current` marks the step waiting now,
+    `final` marks the last step, and decided steps say who decided them and when.
+    """
+    tool = get_tool(conn, tool_id)
+    if tool is None:
+        return []
+    history = {h["position"]: h for h in get_history(conn, tool_id)}
+    now_step = current_step(conn, tool_id)
+    steps = get_tool_steps(conn, tool_id)
+    progress = []
+    for step in steps:
+        decided = history.get(step["position"])
+        if decided and decided["decision"] == "approved":
+            status = "done"
+        elif decided:
+            status = "rejected"
+        elif tool["status"] == "rejected":
+            status = "not_reached"
+        else:
+            status = "waiting"
+        progress.append({
+            **step,
+            "status": status,
+            "current": now_step is not None and step["position"] == now_step["position"],
+            "final": step["position"] == steps[-1]["position"],
+            "decided_by": decided["approver_name"] if decided else None,
+            "decided_by_id": decided["approver_id"] if decided else None,
+            "decided_at": decided["decided_at"] if decided else None,
+            "comment": decided["comment"] if decided else "",
+            "detail": decided["detail"] if decided else "",
+            "waiting_for": _waiting_for(step) if status == "waiting" else None,
+        })
+    return progress
 
 
 def decide(
@@ -113,13 +225,14 @@ def decide(
     decision: str,
     comment: str = "",
     *,
-    route_to: str | None = None,
+    route_to: str | list[str] | None = None,
     visibility: str | None = None,
     practice: str | None = None,
 ) -> dict:
     """Record one decision on the tool's current step. Returns the updated tool.
 
-    - Approving a `route` step needs `route_to` (a specialist area).
+    - Approving a `route` step needs `route_to`: one specialist area, or a list of
+      areas in the order they should review. Each becomes its own review step.
     - Approving a `publish` step needs `visibility`; practice-only also needs a
       practice (given here, or already on the tool).
     """
@@ -146,10 +259,14 @@ def decide(
             f"Step {step['position']} ({step['name']}) must be decided by a "
             f"{step['approver_role']}, not a {user['role']}"
         )
-    if step["action"] == "review" and user["specialty"] != tool["routed_to"]:
+    steps = get_tool_steps(conn, tool_id)
+    if step["action"] == "review" and user["specialty"] != step["area"]:
+        if step["area"] is None:
+            raise ApprovalError("This tool hasn't been routed to a specialist area yet")
         raise ApprovalError(
-            f"This tool was routed to {tool['routed_to']}; a {user['specialty']} "
-            "specialist can't decide it"
+            f"Step {step['position']} is the {step['area']} review (this tool was routed to "
+            f"{', then '.join(_routed_areas(steps))}); a {user['specialty']} specialist "
+            "can't decide it"
         )
     history = get_history(conn, tool_id)
     if step["different_person"] and any(h["approver_id"] == user_id for h in history):
@@ -158,12 +275,14 @@ def decide(
 
     detail = ""
     updates: dict = {}
+    new_tool_steps: list[dict] = []
     if decision == "approved" and step["action"] == "route":
-        if route_to not in SPECIALIST_AREAS:
-            raise ApprovalInputError(
-                f"Choose a specialist area to route to: {', '.join(SPECIALIST_AREAS)}")
-        updates["routed_to"] = route_to
-        detail = f"routed to {route_to}"
+        areas = _check_areas(route_to)
+        new_tool_steps = _expand_for_areas(steps, step["position"], areas)
+        # routed_to keeps the first area, for older code and tools; the full,
+        # ordered list lives in the tool's own steps.
+        updates["routed_to"] = areas[0]
+        detail = "routed to " + ", then ".join(areas)
     elif decision == "approved" and step["action"] == "publish":
         if visibility not in VISIBILITIES:
             raise ApprovalInputError(f"Set visibility to one of {VISIBILITIES} before publishing")
@@ -180,6 +299,8 @@ def decide(
         "detail, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (tool_id, step["position"], step["name"], user_id, decision, comment, detail, now()),
     )
+    if new_tool_steps:
+        _save_tool_steps(conn, tool_id, new_tool_steps)
     if decision == "rejected":
         updates["status"] = "rejected"
     elif current_step(conn, tool_id) is None:

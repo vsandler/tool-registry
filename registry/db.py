@@ -69,6 +69,21 @@ CREATE TABLE IF NOT EXISTS approval_steps (
     different_person INTEGER NOT NULL DEFAULT 0  -- 1 = must be someone who decided no other step
 );
 
+-- Each routed tool's own list of approval steps (DECISIONS.md #11), made when the
+-- Super admin routes it: route -> one review per chosen area, in order -> publish.
+-- Tools with no rows here (not yet routed, or routed before #11) use approval_steps.
+CREATE TABLE IF NOT EXISTS tool_steps (
+    tool_id          INTEGER NOT NULL REFERENCES tools(id),
+    position         INTEGER NOT NULL,
+    name             TEXT NOT NULL,
+    approver_role    TEXT NOT NULL,
+    action           TEXT NOT NULL CHECK (action IN ('route', 'review', 'publish')),
+    area             TEXT CHECK (area IS NULL OR area IN (
+                         'compliance', 'marketing', 'technology')),
+    different_person INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (tool_id, position)
+);
+
 -- Approval history: one row per decision, never edited or deleted.
 CREATE TABLE IF NOT EXISTS approvals (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
