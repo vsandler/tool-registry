@@ -70,6 +70,7 @@ export async function api(path, { method = "GET", body } = {}) {
     error.status = response.status;
     error.field = data && data.field ? data.field : null;
     error.fields = data && Array.isArray(data.fields) ? data.fields : [];
+    error.messages = data && data.messages && typeof data.messages === "object" ? data.messages : {};
     throw error;
   }
   return data;
@@ -122,6 +123,25 @@ export async function loadOrExplain(path, target) {
     showMessage(target, err.message);
     return null;
   }
+}
+
+// Marks the form boxes the back end named in a refusal (`fields`) as invalid, and
+// points each one at the message explaining it (`messageIdFor(name)` gives that
+// message's id). Unnamed boxes are cleared. A box's own hint, if it has one, stays
+// linked through `data-hint-id`. Returns the first named box, to move focus to.
+export function markInvalid(boxes, fields, messageIdFor) {
+  for (const [name, box] of Object.entries(boxes)) {
+    const hint = box.dataset.hintId || "";
+    if (fields.includes(name)) {
+      box.setAttribute("aria-invalid", "true");
+      box.setAttribute("aria-describedby", `${messageIdFor(name)} ${hint}`.trim());
+    } else {
+      box.removeAttribute("aria-invalid");
+      if (hint) box.setAttribute("aria-describedby", hint);
+      else box.removeAttribute("aria-describedby");
+    }
+  }
+  return fields.map((name) => boxes[name]).find(Boolean) || null;
 }
 
 // Saves text the back end produced as a file in the person's downloads, under the

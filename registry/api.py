@@ -31,7 +31,7 @@ from registry.approvals import (
     my_action,
 )
 from registry.agent import get_ai_review
-from registry.checks import get_check_results
+from registry.checks import MIN_RATIONALE_LENGTH, get_check_results
 from registry.db import connect
 from registry.personas import (
     QUEUE_ROLES,
@@ -44,7 +44,10 @@ from registry.tools import (
     NotAllowed,
     NotFound,
     ToolError,
+    FORM_FIELDS,
+    VISIBILITY_OPTIONS,
     blanks_for,
+    create_and_submit,
     create_tool,
     download_filename,
     get_tool,
@@ -63,8 +66,10 @@ QUEUE_REFUSED_MESSAGE = ("The Review queue is only for Practice admins, Super ad
 # --- request bodies ---------------------------------------------------------------
 
 class NewTool(BaseModel):
-    name: str = Field(min_length=1)
-    template: str = Field(min_length=1)
+    # Empty names and templates are refused by create_tool with a plain sentence
+    # naming the boxes, rather than by a length rule here (which gives a bare 422).
+    name: str
+    template: str
     visibility: str
     description: str = ""
     practice: str | None = None
@@ -84,6 +89,10 @@ class Decision(BaseModel):
 
 class Personalise(BaseModel):
     values: dict[str, str]
+
+
+class TemplateText(BaseModel):
+    template: str = ""
 
 
 # --- helpers ------------------------------------------------------------------------
@@ -196,6 +205,8 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
         content = {"detail": str(exc)}
         if getattr(exc, "fields", None):  # tells a form which boxes the message is about
             content["fields"] = exc.fields
+        if getattr(exc, "messages", None):  # one message per box, to show next to each
+            content["messages"] = exc.messages
         return JSONResponse(status_code=400, content=content)
 
     @app.exception_handler(NotAllowed)
@@ -256,6 +267,25 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     app.mount("/app", StaticFiles(directory=WEB_DIR, html=True), name="app")
 
+    # -- the Submit form --
+
+    @app.get("/submit-form")
+    def submit_form(user=Depends(persona), conn=Depends(db)):
+        """The Submit form's boxes (label, hint, and whether it's required) and its
+        choices: visibility options (each saying whether it needs a practice), the
+        practices people belong to, this persona's own practice to start with, and the
+        shortest rationale the checks accept without a flag."""
+        practices = [r[0] for r in conn.execute(
+            "SELECT DISTINCT practice FROM users WHERE practice IS NOT NULL ORDER BY practice")]
+        return {"fields": FORM_FIELDS, "visibilities": VISIBILITY_OPTIONS, "practices": practices,
+                "default_practice": user["practice"], "rationale_min": MIN_RATIONALE_LENGTH}
+
+    @app.post("/templates/blanks")
+    def template_blanks(body: TemplateText):
+        """The {{blanks}} in a template, for the Submit form's live list. Saves
+        nothing, so it needs no persona."""
+        return {"blanks": blanks_for(body.template)}
+
     @app.get("/approval-steps")
     def approval_steps(conn: sqlite3.Connection = Depends(db)):
         return {"steps": get_steps(conn), "specialist_areas": SPECIALIST_AREAS}
@@ -278,6 +308,13 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     def new_tool(body: NewTool, user=Depends(persona), conn=Depends(db)):
         tool_id = create_tool(conn, owner_id=user["id"], **body.model_dump())
         return get_tool(conn, tool_id)
+
+    @app.post("/submissions", status_code=201)
+    def submit_new(body: NewTool, user=Depends(persona), conn=Depends(db)):
+        """The Submit form: check everything, then save the tool and send it for review
+        in one go. A refusal names every box with a problem and saves nothing. Flags
+        never block: a flagged tool goes into review with its flags."""
+        return create_and_submit(conn, user["id"], **body.model_dump())
 
     @app.get("/tools/{tool_id}")
     def one_tool(tool_id: int, user=Depends(persona), conn=Depends(db)):

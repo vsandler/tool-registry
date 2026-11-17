@@ -1,7 +1,7 @@
 # Status
 
 ## Current phase
-Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). **Steps 1–4 are done; next is step 5, the Submit screen.** The branch is pushed up to "Least privilege for Practice admins". The step 4 commit and the data-source backlog commit are local only, not pushed.
+Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). **Steps 1–5 are done; next is step 6, the Review queue screen.** The branch is pushed up to "Least privilege for Practice admins". Everything since (step 4, the data-source backlog item, the STATUS update and step 5) is local only, not pushed.
 
 Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
 
@@ -13,10 +13,10 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 2 | Back end says, per persona, "can I act on this step, and if not, why" (`my_action`); tools record their submitted date | ✅ Done |
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
-| 5 | Submit screen (builder's form) | ⏭️ Next |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | Not started |
+| 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | ⏭️ Next |
 
-**Tests:** 355 passing.
+**Tests:** 402 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -27,6 +27,14 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
   - What people type is never saved (it may be client details); a test checks the database is unchanged. The file name comes from the tool's name only.
 - **Not checked in a browser yet:** there are no browser tests (DECISIONS.md #12), and Node isn't installed to check the page's code for typos. The back end was run end to end on a throwaway database. The page needs a check by hand as each persona.
 
+### Step 5: Submit (done)
+- **The form:** name, description, template, visibility, practice and rationale. Boxes, labels, hints and "Required" marks all come from the back end (`GET /submit-form`). The blanks found in the template are listed as you type (`POST /templates/blanks`).
+- **Rationale required** (your change, DECISIONS.md #15): an empty one is refused with "Explain why you built it this way.", next to the box, on the screen and on a direct API submit. A short one like "n/a" is still accepted and flagged.
+- **Every problem at once:** one call (`POST /submissions`) checks everything, saves nothing if refused, and puts each message next to its box.
+- **After submitting:** a confirmation, each rule flag in plain words with a tip for next time, the AI advice kept separate, and whose turn it is next. Flags never block.
+- **Test change:** `test_cannot_submit_twice` now gives its tool a rationale, because a tool with none can't be submitted at all now. Its check (a second submit is refused) is unchanged.
+- **Not checked in a browser yet**, like step 4.
+
 ### Also done during Phase 9
 - **Routing to one or more specialist areas, in order** (DECISIONS.md #11), so each tool has its own list of steps for the progress line.
 - **Rejecting needs a comment of at least 10 characters**, enforced by the back end; every rejected tool shows who rejected it, when, at which step and why (DECISIONS.md #12).
@@ -34,7 +42,6 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Backlog:** "Real sign-in", "Spot overlap", and "Fill blanks from an approved data source" (with more than one approved source per tool) added to BACKLOG.md and the README.
 
 ### What's next
-- **Step 5, Submit screen:** the form for name, description, template, visibility, practice and rationale, listing the `{{blanks}}` found as you type, then showing the rule flags and AI advice after submitting (DECISIONS.md #10). To keep the rules in the back end, the list of blanks should come from the back end, not be worked out in the page.
 - **Step 6, Review queue screen:** "Waiting on me" and "All in review", the detail panel with the progress line, rule flags kept apart from AI advice, and decision buttons shown only when it's your turn.
 
 ## Phase 8, 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
@@ -168,7 +175,9 @@ The sample data publishes nothing: the three seeded tools wait at step 1 and the
 - **A. Leave it.** Before a demo, take "Meeting summary" through route → compliance review → publish (about a minute by hand). This also shows the approval flow working.
 - **B. Seed one or two published tools.** The Catalog has something in it straight away. But adding seeded tools trips the sample-advice staleness test, so the sample AI advice must be refreshed (a few paid AI calls, under $0.001). The test that expects an empty Catalog on a fresh start (`tests/test_catalog.py`) would change on purpose. The seeded approvals also need made-up history from different people, so no-self-approval still holds.
 
-Not blocking: step 5 can go ahead either way. See DECISIONS.md #14, point 5.
+Not blocking: step 6 can go ahead either way. See DECISIONS.md #14, point 5.
+
+**Related, also for demo planning:** the seeded "Client welcome letter" keeps its empty rationale, so it couldn't be submitted under today's rule (DECISIONS.md #15, point 2). Changing it to "n/a" would need the same sample-advice refresh (paid AI calls).
 
 **✅ Answered on 2026-11-16 (fourth round):** 8d: keep Claude Haiku 5.5. **Recorded** in DECISIONS.md #4.
 

@@ -7,6 +7,34 @@ from datetime import datetime, timezone
 
 VISIBILITIES = ("practice-only", "firm-wide")
 
+# The visibility choices on the Submit form, in the order shown. `asks_practice` says
+# whether that choice needs a practice, so the screen knows when to show the box.
+VISIBILITY_OPTIONS = [
+    {"value": "firm-wide", "label": "Firm-wide", "asks_practice": False},
+    {"value": "practice-only", "label": "Practice-only", "asks_practice": True},
+]
+
+RATIONALE_REQUIRED = "Explain why you built it this way."
+
+# The Submit form's boxes, in order: on-screen label, whether the back end refuses a
+# submission without it (`required`), and a short hint shown under the box.
+# tests/test_submit_screen.py checks `required` matches what is actually refused.
+FORM_FIELDS = [
+    {"name": "name", "label": "Name", "required": True,
+     "hint": "A short, clear name people will recognise, such as \"Meeting summary\"."},
+    {"name": "description", "label": "Description", "required": False,
+     "hint": "One sentence on what the tool does."},
+    {"name": "template", "label": "Template", "required": True,
+     "hint": "The reusable text. Put anything that changes for each use, such as a client's "
+             "name, in double curly braces: {{client_name}}."},
+    {"name": "visibility", "label": "Who can see it", "required": True,
+     "hint": "Firm-wide: everyone in the firm. Practice-only: one practice."},
+    {"name": "practice", "label": "Practice", "required": False,
+     "hint": "Which practice a practice-only tool belongs to."},
+    {"name": "rationale", "label": "Why did you build it this way?", "required": True,
+     "hint": "A sentence or two on why you built it this way helps reviewers."},
+]
+
 # A template variable looks like {{client_name}}: letters, digits, underscores.
 VARIABLE_PATTERN = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
 
@@ -21,6 +49,39 @@ class NotFound(ToolError):
 
 class NotAllowed(ToolError):
     """The person isn't allowed to do this."""
+
+
+class InputError(ToolError):
+    """Input that can't be used. `fields` names the form boxes the message is about,
+    so the screen can show it next to them; `messages`, when given, has one message
+    per box, for showing next to each."""
+
+    def __init__(self, message: str, fields: list[str], messages: dict[str, str] | None = None):
+        super().__init__(message)
+        self.fields = fields
+        self.messages = messages
+
+
+def refuse_if_problems(problems: dict[str, str]) -> None:
+    """Raise one InputError listing every problem ({box: message}), if there are any."""
+    if problems:
+        raise InputError(" ".join(problems.values()), list(problems), dict(problems))
+
+
+def input_problems(*, name, template, visibility, rationale=None) -> dict[str, str]:
+    """What's wrong with a new tool's input, box by box. The rationale is checked only
+    when one is passed (that is, when submitting, not when saving a draft)."""
+    problems = {}
+    if not (name or "").strip():
+        problems["name"] = "Give the tool a name."
+    if not (template or "").strip():
+        problems["template"] = "Add the template text."
+    if visibility not in VISIBILITIES:
+        labels = " or ".join(o["label"] for o in VISIBILITY_OPTIONS)
+        problems["visibility"] = f"Choose who can see the tool: {labels}."
+    if rationale is not None and not rationale.strip():
+        problems["rationale"] = RATIONALE_REQUIRED
+    return problems
 
 
 def now() -> str:
@@ -46,13 +107,8 @@ def render(template: str, values: dict[str, str]) -> str:
 
 # --- personalising from the catalogue ------------------------------------------------
 
-class PersonaliseError(ToolError):
-    """Values for a personal copy that can't be used. `fields` names the blanks the
-    message is about, so the screen can show it next to those boxes."""
-
-    def __init__(self, message: str, fields: list[str]):
-        super().__init__(message)
-        self.fields = fields
+class PersonaliseError(InputError):
+    """Values for a personal copy that can't be used. `fields` names the blanks."""
 
 
 def blank_label(name: str) -> str:
@@ -105,9 +161,17 @@ def create_tool(
     """Save a new tool as a draft and return its id.
 
     If `variables` is not given, the variables found in the template are used.
+    An empty name or template, or an unknown visibility, is refused (InputError, naming
+    the boxes). Everything else, such as a missing rationale or practice, is saved and
+    left to the rule-based checks to flag: flags don't block submission.
+    The name and practice are trimmed; a blank practice, or any practice on a
+    firm-wide tool, is stored as None.
     """
-    if visibility not in VISIBILITIES:
-        raise ToolError(f"Visibility must be one of {VISIBILITIES}, not {visibility!r}")
+    refuse_if_problems(input_problems(name=name, template=template, visibility=visibility))
+    name = name.strip()
+    practice = (practice or "").strip() or None
+    if visibility == "firm-wide":
+        practice = None
     if variables is None:
         variables = find_variables(template)
     cur = conn.execute(
@@ -144,10 +208,14 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
     `sample_advice` (a ReviewResult) is used only by the seed data: it stores that
     pre-written advice, labelled as sample advice, instead of calling the AI.
     Real submissions never pass it, so they always call the AI.
+
+    A rationale is required (DECISIONS.md #15): an empty one is refused before any
+    check or AI call runs. The seed's sample submissions are exempt: they stand for
+    submissions made before this rule, so the demo keeps its tool with no rationale.
     """
     # Imported here to avoid circular imports (both modules import from this one).
     from registry import agent
-    from registry.checks import run_checks, save_check_results
+    from registry.checks import get_check_results, run_checks, save_check_results
 
     tool = get_tool(conn, tool_id)
     if tool is None:
@@ -156,6 +224,8 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
         raise NotAllowed("Only the tool's owner can submit it")
     if tool["status"] != "draft":
         raise NotAllowed(f"Only drafts can be submitted; this tool is {tool['status']}")
+    if sample_advice is None and not tool["rationale"].strip():
+        refuse_if_problems({"rationale": RATIONALE_REQUIRED})
     results = run_checks(conn, tool)
     if sample_advice is None:
         ai_result = agent.review_for_submission(tool)  # never raises
@@ -168,10 +238,20 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
     conn.commit()
     return {
         "tool": get_tool(conn, tool_id),
-        "checks": [r.__dict__ for r in results],
+        "checks": get_check_results(conn, tool_id),  # as saved, with on-screen labels
         "flagged": any(not r.passed for r in results),
         "ai_review": agent.get_ai_review(conn, tool_id),
     }
+
+
+def create_and_submit(conn: sqlite3.Connection, owner_id: str, **fields) -> dict:
+    """The Submit form's one call: check everything first (reporting every problem
+    at once), so a refusal saves nothing, then save the tool and send it for review."""
+    refuse_if_problems(input_problems(
+        name=fields.get("name"), template=fields.get("template"),
+        visibility=fields.get("visibility"), rationale=fields.get("rationale") or ""))
+    tool_id = create_tool(conn, owner_id=owner_id, **fields)
+    return submit_tool(conn, tool_id, owner_id)
 
 
 def list_tools(conn: sqlite3.Connection, status: str | None = None) -> list[dict]:

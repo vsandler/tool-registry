@@ -177,7 +177,9 @@ def test_only_owner_can_submit(conn):
 
 
 def test_cannot_submit_twice(conn):
-    tid = create_tool(conn, name="T", template="x", owner_id="u-builder", visibility="firm-wide")
+    # A rationale is needed to submit at all (DECISIONS.md #15); this test is about the second try.
+    tid = create_tool(conn, name="T", template="x", owner_id="u-builder", visibility="firm-wide",
+                      rationale="Kept short so it's easy to reuse.")
     submit_tool(conn, tid, "u-builder")
     with pytest.raises(ToolError, match="drafts"):
         submit_tool(conn, tid, "u-builder")

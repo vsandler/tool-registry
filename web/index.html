@@ -15,7 +15,8 @@
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
-    import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, saveTextFile }
+    import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, saveTextFile,
+             markInvalid }
       from "./app.js";
 
     await renderLayout("catalog");
@@ -87,10 +88,7 @@
         event.preventDefault();
         message.replaceChildren();
         result.replaceChildren();
-        for (const box of Object.values(boxes)) {
-          box.removeAttribute("aria-invalid");
-          box.removeAttribute("aria-describedby");
-        }
+        markInvalid(boxes, [], () => message.id);
         const values = Object.fromEntries(
           Object.entries(boxes).map(([name, box]) => [name, box.value]));
 
@@ -101,14 +99,8 @@
         } catch (err) {
           // Show the back end's words once, and mark the boxes it names (none if,
           // say, the server couldn't be reached).
-          const named = err.fields || [];
           showMessage(message, err.message);
-          for (const name of named) {
-            if (!boxes[name]) continue;
-            boxes[name].setAttribute("aria-invalid", "true");
-            boxes[name].setAttribute("aria-describedby", message.id);
-          }
-          const first = named.map((name) => boxes[name]).find(Boolean);
+          const first = markInvalid(boxes, err.fields || [], () => message.id);
           if (first) first.focus();
           return;
         }

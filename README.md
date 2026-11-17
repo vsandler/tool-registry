@@ -25,7 +25,7 @@ On first run, the sample data loads with no AI calls and no API key needed:
   - **"Savings check-in note"**: subtly risky. It quietly promises savings "will steadily grow faster than inflation every year". It passes all six rule-based checks, so any flag comes from the AI.
   - **"Call notes tidy-up"**: clean and safe.
 
-To demo the AI live, submit one of the drafts as `u-builder` (`POST /tools/{id}/submit`, with `GET /my-tools` to find the id). That makes a real AI call, so it needs an API key in `.env`, and the advice appears under `ai_review` in the response and in `GET /admin/review-queue`. Real submissions always call the AI.
+To demo the AI live, either fill in the **Submit a tool** page as Avery Quill (you can copy one of the drafts' text), or submit one of the drafts as `u-builder` (`POST /tools/{id}/submit`, with `GET /my-tools` to find the id). That makes a real AI call, so it needs an API key in `.env`, and the advice appears under `ai_review` in the response and in `GET /admin/review-queue`. Real submissions always call the AI.
 
 ### Refresh the sample advice
 
@@ -42,6 +42,15 @@ This makes 3 real AI calls (well under 1 cent) and rewrites `registry/sample_adv
 ```bash
 .venv/Scripts/python -m pytest
 ```
+
+## Submitting a tool
+
+The **Submit a tool** page (`POST /submissions`) checks the form, then saves the tool and sends it for review in one go:
+
+- **Required:** a name, the template text, who can see it (firm-wide or practice-only) and a rationale ("Why did you build it this way?"). If any is empty, nothing is saved and the back end says what's missing, box by box, so the page shows each message next to its box. The same rule applies to `POST /tools/{id}/submit`: a draft can be saved without a rationale, but can't be submitted until it has one.
+- **Flags never block:** after that, the six rule-based checks and the AI pre-review run. A flagged tool still goes into review. The builder sees a confirmation, then each rule flag in plain words with a tip for next time, and the AI advice, kept separate.
+- A rationale that's there but too short (under 20 characters, such as "n/a") is accepted and flagged by the `has_rationale` check.
+- The sample "Client welcome letter" still has no rationale: it stands for a submission made before this rule (DECISIONS.md #15).
 
 ## Approval flow
 

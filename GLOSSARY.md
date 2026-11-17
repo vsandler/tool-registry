@@ -58,7 +58,7 @@ _Terms used in this project, defined in plain language._
 - **Pydantic:** A Python library that checks data matches a described shape and reports what's wrong if not.
 - **pytest:** The Python tool that runs our automated tests and reports which ones pass or fail.
 - **python-dotenv:** A Python package that reads `.env` and loads its values into the program's environment.
-- **Rationale:** The short note kept with each tool explaining why it was built the way it was.
+- **Rationale:** The short note kept with each tool explaining why it was built the way it was. Required to submit a tool; one under 20 characters is flagged.
 - **Regular expression (regex):** A compact pattern for finding text, such as "two curly braces, a name, two curly braces". We use them to find template variables and to spot things like email addresses.
 - **Render:** Filling in a template's blanks with real values to produce a finished copy.
 - **Response time (latency):** How long one AI call takes, from sending the request to getting the answer.

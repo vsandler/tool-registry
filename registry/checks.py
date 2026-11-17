@@ -99,6 +99,32 @@ def check_unique_name(tool: dict, conn: sqlite3.Connection) -> CheckResult:
     )
 
 
+# How each check is named on screen.
+CHECK_LABELS = {
+    "variables_match": "Blanks match",
+    "no_client_data": "No client data",
+    "has_rationale": "Reason recorded",
+    "owner_active": "Owner is current",
+    "practice_set": "Practice named",
+    "unique_name": "Unique name",
+}
+
+# A tip for each check, shown with a flag so the builder knows how to avoid it next time.
+CHECK_TIPS = {
+    "variables_match": "List every blank the template uses, and remove any it doesn't. "
+                       "Tools made on the Submit form get this list from the template "
+                       "automatically.",
+    "no_client_data": "Replace real emails, phone numbers and account numbers with blanks, "
+                      "so the stored template holds no client details.",
+    "has_rationale": f"Write a sentence or two (at least {MIN_RATIONALE_LENGTH} characters) "
+                     "on why the tool is built this way, for example why these steps or "
+                     "this wording.",
+    "owner_active": "Ask an admin to hand the tool to a current owner.",
+    "practice_set": "For a practice-only tool, choose the practice it belongs to.",
+    "unique_name": "Look for the existing tool in the Catalog and reuse it, or choose a "
+                   "name that says how yours is different.",
+}
+
 ALL_CHECKS = [
     check_variables_match,
     check_no_client_data,
@@ -128,5 +154,7 @@ def get_check_results(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
         "SELECT check_name, passed, message FROM check_results WHERE tool_id = ? ORDER BY id",
         (tool_id,),
     )
-    return [{"name": r["check_name"], "passed": bool(r["passed"]), "message": r["message"]}
+    return [{"name": r["check_name"], "label": CHECK_LABELS.get(r["check_name"], r["check_name"]),
+             "passed": bool(r["passed"]), "message": r["message"],
+             "tip": CHECK_TIPS.get(r["check_name"], "")}
             for r in rows]

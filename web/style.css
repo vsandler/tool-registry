@@ -22,6 +22,11 @@ body {
   margin: 0;
 }
 
+/* Anything marked hidden stays hidden, even inside a grid or flex layout. */
+[hidden] {
+  display: none !important;
+}
+
 .demo-banner {
   margin: 0;
   padding: 0.5rem 1rem;
@@ -262,4 +267,120 @@ textarea[aria-invalid="true"] {
 
 .form-message:not(:empty) {
   margin-bottom: 0.75rem;
+}
+
+/* --- Submit --- */
+
+.submit-form,
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+input[type="text"],
+select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--paper);
+}
+
+input[type="text"]:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--error);
+  background: var(--error-ground);
+}
+
+.required-mark {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.required-tag {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid #fecdca;
+  background: var(--error-ground);
+  color: var(--error);
+  vertical-align: middle;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.blanks p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.field-error {
+  margin: 0;
+}
+
+.field-error:empty {
+  display: none;
+}
+
+.submit-form .field {
+  margin-bottom: 1.1rem;
+}
+
+.submit-form label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.submit-form > .hint:first-child {
+  margin-bottom: 1rem;
+}
+
+.panel ul,
+.panel ol {
+  padding-left: 1.25rem;
+}
+
+.message.inline {
+  display: block;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.flags li {
+  margin-bottom: 0.5rem;
+}
+
+.tip {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: progress;
 }

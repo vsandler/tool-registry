@@ -13,15 +13,212 @@
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
-    import { renderLayout, onPersonaReady, showMessage } from "./app.js";
+    import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, markInvalid }
+      from "./app.js";
 
     await renderLayout("submit");
     const content = document.getElementById("content");
 
-    onPersonaReady(() => {
-      // The submit form comes in Phase 9, step 5.
-      showMessage(content, "The submit screen is coming soon.", "status");
-    });
+    // Which kind of box each field gets. Only the look: the boxes themselves, their
+    // labels, hints and whether they're required all come from the back end.
+    const CONTROLS = { template: "textarea", rationale: "textarea",
+                       visibility: "select", practice: "select" };
+
+    onPersonaReady(showForm);
+
+    async function showForm() {
+      const form = await loadOrExplain("/submit-form", content);
+      if (form === null) return;
+      content.replaceChildren(buildForm(form));
+    }
+
+    function buildForm(choices) {
+      const boxes = {};
+      const errors = {};
+      const general = h("div", { id: "submit-message", className: "form-message" });
+      const blanksList = h("div", { className: "blanks", "aria-live": "polite" });
+      let practiceField = null;
+
+      const fieldBlocks = choices.fields.map((field) => {
+        const id = `field-${field.name}`;
+        const hintId = `hint-${field.name}`;
+        errors[field.name] = h("p", { id: `error-${field.name}`, className: "field-error" });
+        const box = makeBox(field, id, choices);
+        box.dataset.hintId = hintId;
+        box.setAttribute("aria-describedby", hintId);
+        if (field.required) box.setAttribute("aria-required", "true");
+        boxes[field.name] = box;
+
+        const hint = h("p", { id: hintId, className: "hint" }, field.hint);
+        if (field.name === "rationale") {
+          hint.append(` Aim for at least ${choices.rationale_min} characters, or it's ` +
+                      "flagged for the reviewer.");
+        }
+        const block = h("div", { className: "field" },
+          h("label", { for: id }, field.label,
+            field.required ? h("span", { className: "required-mark", "aria-hidden": "true" }, " *") : null,
+            field.required ? h("span", { className: "required-tag" }, "Required") : null),
+          hint,
+          box,
+          field.name === "template" ? blanksList : null,
+          errors[field.name],
+        );
+        if (field.name === "practice") practiceField = block;
+        return block;
+      });
+
+      // Show the Practice box only for a visibility the back end says needs one.
+      const showPracticeIfAsked = () => {
+        const chosen = choices.visibilities.find((v) => v.value === boxes.visibility.value);
+        if (practiceField) practiceField.hidden = !(chosen && chosen.asks_practice);
+      };
+      boxes.visibility.addEventListener("change", showPracticeIfAsked);
+      showPracticeIfAsked();
+
+      // The blanks are found by the back end as the builder types.
+      let asked = 0;
+      let timer = null;
+      const refreshBlanks = () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          const mine = ++asked;
+          let found;
+          try {
+            found = await api("/templates/blanks", { method: "POST",
+                                                     body: { template: boxes.template.value } });
+          } catch (err) {
+            if (mine === asked) blanksList.replaceChildren(h("p", { className: "hint" }, err.message));
+            return;
+          }
+          if (mine !== asked) return;   // an older answer arrived after a newer one
+          blanksList.replaceChildren(found.blanks.length
+            ? h("p", {}, "Blanks found: ",
+                found.blanks.flatMap((b, i) => [i ? ", " : "", h("strong", {}, b.label),
+                                                ` (${b.name})`]))
+            : h("p", { className: "hint" }, "No blanks found yet."));
+        }, 250);
+      };
+      boxes.template.addEventListener("input", refreshBlanks);
+      refreshBlanks();
+
+      const button = h("button", { type: "submit" }, "Submit for review");
+      const formEl = h("form", { className: "submit-form", "aria-describedby": "required-note",
+                                 novalidate: true },
+        h("p", { id: "required-note", className: "hint" }, "Fields marked * are required."),
+        fieldBlocks,
+        general,
+        button,
+      );
+
+      formEl.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        general.replaceChildren();
+        for (const slot of Object.values(errors)) slot.replaceChildren();
+        markInvalid(boxes, [], (name) => errors[name].id);
+        button.disabled = true;
+        button.textContent = "Submitting… (the AI pre-review takes a few seconds)";
+
+        const body = Object.fromEntries(Object.entries(boxes).map(([n, b]) => [n, b.value]));
+        if (!body.practice) body.practice = null;
+        let result;
+        try {
+          result = await api("/submissions", { method: "POST", body });
+        } catch (err) {
+          button.disabled = false;
+          button.textContent = "Submit for review";
+          // The back end's message for each box goes right next to it.
+          const named = (err.fields || []).filter((name) => errors[name]);
+          for (const name of named) {
+            errors[name].replaceChildren(
+              h("span", { className: "message error inline" }, err.messages[name] || err.message));
+          }
+          showMessage(general, named.length
+            ? "Some boxes need attention: see the messages next to them."
+            : err.message);
+          const first = markInvalid(boxes, named, (name) => errors[name].id);
+          if (first) first.focus();
+          return;
+        }
+        showSubmitted(result.tool.id);
+      });
+
+      return formEl;
+    }
+
+    function makeBox(field, id, choices) {
+      const kind = CONTROLS[field.name] || "input";
+      if (kind === "textarea") {
+        return h("textarea", { id, name: field.name, rows: field.name === "template" ? "6" : "3" });
+      }
+      if (kind === "select" && field.name === "visibility") {
+        return h("select", { id, name: field.name },
+          h("option", { value: "" }, "Choose…"),
+          choices.visibilities.map((v) => h("option", { value: v.value }, v.label)));
+      }
+      if (kind === "select") {
+        const box = h("select", { id, name: field.name },
+          h("option", { value: "" }, "Choose a practice…"),
+          choices.practices.map((p) => h("option", { value: p }, p)));
+        box.value = choices.default_practice || "";
+        return box;
+      }
+      return h("input", { id, name: field.name, type: "text", autocomplete: "off" });
+    }
+
+    // After submitting: the same rule flags and AI advice an approver sees, kept apart.
+    async function showSubmitted(toolId) {
+      const tool = await loadOrExplain(`/tools/${encodeURIComponent(toolId)}`, content);
+      if (tool === null) return;
+      const flags = tool.checks.filter((c) => !c.passed);
+      const advice = tool.ai_review;
+      const next = tool.steps.find((s) => s.current);
+
+      content.replaceChildren(
+        h("p", { className: "message ok", role: "status" },
+          `Submitted for review: “${tool.name}”.`),
+        h("p", {}, flags.length
+          ? `It has ${flags.length} rule flag${flags.length === 1 ? "" : "s"}. `
+          : "No rule flags. ",
+          "Flags don't block submission: a person reviews every tool."),
+
+        h("section", { className: "panel" },
+          h("h2", {}, "Rule flags"),
+          h("p", { className: "hint" }, "Facts from the fixed checks, not opinions."),
+          flags.length
+            ? h("ul", { className: "flags" }, flags.map((c) =>
+                h("li", {},
+                  h("strong", {}, c.label), `: ${c.message}`,
+                  c.tip ? h("p", { className: "tip" }, h("strong", {}, "Next time: "), c.tip) : null)))
+            : h("p", {}, "None: every rule-based check passed."),
+          h("details", {},
+            h("summary", {}, `All ${tool.checks.length} checks`),
+            h("ul", {}, tool.checks.map((c) =>
+              h("li", {}, `${c.passed ? "Passed" : "Flagged"}: ${c.label}. ${c.message}`))))),
+
+        h("section", { className: "panel" },
+          h("h2", {}, "AI advice: you decide"),
+          advice
+            ? [
+                advice.label ? h("p", { className: "hint" }, advice.label) : null,
+                h("p", {}, h("strong", {}, advice.summary)),
+                advice.issues.length
+                  ? h("ul", {}, advice.issues.map((issue) => h("li", {}, issue)))
+                  : null,
+                advice.reason ? h("p", {}, advice.reason) : null,
+                h("p", { className: "hint" }, "Advice only: it never approves or rejects a tool."),
+              ]
+            : h("p", {}, "No AI advice for this tool.")),
+
+        h("section", { className: "panel" },
+          h("h2", {}, "What happens next"),
+          next ? h("p", {}, `${next.name}: waiting for ${next.waiting_for}.`) : null,
+          h("ol", {}, tool.steps.map((s) => h("li", {}, s.name)))),
+
+        h("button", { type: "button", className: "secondary", onClick: showForm },
+          "Submit another tool"),
+      );
+      window.scrollTo({ top: 0 });
+    }
   </script>
 </body>
 </html>

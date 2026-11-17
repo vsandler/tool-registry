@@ -129,7 +129,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 - **Detail panel:** template, rationale, every check, the AI's notes and the full history with comments.
 - **Decision buttons appear only when it's your turn.** Step 1: the Super admin picks **one or more specialist areas, in order**. Each becomes its own review step. Review steps: approve or reject. Last step: set visibility (practice-only or firm-wide, with the practice) and publish. When you can't act, a plain sentence says why ("You built this tool, so you can't approve it"; "Waiting for marketing"). Rejecting asks for a comment, because a rejection is final. *Why:* no dead buttons and no guessing; the rules explain themselves.
 
-**Submit (builder's screen).** A form for the name, description, template, visibility, practice and rationale. The `{{variables}}` found are listed as you type, and the rationale box asks "Why did you build it this way?". After submitting, the builder sees the same rule flags and AI advice as the approver, plus "Flags don't block submission: a person reviews every tool". *Why:* builders fix problems early, so approvers get cleaner submissions.
+**Submit (builder's screen).** _(Updated in #15: the rationale is now required.)_ A form for the name, description, template, visibility, practice and rationale. The `{{variables}}` found are listed as you type, and the rationale box asks "Why did you build it this way?". After submitting, the builder sees the same rule flags and AI advice as the approver, plus "Flags don't block submission: a person reviews every tool". *Why:* builders fix problems early, so approvers get cleaner submissions.
 
 **Catalog.** Published tools this persona may see, with visibility label, owner and rationale. "Personalise" fills in the blanks for your own copy. *Why:* approvers see what their approvals published, and users see why each tool exists before reusing it.
 
@@ -234,3 +234,32 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 
 5. **The sample data publishes nothing,** so on a fresh start the Catalog says no tools are published yet. To see it working, take a seeded tool through the three approval steps first.
    - **Why not seed a published tool:** it would change the seeded tools, which means refreshing the sample AI advice (paid AI calls) and changing several tests' expectations. That's worth a separate decision.
+
+---
+
+## 15. The Submit screen, and a required rationale
+
+**Decisions (2026-11-16):**
+
+1. **The rationale is required to submit.** The back end refuses a submission with an empty or spaces-only rationale: *"Explain why you built it this way."*, shown next to the rationale box. This holds on the Submit screen (`POST /submissions`) and on a direct `POST /tools/{id}/submit`. A draft can still be saved without one. The "who may submit" checks come first, and a refused submission makes no AI call.
+   - **Why:** the rationale is the tool's record of why it was built this way (BRIEF.md, "lost reasoning"). Before, an empty one was only flagged, so a tool could reach reviewers with no reasoning at all, and reviewers had to ask for it. Refusing it at the door is cheaper for everyone. Putting the rule in the back end means a direct API call can't skip it.
+   - **What stays a flag:** a rationale that's present but too short (under 20 characters, such as "n/a") is accepted and flagged by `has_rationale`, as before. Flags never block: a person reviews every tool. The line is "is there any reason at all?" (refused) versus "is it a good one?" (a person and the AI judge).
+   - **Trade-off:** this changes #7 a little. An empty rationale is no longer just a flag; it's refused. Someone can still type "n/a" to get past the refusal, but that's flagged for the reviewer.
+
+2. **The seed's sample submissions are exempt.** "Client welcome letter" keeps its empty rationale, so the demo still shows the `has_rationale` flag. The seed loads it with sample advice, which only the seed can pass (a test guards this), so it stands for a submission made before this rule.
+   - **Why not change it to "n/a":** the rationale is part of each seeded tool's fingerprint, so changing it means refreshing the sample AI advice (paid AI calls, on Vanessa's say-so).
+   - **Trade-off:** the demo shows a tool that couldn't be submitted today. If that matters, change its rationale to "n/a" and refresh the sample advice.
+
+3. **The back end describes the form.** `GET /submit-form` lists each box with its label, a short hint, and whether it's `required`. A test checks that the boxes marked required are exactly the ones the back end refuses when empty. It also lists the visibility choices (each saying whether it needs a practice), the practices, the persona's own practice to start with, and the 20-character rationale minimum.
+   - **Why:** the "Required" marks and the refusals can't drift apart, and the page holds no rules.
+
+4. **The screen marks and explains, the back end decides.** Required boxes show an asterisk and a "Required" tag, with a note at the top: "Fields marked * are required." Each box has a hint underneath. On a refusal, the back end sends one message per box (`messages`), and the page shows each next to its box. The page doesn't use the browser's own `required` checks, because they would stop the form before the back end's message could be shown. Screen readers still hear "required" (`aria-required`).
+
+5. **One call creates and submits.** `POST /submissions` checks everything first, reporting every problem at once, and only then saves and submits. A refusal saves nothing.
+   - **Why:** with two calls (save the draft, then submit), a refused submit would leave a stray draft behind.
+
+6. **After submitting, the builder sees what the approver sees, explained.** First a confirmation ("Submitted for review"), and "Flags don't block submission: a person reviews every tool". Then **Rule flags**: each one in plain words with a **tip for next time** from the back end. Then **AI advice: you decide**: a one-line summary, the issues and the reason, labelled when it's sample advice. Last, **what happens next** (whose turn it is).
+
+7. **The blanks are found by the back end as you type** (`POST /templates/blanks`, which saves nothing). The tool's declared list comes from the template too, so the `variables_match` check always passes for tools made on this form.
+
+8. **Firm-wide tools store no practice.** The back end drops a practice sent with a firm-wide tool, and trims or empties the practice otherwise. So the page doesn't need to know which visibility uses a practice. It shows the Practice box only when the back end's `asks_practice` says so.

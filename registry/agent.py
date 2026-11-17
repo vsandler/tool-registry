@@ -330,6 +330,14 @@ def save_ai_review(conn, tool_id: int, result: ReviewResult, *, is_sample: bool 
     )
 
 
+# One plain line per verdict, shown above the AI's issues and reason.
+AI_SUMMARIES = {
+    "safe": "The AI found nothing to flag.",
+    "risky": "The AI flagged possible problems. A person decides.",
+    "needs_human": "The AI couldn't give a clear answer, so a person will look closely.",
+}
+
+
 def get_ai_review(conn, tool_id: int) -> dict | None:
     """The latest AI advice for a tool, shaped for reviewers. None if never reviewed."""
     row = conn.execute(
@@ -343,6 +351,7 @@ def get_ai_review(conn, tool_id: int) -> dict | None:
         "sample": bool(row["is_sample"]),
         "verdict": row["verdict"],
         "flagged": row["verdict"] != "safe",
+        "summary": AI_SUMMARIES.get(row["verdict"], AI_SUMMARIES["needs_human"]),
         "issues": json.loads(row["issues"]),
         "reason": row["reason"],
         "model": row["model"],
