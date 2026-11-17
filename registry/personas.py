@@ -7,9 +7,10 @@ import sqlite3
 
 ROLES = ("builder", "practice_admin", "super_admin", "specialist_reviewer", "tool_user")
 ADMIN_ROLES = ("practice_admin", "super_admin")
-# The roles that take part in reviews. They may open the Review queue (DECISIONS.md
-# #10, option A; Specialists see only their own area's work there) and view the
-# details of any tool, including ones still in review.
+# The roles that take part in reviews: they may open the Review queue (DECISIONS.md
+# #10, option A). Specialists see only their own area's work there, and can open a
+# tool's details only while it waits for their area or after they've decided a step
+# of it (#13). Admins see every tool.
 QUEUE_ROLES = ADMIN_ROLES + ("specialist_reviewer",)
 
 ROLE_LABELS = {

@@ -150,6 +150,24 @@
     5. Record who changed the sample advice and when, alongside the file itself.
     6. Keep sample and demo data out of the live database entirely, in a separate demo or test environment, so sample reviews never mix with real records or reports. Today they share one database, kept apart by the `is_sample` label, which is fine for a demo.
     7. Add tests: an update or delete of a review or decision is refused; history shows every review; old logs are removed only after the retention period.
+- **Real sign-in instead of the persona dropdown**
+  - **What it is:** In a real firm, people sign in, and their role, practice and specialist area come from the firm's directory. Nobody can pick a persona.
+  - **Why it was cut:** This is a demo with made-up people, so a persona dropdown is enough (DECISIONS.md #3; BRIEF.md "Out of Scope").
+  - **Steps to build it:**
+    1. Sign people in through the firm's sign-in service, instead of the `X-Persona` header.
+    2. Read each person's role, practice and specialist area from the firm's directory, not from the made-up personas.
+    3. Remove the persona dropdown and the demo banner.
+    4. Reword messages that tell people to pick a different persona. For example, the Review queue refusal becomes "The Review queue is only for Practice admins, Super admins and Specialist reviewers. Ask an admin if you need access.", and "Pick a persona first" becomes a sign-in prompt.
+    5. Add tests: nobody can act as someone else; roles come from the directory; a person removed from the directory loses access.
+- **Spot overlap**
+  - **What it is:** Practices can see a short summary of the tools other practices are building (name, purpose, practice, status and contact person), so they can spot duplicates and team up.
+  - **Why it was cut:** Not needed for the demo, and it has to be designed with least privilege in mind (DECISIONS.md #13). The unique-name check already flags exact duplicates.
+  - **Steps to build it:**
+    1. Add an "In progress across the firm" list showing only the summary fields.
+    2. Keep review details (rule flags, AI advice and reviewer comments) private to the tool's own practice and its reviewers.
+    3. Add a "contact the builder" link, so people can team up rather than build the same tool twice.
+    4. Add tests: other practices see only the summary fields; rule flags, AI advice and reviewer comments are never included for them.
+  - **Links to:** least privilege (DECISIONS.md #13). The summary list is a deliberate, limited exception to "see only what your job needs".
 - Separate libraries for each practice
 - Cost/ROI dashboard
 - Live hosted demo

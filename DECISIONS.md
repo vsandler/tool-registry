@@ -164,10 +164,33 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
    - **Why:** a rejection is final, so the builder needs to know why. If only the screen asked, anyone calling the API directly could skip it. Putting the rule in the back end means it holds everywhere and is tested in Python.
    - **Trade-off:** a reviewer can't reject in one click, and existing calls that reject without a comment now get a 400 error. Ten characters stops empty or "no" comments, but not unhelpful ones; reviewers still need to write something useful.
 
+3. **No automated browser tests (Playwright) for now.** The approval rules and the "can I act / why not" logic live in the back end and are tested in Python. Each page gets a test that it loads, and the screens are checked by hand as each persona.
+   - **Why:** Playwright needs a large browser download and about 30–45 minutes to set up. The risky logic is already tested, and the screens are mostly display.
+   - **Trade-off:** a broken button or a display mistake won't be caught automatically, only by hand. "Browser tests (Playwright)" in BACKLOG.md covers adding them later.
+
 4. **Every rejected tool shows a clear "Rejected" note:** who rejected it, when, at which step and their reason. Each tool's details include it as `rejection`. The note appears on the builder's view of the tool (their tool page and "My tools") and in the Review queue detail panel, next to the progress line.
    - **Why:** the builder learns exactly what to fix, and reviewers see where and why a review ended without reading the whole history.
    - **Trade-off:** rejected tools leave the Review queue, because it lists tools still in review. So the detail panel shows the note right after the reviewer rejects, and afterwards through the tool's page. A "recently decided" view in the queue would need its own filter.
 
-3. **No automated browser tests (Playwright) for now.** The approval rules and the "can I act / why not" logic live in the back end and are tested in Python. Each page gets a test that it loads, and the screens are checked by hand as each persona.
-   - **Why:** Playwright needs a large browser download and about 30–45 minutes to set up. The risky logic is already tested, and the screens are mostly display.
-   - **Trade-off:** a broken button or a display mistake won't be caught automatically, only by hand. "Browser tests (Playwright)" in BACKLOG.md covers adding them later.
+---
+
+## 13. Least privilege for Specialist reviewers
+
+**Decision (2026-11-16):** a Specialist reviewer can view a tool's details (and its history) only if:
+- its current step is a review for their area, or
+- they already decided a step of that tool (approved or rejected).
+
+Otherwise they're refused with a plain message: *"This tool isn't waiting for your area's review."*
+
+**What doesn't change:**
+- **Admins:** Practice and Super admins still see every tool in review.
+- **Owners:** always see their own tools.
+- **Published tools:** anyone sees them, following the catalogue's visibility rules.
+- **The Review queue:** it already showed Specialists only their own area's waiting work (#10).
+
+**Why:** people should see only what their job needs (*least privilege*). A tool in review can hold unpublished wording, rule flags and the AI's notes. A Specialist needs those for their own review, not for tools that never come to them.
+
+**Trade-off:**
+- **No looking ahead:** a Specialist can't preview a tool before it reaches their step. For example, marketing can't see a tool that's still with compliance.
+- **No wider context:** a Specialist can't look at tools that were never routed to them, even out of curiosity or for consistency. They have to ask an admin.
+- **More to test:** the rule depends on where each tool is in its review, which makes it a little harder to reason about than "reviewers see everything".

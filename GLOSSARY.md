@@ -42,6 +42,7 @@ _Terms used in this project, defined in plain language._
 - **JSON Lines (.jsonl):** A log file with one JSON record per line. Easy to add to and easy to read back.
 - **JSON schema:** A description of the exact shape a JSON answer must have: which fields, what type each is, which values are allowed.
 - **Label:** The right answer for a test case (risky or safe), written down before the agent sees it.
+- **Least privilege:** Giving each person access to only what their job needs. For example, a Specialist reviewer sees a tool's details only while it waits for their area.
 - **localStorage:** A small store in the browser that remembers things on this computer only, such as which persona you picked.
 - **Migration (database):** A small change that upgrades an existing database to match new code, such as adding a missing column.
 - **Multi-specialist routing:** Sending one tool to several specialist areas, in an order the Super admin picks. Each area becomes its own review step.

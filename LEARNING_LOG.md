@@ -202,6 +202,9 @@ When the back end refuses something, the page shows its sentence, never a blank 
 ### Text, never HTML
 The pages build everything with a small helper, `h()`, that always sets text as text. Whatever someone types into a tool (even something that looks like page code) is shown as words and can't run in someone else's browser. Building pages by pasting text into HTML is how *cross-site scripting* happens.
 
+### Least privilege: see only what your job needs
+A Specialist reviewer can now open a tool's details only while it waits for their area's review, or after they've decided a step of it. Otherwise they see "This tool isn't waiting for your area's review." Admins and owners are unaffected. The idea, called *least privilege*, is that each person can see and do only what their job needs, which limits what a mistake or a misuse can reach. The tests were written first. Four of them failed until the code was in, which showed they really test the new rule, and eight passed straight away, which showed what mustn't change.
+
 ### A guard test for future routes
 Specialist reviewers can now open the Review queue. To make sure that doesn't leak into other admin pages later, a test lists every `/admin` address and fails if a new one appears. Its message tells whoever added it to keep the new route admins-only and to test that Specialists are refused.
 

@@ -33,7 +33,13 @@ from registry.approvals import (
 from registry.agent import get_ai_review
 from registry.checks import get_check_results
 from registry.db import connect
-from registry.personas import QUEUE_ROLES, SPECIALIST_AREAS, get_user, persona_label
+from registry.personas import (
+    ADMIN_ROLES,
+    QUEUE_ROLES,
+    SPECIALIST_AREAS,
+    get_user,
+    persona_label,
+)
 from registry.seed import seed
 from registry.tools import (
     NotAllowed,
@@ -89,6 +95,31 @@ def can_see_published(user: sqlite3.Row, tool: dict) -> bool:
     if tool["visibility"] == "firm-wide" or user["role"] == "super_admin":
         return True
     return bool(user["practice"]) and user["practice"] == tool["practice"]
+
+
+SPECIALIST_NOT_YOUR_AREA = "This tool isn't waiting for your area's review."
+
+
+def check_can_view(conn: sqlite3.Connection, user: sqlite3.Row, tool: dict) -> None:
+    """Who may see a tool's details (DECISIONS.md #13). Raises NotAllowed if not.
+
+    - The owner, always. Admins (Practice and Super), always.
+    - Anyone, once it's published and visible to them in the catalogue.
+    - A Specialist reviewer only while its current step is a review for their area,
+      or if they already decided a step of it (least privilege).
+    """
+    if tool["owner_id"] == user["id"] or user["role"] in ADMIN_ROLES:
+        return
+    if can_see_published(user, tool):
+        return
+    if user["role"] == "specialist_reviewer":
+        step = current_step(conn, tool["id"])
+        if step and step["action"] == "review" and step["area"] == user["specialty"]:
+            return
+        if any(h["approver_id"] == user["id"] for h in get_history(conn, tool["id"])):
+            return
+        raise NotAllowed(SPECIALIST_NOT_YOUR_AREA)
+    raise NotAllowed("You can't view this tool")
 
 
 def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None = None) -> dict:
@@ -205,10 +236,7 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     @app.get("/tools/{tool_id}")
     def one_tool(tool_id: int, user=Depends(persona), conn=Depends(db)):
         tool = load_tool(tool_id, conn)
-        allowed = (tool["owner_id"] == user["id"] or user["role"] in QUEUE_ROLES
-                   or can_see_published(user, tool))
-        if not allowed:
-            raise NotAllowed("You can't view this tool")
+        check_can_view(conn, user, tool)
         return tool_detail(conn, tool, user)
 
     @app.post("/tools/{tool_id}/submit")
