@@ -10,7 +10,8 @@ ADMIN_ROLES = ("practice_admin", "super_admin")
 # The roles that take part in reviews: they may open the Review queue (DECISIONS.md
 # #10, option A). Specialists see only their own area's work there, and can open a
 # tool's details only while it waits for their area or after they've decided a step
-# of it (#13). Admins see every tool.
+# of it (#13). Practice admins see only their own practice's tools (the owner's
+# practice); the Super admin sees every tool.
 QUEUE_ROLES = ADMIN_ROLES + ("specialist_reviewer",)
 
 ROLE_LABELS = {

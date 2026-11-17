@@ -205,6 +205,9 @@ The pages build everything with a small helper, `h()`, that always sets text as 
 ### Least privilege: see only what your job needs
 A Specialist reviewer can now open a tool's details only while it waits for their area's review, or after they've decided a step of it. Otherwise they see "This tool isn't waiting for your area's review." Admins and owners are unaffected. The idea, called *least privilege*, is that each person can see and do only what their job needs, which limits what a mistake or a misuse can reach. The tests were written first. Four of them failed until the code was in, which showed they really test the new rule, and eight passed straight away, which showed what mustn't change.
 
+### Least privilege for Practice admins, too
+Practice admins now see only their own practice's tools, in the Review queue and in tool details. "Their practice" needed a definition first, because most tools don't name one. A tool's own practice field is only filled in for practice-only tools. So a tool belongs to its **owner's** practice, which always exists for builders. As with Specialists, the refusal tests failed before the code and the "still allowed" tests passed. Those passing tests show the change didn't remove access that should stay; they can't show the new rule works. The refusal tests do that.
+
 ### A guard test for future routes
 Specialist reviewers can now open the Review queue. To make sure that doesn't leak into other admin pages later, a test lists every `/admin` address and fails if a new one appears. Its message tells whoever added it to keep the new route admins-only and to test that Specialists are refused.
 

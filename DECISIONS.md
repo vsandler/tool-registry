@@ -174,7 +174,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 ---
 
-## 13. Least privilege for Specialist reviewers
+## 13. Least privilege for Specialist reviewers and Practice admins
 
 **Decision (2026-11-16):** a Specialist reviewer can view a tool's details (and its history) only if:
 - its current step is a review for their area, or
@@ -194,3 +194,21 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 - **No looking ahead:** a Specialist can't preview a tool before it reaches their step. For example, marketing can't see a tool that's still with compliance.
 - **No wider context:** a Specialist can't look at tools that were never routed to them, even out of curiosity or for consistency. They have to ask an admin.
 - **More to test:** the rule depends on where each tool is in its review, which makes it a little harder to reason about than "reviewers see everything".
+
+### Practice admins (added 2026-11-16)
+
+**Decision:** a tool belongs to **its owner's practice**. A Practice admin sees only their own practice's tools, in the Review queue and in tool details (and history). For any other tool they're refused with: *"This tool belongs to another practice."*
+
+**What doesn't change:**
+- **Super admin:** still sees every tool from every practice.
+- **Owners:** always see their own tools.
+- **Published tools:** anyone sees them, following the catalogue's visibility rules. So a firm-wide published tool from another practice is still visible to a Practice admin.
+
+**Why the owner's practice:** most tools don't name a practice. A tool's own "practice" field is only filled in for practice-only tools, and 4 of the 5 sample tools leave it empty. Every builder has a practice, so going by the owner always gives an answer.
+
+**Why:** Practice admins review what their own practice builds and decide no approval step. Other practices' unpublished tools, rule flags, AI advice and reviewer comments aren't theirs to see.
+
+**Trade-off:**
+- **Tools with no practice:** a tool whose owner has no practice (for example a Specialist's or the Super admin's own tool) is seen by no Practice admin, only by the Super admin, the owner and the Specialists reviewing it.
+- **Moves between practices:** if a builder moves to another practice, their tools in review move with them to that practice's admin.
+- **Lost overlap:** a Practice admin can no longer spot that another practice is building the same thing. The "Spot overlap" backlog item would bring that back as a summary only, without the review details.

@@ -34,7 +34,6 @@ from registry.agent import get_ai_review
 from registry.checks import get_check_results
 from registry.db import connect
 from registry.personas import (
-    ADMIN_ROLES,
     QUEUE_ROLES,
     SPECIALIST_AREAS,
     get_user,
@@ -98,20 +97,37 @@ def can_see_published(user: sqlite3.Row, tool: dict) -> bool:
 
 
 SPECIALIST_NOT_YOUR_AREA = "This tool isn't waiting for your area's review."
+OTHER_PRACTICE = "This tool belongs to another practice."
+
+
+def tool_practice(conn: sqlite3.Connection, tool: dict) -> str | None:
+    """A tool belongs to its owner's practice (DECISIONS.md #13). Every builder has
+    one; owners without a practice (for example Specialists) give None."""
+    owner = get_user(conn, tool["owner_id"])
+    return owner["practice"] if owner else None
+
+
+def practice_admin_may_see(conn: sqlite3.Connection, user: sqlite3.Row, tool: dict) -> bool:
+    return bool(user["practice"]) and tool_practice(conn, tool) == user["practice"]
 
 
 def check_can_view(conn: sqlite3.Connection, user: sqlite3.Row, tool: dict) -> None:
     """Who may see a tool's details (DECISIONS.md #13). Raises NotAllowed if not.
 
-    - The owner, always. Admins (Practice and Super), always.
+    - The owner, always. The Super admin, always.
     - Anyone, once it's published and visible to them in the catalogue.
+    - A Practice admin only for tools from their own practice (the owner's practice).
     - A Specialist reviewer only while its current step is a review for their area,
       or if they already decided a step of it (least privilege).
     """
-    if tool["owner_id"] == user["id"] or user["role"] in ADMIN_ROLES:
+    if tool["owner_id"] == user["id"] or user["role"] == "super_admin":
         return
     if can_see_published(user, tool):
         return
+    if user["role"] == "practice_admin":
+        if practice_admin_may_see(conn, user, tool):
+            return
+        raise NotAllowed(OTHER_PRACTICE)
     if user["role"] == "specialist_reviewer":
         step = current_step(conn, tool["id"])
         if step and step["action"] == "review" and step["area"] == user["specialty"]:
@@ -267,11 +283,14 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     @app.get("/admin/review-queue")
     def review_queue(user=Depends(queue_viewer), conn=Depends(db)):
         """Read-only: tools in review, with rule-based flags, the AI's advice, every
-        approval step and the history. Admins see every tool in review; a Specialist
-        reviewer sees only tools whose current step is a review for their area.
+        approval step and the history. The Super admin sees every tool in review; a
+        Practice admin sees only their own practice's tools (the owner's practice); a
+        Specialist reviewer sees only tools whose current step is a review for their area.
         Oldest submitted first, so tools that have waited longest come first."""
         tools = sorted(list_tools(conn, status="in_review"),
                        key=lambda t: (t["submitted_at"] or t["created_at"], t["id"]))
+        if user["role"] == "practice_admin":
+            tools = [t for t in tools if practice_admin_may_see(conn, user, t)]
         if user["role"] == "specialist_reviewer":
             def waiting_for_me(tool):
                 step = current_step(conn, tool["id"])

@@ -166,7 +166,8 @@
     1. Add an "In progress across the firm" list showing only the summary fields.
     2. Keep review details (rule flags, AI advice and reviewer comments) private to the tool's own practice and its reviewers.
     3. Add a "contact the builder" link, so people can team up rather than build the same tool twice.
-    4. Add tests: other practices see only the summary fields; rule flags, AI advice and reviewer comments are never included for them.
+    4. Show the summary to Practice admins and the Super admin too. In their Review queue, add a **"Looks similar"** flag when a tool looks like one another practice is building, so they can connect the two builders. The flag shows only the summary fields of the other tool, never its review details.
+    5. Add tests: other practices see only the summary fields; rule flags, AI advice and reviewer comments are never included for them; a similar tool from another practice raises the flag in the admin's queue without showing its review details.
   - **Links to:** least privilege (DECISIONS.md #13). The summary list is a deliberate, limited exception to "see only what your job needs".
 - Separate libraries for each practice
 - Cost/ROI dashboard
