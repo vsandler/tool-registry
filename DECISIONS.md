@@ -263,3 +263,15 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 7. **The blanks are found by the back end as you type** (`POST /templates/blanks`, which saves nothing). The tool's declared list comes from the template too, so the `variables_match` check always passes for tools made on this form.
 
 8. **Firm-wide tools store no practice.** The back end drops a practice sent with a firm-wide tool, and trims or empties the practice otherwise. So the page doesn't need to know which visibility uses a practice. It shows the Practice box only when the back end's `asks_practice` says so.
+
+---
+
+## 16. The AI shouldn't flag a missing practice (2026-11-17)
+
+**Decision:** one sentence added to the end of the "Otherwise mark safe" paragraph of the agent's instructions (`SYSTEM_PROMPT`): *"Visibility and practice aren't risks: a firm-wide tool has no practice, and a missing practice on a practice-only tool is caught by a separate check."*
+
+**Why:** a real review listed "Practice field is null" as an issue for a firm-wide tool, which has no practice by design (#15, point 8). An exact copy of that tool reproduced it in 9 of 10 runs. With the sentence: 0 of 10, and the full eval (run 5) still got every judged answer right. Practice-only tools without a practice are already flagged by the rule-based `practice_set` check, so the AI doesn't need to judge it.
+
+**Why not the wider wording** ("list only issues that match the six rules"): it would also stop notes such as "the name is a placeholder" or "the description is empty", which reviewers may find useful. That's a bigger change in behaviour than this problem needed.
+
+**Trade-off:** the instructions are about 35 tokens longer (about $0.000004 per review), and the sample advice had to be refreshed. The trigger seems to be a submission that looks like an unfilled form, so other "field is empty" issues may still appear for those. They're advice only.

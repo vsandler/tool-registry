@@ -5,46 +5,42 @@ Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). *
 
 Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
 
-## Open: AI listed "Practice field is null" for a firm-wide tool (2026-11-17)
+## Fixed: AI listed "Practice field is null" for a firm-wide tool (2026-11-17)
 
-**What happened:** on the Submit page, a test tool ("Name", rationale "N/A", firm-wide) was correctly called risky because of its rationale. But one of the AI's issues was "Practice field is null, so the tool has no owning practice area". Firm-wide tools have no practice, so that issue was wrong.
+**What happened:** on the Submit page, a made-up test tool ("Name", rationale "N/A", firm-wide) was rightly called risky because of its rationale. But one of the AI's issues was "Practice field is null". Firm-wide tools have no practice, so that issue was wrong.
 
-**Done so far (approved):**
-- **Two new eval cases**, both firm-wide with no practice: one safe (safe-17), and one risky for its rationale that mirrors the real tool (hard-risky-21).
-- **"Unwanted issues"** are now reported apart from the score. A case can list words no issue should mention; both new cases list "practice".
-- **A `--case` option** runs only the named cases.
-- **Confirmation run** (6 calls, $0.0010): the failure **did not reproduce**. Both verdicts were right in all 3 runs, and no issue mentioned the practice. But in every run of the risky case, the AI also listed issues outside its six rules: the placeholder name and the empty description, and in 2 of 3 runs a template with no `{{variables}}`. Details in EVALS.md.
-
-**First impression (since corrected):** the eval couldn't show the problem, which looked occasional. The 14 earlier safe cases that are firm-wide with no practice have never had it either.
-
-**"Before" measurement (2026-11-17, 20 calls, $0.0042), with the current instructions:**
-
-| Case | Runs | Issue mentioning the practice | Results |
-|---|---|---|---|
-| hard-risky-21 ("New tool", rationale "N/A - not needed for this one.") | 10 | **0 of 10** | `evals/results/20261117T050156Z.json` |
-| Probe: exact copy of the real tool ("Name", rationale "N/A") | 10 | **9 of 10** | `evals/results/20261117T050224Z.json` |
-
-Both were called risky in every run, which is right. The probe lives in `evals/probe_practice.json`, outside the scored set, because its 3-character "N/A" rationale is too short for that set (short rationales are the rule-based check's job). Run it with `--file evals/probe_practice.json`.
-
-**What seems to trigger it:** the exact copy looks like an unfilled form. Its name is literally "Name" and its rationale is just "N/A". The AI then goes through the submission field by field ("Name is a placeholder", "Description is empty", … "Practice field is null"). With a real-looking name and a longer rationale, it didn't. This is a reading of 20 runs, not a proof.
-
-**So now there's a "before" number: 9 of 10 on the probe.** After the change, rerunning the probe shows whether it's fixed.
-
-**Proposed instruction change (one change; you chose this wording on 2026-11-17, not yet applied):** Add this sentence to the end of the "Otherwise mark safe" paragraph in `SYSTEM_PROMPT` (`registry/agent.py`):
+**The fix (your choice of wording):** one sentence at the end of the "Otherwise mark safe" paragraph in `SYSTEM_PROMPT` (DECISIONS.md #16):
 
 > Visibility and practice aren't risks: a firm-wide tool has no practice, and a missing practice on a practice-only tool is caught by a separate check.
 
-- **Why this wording:** it names exactly what went wrong, and the reason, in the same style as the existing note on empty rationales ("caught by a separate check; don't flag emptiness alone"). It adds about 30 words (roughly 35 input tokens, about $0.000004 per review).
-- **Wider alternative (not proposed as the one change):** "List only issues that match the six rules above." That would also stop the placeholder-name, empty-description and no-`{{variables}}` issues. But reviewers may find those notes useful, and it's a bigger change in behaviour, so it's your call.
-- **How we'll know it worked:** the probe should drop from 9 of 10 to 0 (or close), and the full eval should still score 19/19 risky and 17/17 safe in every run.
+**How it was measured** (all runs and files in EVALS.md):
+- **Eval additions:** two cases (safe-17, hard-risky-21), an "unwanted issues" report, and `--case` and `--file` options. The probe `evals/probe_practice.json` is an exact copy of the real tool, kept out of the scored set because its "N/A" rationale is too short for it.
+- **Before:** the probe listed a practice issue in **9 of 10** runs; hard-risky-21 in 0 of 10. My first, looser copy hadn't reproduced it: the trigger seems to be a submission that looks like an unfilled form.
+- **After:** the probe dropped to **0 of 10**, still risky every time.
+- **Full eval, run 5** (108 calls): 19/19 risky and 17/17 safe on every judged answer, no unwanted issues. One reply in run 1 (hard-safe-12) ran to the 8,000-token limit and was cut off (22.4 s). It safely became "needs a human", but it missed the 10-second target in that run. It's the first cut-off in about 560 eval calls. Rerun 10 times with the new sentence: 0 cut off.
+- **Sample advice** refreshed (3 calls). All three verdicts unchanged.
+- **Cost of all of this:** about $0.032.
 
-**After you approve applying it, the costs** (Haiku, about $0.0002 per call):
-| Run | Calls | Cost |
-|---|---|---|
-| Probe, 10 runs ("after" number) | 10 | about $0.002 |
-| Full eval: 36 cases × 3 runs | 108 | about $0.02 |
-| Sample advice refresh (the instructions fingerprint changes, so `tests/test_sample_advice.py` fails until this runs) | 3 | about $0.0006 |
-| **Total** | **121** | **about $0.023** |
+## Proposal: lower the AI reply limit from 8,000 to 1,000 tokens (waiting for your approval)
+
+**The problem:** `MAX_TOKENS = 8000` in `registry/agent.py` is how long the AI's reply may get. A normal reply is about 120 tokens, and the longest of about 580 eval calls was 386. When a reply runs away, as in run 5, it keeps going to 8,000: 22 seconds and $0.004, 20 times a normal review. The agent already turns a cut-off reply into "needs a human", so the limit only decides how long and how much a runaway costs before that happens.
+
+**The change:** set `MAX_TOKENS = 1000`. Nothing else changes: not the instructions, the model, the effort level or the reply format.
+
+**What it would do:**
+- **Runaway reply:** cut off after about 3 seconds (Haiku writes about 360 tokens a second) for about $0.0005, instead of 22 seconds and $0.004. It stays inside the 10-second target and still goes to a person, as now.
+- **Normal replies:** unaffected. 1,000 is about 2.6 times the longest reply seen.
+
+**Why 1,000:** it's comfortably above any real reply and well under the 10-second target. 1,500 would add more headroom (about 4–5 s for a runaway); 500 would be too close to the 386 seen.
+
+**Risk:** a real reply that's unusually long (many issues, or the model thinking more) would be cut off and sent to a person, not lost. The old comment says 8,000 left "room for the model's thinking". At effort `medium`, all of the model's output, thinking included, has stayed under 400 tokens. If the effort level is raised later, this limit should be checked again.
+
+**Tests I'd add:**
+- The limit is 1,000 and is what the API call actually sends (with a fake client).
+- A guard that reads the saved eval results and fails if the limit is ever less than twice the longest reply on record, so it can't quietly become too tight.
+- The existing test that a cut-off reply becomes "needs a human" stays as it is.
+
+**Cost:** nothing needed. The reply limit isn't part of the instructions fingerprint, so the sample advice stays current, and since normal replies are unaffected, no eval rerun is needed. A quick check run (36 cases × 1 run, about $0.007) is optional if you'd like to see it with real calls.
 
 ## Phase 9: where it stands (2026-11-16)
 
@@ -57,7 +53,7 @@ Both were called risky in every run, which is right. The probe lives in `evals/p
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
 | 6 | Review queue screen: list, detail panel, progress line, decision buttons | ⏭️ Next |
 
-**Tests:** 402 passing.
+**Tests:** 419 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -211,9 +207,9 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 
 ## Blocked / questions for Vanessa
 
-**Open (2026-11-17): the "Practice field is null" fix (see the "Open" section near the top).**
-- **Answered:** use the one-sentence change, and measure first. **Measured:** 9 of 10 on the exact copy of the real tool, 0 of 10 on hard-risky-21.
-- **Waiting:** your go-ahead to apply the sentence, then run the probe (10 calls), the full eval (108 calls) and the sample-advice refresh (3 calls), about $0.023 in all.
+**Open (2026-11-17): lower the AI reply limit to 1,000 tokens?** See the proposal near the top. Approve as written, choose another limit (such as 1,500), or leave it at 8,000.
+
+**✅ Answered on 2026-11-17:** the "Practice field is null" fix: use the one-sentence change, measure first, then apply. **Done**: 9 of 10 before, 0 of 10 after; run 5 recorded in EVALS.md.
 
 **Open (Vanessa will decide when planning the demo): the Catalog is empty on a fresh start.**
 The sample data publishes nothing: the three seeded tools wait at step 1 and the two demo drafts aren't submitted. So a fresh app's Catalog says no tools are published yet. Options:

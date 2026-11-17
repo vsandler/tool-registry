@@ -90,7 +90,39 @@ Both were called risky in every run, which is right. The probe lives in `evals/p
 
 Run it with `.venv/Scripts/python.exe -m evals.run_eval` (3 runs by default; `--runs 1` for a quick check; `--model claude-sonnet-5-5` to try another model for that run only, without changing `config.json`; `--case <id>`, repeatable, to run only those cases). A 3-run pass of all 36 cases makes 108 real calls (about $0.02) and saves full results in `evals/results/`.
 
-## Current baseline: run 4, 2026-11-16
+## Current baseline: run 5, 2026-11-17
+Model `claude-haiku-5-5`, effort `medium`, the 8c instructions **plus one sentence** (approved 2026-11-17) at the end of the "Otherwise mark safe" paragraph:
+
+> Visibility and practice aren't risks: a firm-wide tool has no practice, and a missing practice on a practice-only tool is caught by a separate check.
+
+36 cases × 3 runs = 108 calls. Full results: `evals/results/20261117T051020Z.json`.
+
+| Measure | Result | Target (BRIEF.md) | Met? |
+|---|---|---|---|
+| Risky cases caught in every run | **19 / 19** | All of them | ✅ |
+| Safe cases passed in every run | **16 / 17**; per run 16, 17, 17 (94%, 100%, 100%) | At least 80% in every run | ✅ |
+| Cost per review | **avg $0.00022** (max $0.0041, the cut-off reply below) | Under 1 cent | ✅ |
+| Response time | **avg 1.95 s** (max **22.4 s**, the cut-off reply below) | Under 10 s | ❌ in run 1 |
+| Cases that changed answer between runs | **hard-safe-12** (needs_human, safe, safe) | n/a | n/a |
+| Failed replies (needs_human) | **1 of 108** | n/a | n/a |
+| Unwanted issues | **none** | n/a | n/a |
+
+**The one failure:** in run 1, the reply for hard-safe-12-injection-defence ran to the 8,000-token reply limit and was cut off (22.4 s, $0.0041). The agent handled it as designed: it became `needs_human`, so a person would check the tool. Every judged answer was right. Leaving that call out, the average is $0.00019 and 1.75 s per review, with a slowest reply of 2.7 s. It's the first cut-off in about 560 eval calls (runs 1–4, the Sonnet comparison and the probes all had none).
+
+**Follow-up (10 calls, $0.0017, `evals/results/20261117T051402Z.json`):** hard-safe-12 rerun 10 times with the new sentence: **0 of 10 cut off**, all 10 `safe`, slowest 2.4 s. So it looks like a rare one-off rather than something the sentence causes, though so few runs can't rule that out. A lower reply limit would keep any future runaway inside the 10-second target (proposed separately in STATUS.md).
+
+**Did the sentence fix the practice issue?** Yes, on the exact copy of the real tool (`evals/probe_practice.json`, 10 runs each):
+
+| | Before | After |
+|---|---|---|
+| Issue mentioning the practice | **9 of 10** (`20261117T050224Z.json`) | **0 of 10** (`20261117T050641Z.json`) |
+| Verdict | risky in all 10 | risky in all 10 |
+
+**Sample advice** was refreshed afterwards (3 calls, $0.0005), because the instructions fingerprint changed. All three verdicts are unchanged (safe, safe, risky); only the wording moved.
+
+Average input tokens per review: 1,149 (was 1,103; the sentence adds about 35 tokens, and the two new cases are a little longer). The 108 calls cost $0.0240 in total.
+
+## Run 4, 2026-11-16 (previous baseline)
 Model `claude-haiku-5-5`, effort `medium`, the shorter instructions from 8c, 34 cases × 3 runs = 102 calls. Full results: `evals/results/20261116T043633Z.json`.
 
 | Measure | Result | Target (BRIEF.md) | Met? |
@@ -190,4 +222,5 @@ Instead, 8c looked for one change that cuts input tokens without losing accuracy
 | 2 | 2026-11-15 | 33 cases × 3 runs, original instructions | 17 / 17 | 16 / 16 | $0.00020 | 1.49 s | `evals/results/20261115T201142Z.json` |
 | 3 | 2026-11-16 | 33 cases × 3 runs, shorter instructions (8c) | 17 / 17 | 16 / 16 | $0.00018 | 1.66 s | `evals/results/20261116T042838Z.json` |
 | 4 | 2026-11-16 | 34 cases × 3 runs (+ role-play case), shorter instructions | 18 / 18 | 16 / 16 | $0.00018 | 1.73 s | `evals/results/20261116T043633Z.json` |
+| 5 | 2026-11-17 | 36 cases × 3 runs (+ 2 firm-wide no-practice cases), + the practice sentence | 19 / 19 | 16 / 17 (one cut-off reply) | $0.00022 | 1.95 s | `evals/results/20261117T051020Z.json` |
 | 5 | 2026-11-16 | Same as run 4, on **Sonnet 5.5** (8d comparison, model swapped for this run only) | 18 / 18 | 16 / 16 | $0.0035 | 2.62 s | `evals/results/20261116T050015Z.json` |

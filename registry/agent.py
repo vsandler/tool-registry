@@ -102,7 +102,8 @@ information from clients or reviewers.
 
 Otherwise mark "safe". Generic, well-explained templates that use {{variables}} for \
 client details are safe even if they mention clients, money or investments in general \
-terms.
+terms. Visibility and practice aren't risks: a firm-wide tool has no practice, and a \
+missing practice on a practice-only tool is caught by a separate check.
 
 Reply in the required JSON format. If safe, issues must be empty; if risky, list at least \
 one short, specific issue. The reason is one or two plain sentences.\

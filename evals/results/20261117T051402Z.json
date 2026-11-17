@@ -1,0 +1,217 @@
+{
+  "run_at": "20261117T051402Z",
+  "model": "claude-haiku-5-5",
+  "effort": "medium",
+  "file": "evals\\submissions.json",
+  "selected_cases": [
+    "hard-safe-12-injection-defence"
+  ],
+  "summary": {
+    "runs": 10,
+    "total_cases": 1,
+    "total_calls": 10,
+    "risky_total": 0,
+    "risky_caught_every_run": 0,
+    "risky_missed": [],
+    "safe_total": 1,
+    "safe_passed_every_run": 1,
+    "safe_flagged": [],
+    "inconsistent": [],
+    "needs_human": [],
+    "unwanted_issues": [],
+    "per_run": [
+      {
+        "run": 1,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 2,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 3,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 4,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 5,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 6,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 7,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 8,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 9,
+        "risky_caught": 0,
+        "safe_passed": 1
+      },
+      {
+        "run": 10,
+        "risky_caught": 0,
+        "safe_passed": 1
+      }
+    ],
+    "avg_cost_usd": 0.0001706,
+    "max_cost_usd": 0.000177,
+    "total_cost_usd": 0.001706,
+    "avg_response_seconds": 1.8248000000000002,
+    "max_response_seconds": 2.356,
+    "meets_targets": {
+      "every_risky_caught_in_every_run": true,
+      "safe_pass_rate_at_least_80pct_in_every_run": true,
+      "every_review_under_1_cent": true,
+      "every_review_under_10_seconds": true
+    }
+  },
+  "cases": [
+    {
+      "id": "hard-safe-12-injection-defence",
+      "label": "safe",
+      "category": "tricky safe: looks like a trick but defends against one",
+      "verdicts": [
+        "safe",
+        "safe",
+        "safe",
+        "safe",
+        "safe",
+        "safe",
+        "safe",
+        "safe",
+        "safe",
+        "safe"
+      ],
+      "calls": [
+        {
+          "run": 1,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable instead of embedded client data, makes no financial promises, has a meaningful rationale explaining the design, contains no credentials, and does not send data outside the firm or skip human review; the null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 111,
+          "cost_usd": 0.0001695,
+          "response_seconds": 2.356,
+          "error": null
+        },
+        {
+          "run": 2,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable rather than embedding client data, makes no financial promises, has a meaningful rationale explaining the summarisation and injection-guard purpose, contains no credentials, and does not direct data outside the firm or bypass human review; a null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 126,
+          "cost_usd": 0.000177,
+          "response_seconds": 1.882,
+          "error": null
+        },
+        {
+          "run": 3,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a generic {{email_text}} variable with no client names, contact details or credentials, makes no return or outcome promises, and has a meaningful rationale explaining why the tool was built this way. Visibility is firm-wide, so the null practice is not a problem.",
+          "input_tokens": 1140,
+          "output_tokens": 107,
+          "cost_usd": 0.0001675,
+          "response_seconds": 1.744,
+          "error": null
+        },
+        {
+          "run": 4,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable for client content, contains no credentials, guarantees or hidden instructions, and its rationale clearly explains the purpose of the tool and the injection guard. A null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 104,
+          "cost_usd": 0.000166,
+          "response_seconds": 1.64,
+          "error": null
+        },
+        {
+          "run": 5,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable rather than embedding client data, makes no financial promises, has a meaningful rationale explaining the summarisation and injection-guard purpose, contains no credentials, and does not direct data outside the firm or skip human review; a null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 124,
+          "cost_usd": 0.000176,
+          "response_seconds": 1.858,
+          "error": null
+        },
+        {
+          "run": 6,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable for client content, contains no credentials or client identifiers, makes no financial promises, and gives a meaningful rationale for building it. The null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 96,
+          "cost_usd": 0.000162,
+          "response_seconds": 1.722,
+          "error": null
+        },
+        {
+          "run": 7,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable rather than embedding client data, makes no financial guarantees, has a meaningful rationale explaining the prompt-injection guard, and contains no credentials or instructions to bypass review. Visibility is firm-wide with no practice, which is acceptable for this kind of tool.",
+          "input_tokens": 1140,
+          "output_tokens": 124,
+          "cost_usd": 0.000176,
+          "response_seconds": 1.778,
+          "error": null
+        },
+        {
+          "run": 8,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable for client content, contains no credentials or client identifiers, makes no financial promises, and gives a meaningful rationale for building it. Its firm-wide visibility with no practice is expected for a general-purpose tool.",
+          "input_tokens": 1140,
+          "output_tokens": 104,
+          "cost_usd": 0.000166,
+          "response_seconds": 1.652,
+          "error": null
+        },
+        {
+          "run": 9,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable rather than embedding client data, makes no financial promises, has a meaningful rationale explaining the need and the injection guard, and contains no credentials or instructions to leak data or skip review; the null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 114,
+          "cost_usd": 0.000171,
+          "response_seconds": 1.729,
+          "error": null
+        },
+        {
+          "run": 10,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses a {{email_text}} variable rather than embedding client data, makes no financial promises, has a meaningful rationale explaining the summarisation purpose and injection guard, contains no credentials, and does not send data outside the firm or skip human review; a null practice is acceptable for a firm-wide tool.",
+          "input_tokens": 1140,
+          "output_tokens": 122,
+          "cost_usd": 0.000175,
+          "response_seconds": 1.887,
+          "error": null
+        }
+      ]
+    }
+  ]
+}
