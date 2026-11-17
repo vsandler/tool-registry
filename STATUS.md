@@ -1,9 +1,43 @@
 # Status
 
 ## Current phase
-Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend`). **8a–8d are done. 8d decision: keep Claude Haiku 5.5 (recorded in DECISIONS.md #4). `config.json` needed no change.** Not pushed.
+Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). **Steps 1–4 are done; next is step 5, the Submit screen.** The branch is pushed up to "Least privilege for Practice admins". The step 4 commit and the data-source backlog commit are local only, not pushed.
 
-## 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
+Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
+
+## Phase 9: where it stands (2026-11-16)
+
+| Step | What | State |
+|---|---|---|
+| 1 | Record the front-end choices (DECISIONS.md #12) | ✅ Done |
+| 2 | Back end says, per persona, "can I act on this step, and if not, why" (`my_action`); tools record their submitted date | ✅ Done |
+| 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
+| 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
+| 5 | Submit screen (builder's form) | ⏭️ Next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | Not started |
+
+**Tests:** 355 passing.
+
+### Step 4: Catalog (done)
+- **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
+- **Rules stay in the back end** (DECISIONS.md #14):
+  - The catalogue list gives the screen everything ready to show, including each blank with an on-screen name. Rule flags, AI advice and reviewers' comments are left out.
+  - The blanks are read from the template itself, so the form always matches what gets filled in.
+  - Empty, spaces-only, missing and unknown values are refused, with a message naming the boxes, which the screen outlines. "Who may use this tool" is checked first.
+  - What people type is never saved (it may be client details); a test checks the database is unchanged. The file name comes from the tool's name only.
+- **Not checked in a browser yet:** there are no browser tests (DECISIONS.md #12), and Node isn't installed to check the page's code for typos. The back end was run end to end on a throwaway database. The page needs a check by hand as each persona.
+
+### Also done during Phase 9
+- **Routing to one or more specialist areas, in order** (DECISIONS.md #11), so each tool has its own list of steps for the progress line.
+- **Rejecting needs a comment of at least 10 characters**, enforced by the back end; every rejected tool shows who rejected it, when, at which step and why (DECISIONS.md #12).
+- **Least privilege** (DECISIONS.md #13): Specialist reviewers see only tools waiting for their area or ones they've decided; Practice admins see only their own practice's tools.
+- **Backlog:** "Real sign-in", "Spot overlap", and "Fill blanks from an approved data source" (with more than one approved source per tool) added to BACKLOG.md and the README.
+
+### What's next
+- **Step 5, Submit screen:** the form for name, description, template, visibility, practice and rationale, listing the `{{blanks}}` found as you type, then showing the rule flags and AI advice after submitting (DECISIONS.md #10). To keep the rules in the back end, the list of blanks should come from the back end, not be worked out in the page.
+- **Step 6, Review queue screen:** "Waiting on me" and "All in review", the detail panel with the progress line, rule flags kept apart from AI advice, and decision buttons shown only when it's your turn.
+
+## Phase 8, 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
 
 | | Haiku 5.5 | Sonnet 5.5 |
 |---|---|---|
@@ -20,7 +54,7 @@ Phase 8: AI pre-review agent (branch `phase-8-agent`, made from `phase-7-backend
 
 **Decided:** keep Haiku 5.5. The decision, numbers and cascade path are recorded in DECISIONS.md #4.
 
-## Current score (run 4, 2026-11-16)
+## Phase 8 eval score (run 4, 2026-11-16)
 Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made-up cases (18 risky, 16 safe), each run 3 times = 102 calls. Details in EVALS.md.
 
 | Measure | Result | Target | Met? |
@@ -38,6 +72,8 @@ Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made
 A perfect score on a set I wrote may still mean it's too easy to show where the agent fails. "Make the eval set harder" is in BACKLOG.md and the README.
 
 ## Done
+Phase 9 steps 1–4 are summarised at the top. Phase 8 and earlier:
+
 ### 8d: model comparison (2026-11-16)
 - **Sonnet run:** Sonnet 5.5 was run on the same 34-case set, 3 times each, with the same instructions and effort level (102 calls, $0.36). Haiku 5.5 wasn't rerun; its numbers are run 4.
 - **How the model was swapped:** a new `--model` option in `evals/run_eval.py` swaps the model for that run only. A test checks that `config.json` is left untouched. Tests: 193 passing.
@@ -77,7 +113,7 @@ A perfect score on a set I wrote may still mean it's too easy to show where the 
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing. Phase 8 is complete.
+- Nothing right now. Phase 9 step 5 (Submit screen) is next.
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
@@ -127,7 +163,12 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 
 ## Blocked / questions for Vanessa
 
-_No open questions right now._
+**Open (Vanessa will decide when planning the demo): the Catalog is empty on a fresh start.**
+The sample data publishes nothing: the three seeded tools wait at step 1 and the two demo drafts aren't submitted. So a fresh app's Catalog says no tools are published yet. Options:
+- **A. Leave it.** Before a demo, take "Meeting summary" through route → compliance review → publish (about a minute by hand). This also shows the approval flow working.
+- **B. Seed one or two published tools.** The Catalog has something in it straight away. But adding seeded tools trips the sample-advice staleness test, so the sample AI advice must be refreshed (a few paid AI calls, under $0.001). The test that expects an empty Catalog on a fresh start (`tests/test_catalog.py`) would change on purpose. The seeded approvals also need made-up history from different people, so no-self-approval still holds.
+
+Not blocking: step 5 can go ahead either way. See DECISIONS.md #14, point 5.
 
 **✅ Answered on 2026-11-16 (fourth round):** 8d: keep Claude Haiku 5.5. **Recorded** in DECISIONS.md #4.
 
