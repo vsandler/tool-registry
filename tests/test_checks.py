@@ -77,6 +77,29 @@ def test_has_rationale_flags_missing_or_short(conn, rationale):
     assert not check_has_rationale(make_tool(rationale=rationale), conn).passed
 
 
+# The flag's message says what's wrong; its tip (CHECK_TIPS) says how to fix it.
+@pytest.mark.parametrize("rationale", ["n/a", "too short", "  N/A  "])
+def test_has_rationale_message_says_it_is_too_short(conn, rationale):
+    r = check_has_rationale(make_tool(rationale=rationale), conn)
+    assert r.message == "The reason is too short (under 20 characters)."
+
+
+@pytest.mark.parametrize("rationale", ["", "   "])
+def test_has_rationale_message_says_none_is_recorded(conn, rationale):
+    """An empty rationale can't be submitted any more (DECISIONS.md #15), but the seeded
+    sample tool and old drafts can still have one, so it gets its own message."""
+    r = check_has_rationale(make_tool(rationale=rationale), conn)
+    assert r.message == "No reason is recorded."
+
+
+def test_has_rationale_tip_says_how_to_fix_without_repeating_the_message():
+    from registry.checks import CHECK_TIPS
+    tip = CHECK_TIPS["has_rationale"]
+    assert tip == ("Write a sentence or two on why the tool is built this way, "
+                   "for example why these steps or this wording.")
+    assert "20" not in tip and "too short" not in tip.lower()
+
+
 # Moved here from the AI eval set (evals/submissions.json, formerly risky-05 and
 # risky-06). Missing or empty rationales are the rule-based check's job; the AI only
 # judges whether a rationale that is present makes sense.

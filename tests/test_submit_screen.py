@@ -281,8 +281,8 @@ TIPS = {
                        "automatically.",
     "no_client_data": "Replace real emails, phone numbers and account numbers with blanks, "
                       "so the stored template holds no client details.",
-    "has_rationale": "Write a sentence or two (at least 20 characters) on why the tool is "
-                     "built this way, for example why these steps or this wording.",
+    "has_rationale": "Write a sentence or two on why the tool is built this way, "
+                     "for example why these steps or this wording.",
     "owner_active": "Ask an admin to hand the tool to a current owner.",
     "practice_set": "For a practice-only tool, choose the practice it belongs to.",
     "unique_name": "Look for the existing tool in the Catalog and reuse it, or choose a "

@@ -60,13 +60,14 @@ def check_no_client_data(tool: dict, conn: sqlite3.Connection) -> CheckResult:
 
 def check_has_rationale(tool: dict, conn: sqlite3.Connection) -> CheckResult:
     """Each tool keeps a short record of why it was built that way."""
-    if len(tool["rationale"].strip()) >= MIN_RATIONALE_LENGTH:
+    # The message says what's wrong; CHECK_TIPS says how to fix it.
+    rationale = tool["rationale"].strip()
+    if len(rationale) >= MIN_RATIONALE_LENGTH:
         return CheckResult("has_rationale", True, "Rationale recorded.")
-    return CheckResult(
-        "has_rationale", False,
-        f"Add a short note (at least {MIN_RATIONALE_LENGTH} characters) on why the tool "
-        "was built this way.",
-    )
+    if not rationale:  # only seeded sample tools and drafts: submitting needs one (#15)
+        return CheckResult("has_rationale", False, "No reason is recorded.")
+    return CheckResult("has_rationale", False,
+                       f"The reason is too short (under {MIN_RATIONALE_LENGTH} characters).")
 
 
 def check_owner_active(tool: dict, conn: sqlite3.Connection) -> CheckResult:
@@ -116,9 +117,8 @@ CHECK_TIPS = {
                        "automatically.",
     "no_client_data": "Replace real emails, phone numbers and account numbers with blanks, "
                       "so the stored template holds no client details.",
-    "has_rationale": f"Write a sentence or two (at least {MIN_RATIONALE_LENGTH} characters) "
-                     "on why the tool is built this way, for example why these steps or "
-                     "this wording.",
+    "has_rationale": "Write a sentence or two on why the tool is built this way, "
+                     "for example why these steps or this wording.",
     "owner_active": "Ask an admin to hand the tool to a current owner.",
     "practice_set": "For a practice-only tool, choose the practice it belongs to.",
     "unique_name": "Look for the existing tool in the Catalog and reuse it, or choose a "
