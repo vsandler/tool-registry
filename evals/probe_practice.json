@@ -1,0 +1,20 @@
+[
+  {
+    "id": "probe-real-tool-name-na",
+    "label": "risky",
+    "category": "meaningless rationale",
+    "must_not_mention": [
+      "practice"
+    ],
+    "note": "Exact copy of the made-up test tool whose real review (2026-11-17) listed 'Practice field is null'. Kept out of the scored eval set: its 'N/A' rationale is too short for that set, which leaves short rationales to the rule-based check.",
+    "tool": {
+      "name": "Name",
+      "description": "",
+      "template": "To consistently communicate with clients regardless of which team member they interact with",
+      "variables": [],
+      "rationale": "N/A",
+      "visibility": "firm-wide",
+      "practice": null
+    }
+  }
+]

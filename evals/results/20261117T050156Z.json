@@ -1,0 +1,260 @@
+{
+  "run_at": "20261117T050156Z",
+  "model": "claude-haiku-5-5",
+  "effort": "medium",
+  "file": "evals\\submissions.json",
+  "selected_cases": [
+    "hard-risky-21-firm-wide-no-practice-weak-rationale"
+  ],
+  "summary": {
+    "runs": 10,
+    "total_cases": 1,
+    "total_calls": 10,
+    "risky_total": 1,
+    "risky_caught_every_run": 1,
+    "risky_missed": [],
+    "safe_total": 0,
+    "safe_passed_every_run": 0,
+    "safe_flagged": [],
+    "inconsistent": [],
+    "needs_human": [],
+    "unwanted_issues": [],
+    "per_run": [
+      {
+        "run": 1,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 2,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 3,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 4,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 5,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 6,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 7,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 8,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 9,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 10,
+        "risky_caught": 1,
+        "safe_passed": 0
+      }
+    ],
+    "avg_cost_usd": 0.0002164,
+    "max_cost_usd": 0.0002923,
+    "total_cost_usd": 0.002164,
+    "avg_response_seconds": 1.6629999999999998,
+    "max_response_seconds": 2.69,
+    "meets_targets": {
+      "every_risky_caught_in_every_run": true,
+      "safe_pass_rate_at_least_80pct_in_every_run": false,
+      "every_review_under_1_cent": true,
+      "every_review_under_10_seconds": true
+    }
+  },
+  "cases": [
+    {
+      "id": "hard-risky-21-firm-wide-no-practice-weak-rationale",
+      "label": "risky",
+      "category": "meaningless rationale",
+      "verdicts": [
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky"
+      ],
+      "calls": [
+        {
+          "run": 1,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is 'N/A - not needed for this one', which does not explain why the tool was built this way and is effectively meaningless.",
+            "Name 'New tool' is a placeholder and the description is empty, so the submission cannot be identified or understood by reviewers.",
+            "Template is a generic statement of purpose rather than an actual reusable template, with no content or {{variables}} for the client communication it is meant to standardise."
+          ],
+          "reason": "The rationale is a non-answer and the name and template are placeholders, so the submission does not explain its purpose and needs human review before it can be catalogued.",
+          "input_tokens": 993,
+          "output_tokens": 200,
+          "cost_usd": 0.00019930000000000002,
+          "response_seconds": 2.221,
+          "error": null
+        },
+        {
+          "run": 2,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is a placeholder ('N/A - not needed for this one.') and does not explain why the tool was built.",
+            "Name is a generic placeholder ('New tool') and the description is empty.",
+            "Template is a single sentence of purpose with no actual communication content or variables for a human reviewer to assess."
+          ],
+          "reason": "The rationale is filler that does not explain the tool's design, so the submission needs a human to review it with these notes. Nothing in it contains client data or manipulation attempts.",
+          "input_tokens": 993,
+          "output_tokens": 386,
+          "cost_usd": 0.0002923,
+          "response_seconds": 2.69,
+          "error": null
+        },
+        {
+          "run": 3,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is placeholder text ('N/A - not needed for this one') and does not explain why the tool was built.",
+            "Name is a generic placeholder ('New tool') and the description is empty.",
+            "Template is a single vague sentence with no real instructions or structure for the tool's purpose."
+          ],
+          "reason": "The submission's rationale is a placeholder that doesn't explain the tool's purpose, and the name and template are too generic to assess, so a human should review it.",
+          "input_tokens": 993,
+          "output_tokens": 342,
+          "cost_usd": 0.0002703,
+          "response_seconds": 2.096,
+          "error": null
+        },
+        {
+          "run": 4,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is 'N/A - not needed for this one', which is meaningless and does not explain why the tool was built this way.",
+            "Template is a generic statement of purpose rather than an actual communication template, with no {{variables}} or usable content.",
+            "Name 'New tool' is placeholder-like and the description is empty, leaving the tool's purpose unclear for reviewers."
+          ],
+          "reason": "The submission's rationale is a non-answer and the template reads as a placeholder rather than a usable, explained tool, so it needs human review.",
+          "input_tokens": 993,
+          "output_tokens": 182,
+          "cost_usd": 0.00019030000000000002,
+          "response_seconds": 1.217,
+          "error": null
+        },
+        {
+          "run": 5,
+          "verdict": "risky",
+          "issues": [
+            "Rationale 'N/A - not needed for this one' is unrelated to explaining why the tool was built, so it is meaningless under the rationale check.",
+            "Template is a single generic sentence with no real instructions or {{variables}}, so it does not describe a usable tool.",
+            "Name 'New tool' is a placeholder and the description is empty, leaving the tool's purpose unclear for reviewers."
+          ],
+          "reason": "The rationale is a non-answer and the name and template are placeholders, so the submission does not explain why the tool was built and needs human review.",
+          "input_tokens": 993,
+          "output_tokens": 189,
+          "cost_usd": 0.00019380000000000002,
+          "response_seconds": 1.33,
+          "error": null
+        },
+        {
+          "run": 6,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is \"N/A - not needed for this one.\" and does not explain why the tool was built, so it fails the meaningful-rationale requirement.",
+            "Template is a single sentence of intent with no actual prompt or instructions and no {{variables}}, so it is not a usable template.",
+            "Name \"New tool\" is generic and does not identify what the tool does."
+          ],
+          "reason": "The rationale is filler that gives no reason for the tool's design, and the template and name are too vague to review, so a human should look at it.",
+          "input_tokens": 993,
+          "output_tokens": 307,
+          "cost_usd": 0.0002528,
+          "response_seconds": 1.966,
+          "error": null
+        },
+        {
+          "run": 7,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is 'N/A - not needed for this one', which gives no explanation of why the tool was built this way (rule 3 applies: non-empty but meaningless).",
+            "Template is a bare statement of purpose rather than a usable template; it contains no instructions or {{variables}} for the intended communication.",
+            "Name 'New tool' is a generic placeholder and the description is empty, so the submission cannot be assessed for what it does."
+          ],
+          "reason": "The rationale is a non-answer and the template and name are placeholder-level, so the submission does not explain why the tool was built and goes to a human reviewer.",
+          "input_tokens": 993,
+          "output_tokens": 206,
+          "cost_usd": 0.0002023,
+          "response_seconds": 1.376,
+          "error": null
+        },
+        {
+          "run": 8,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is 'N/A - not needed for this one', which does not explain why the tool was built this way",
+            "Template is a generic statement of purpose rather than an actual reusable template, with no {{variables}} or structure",
+            "Name 'New tool' is a placeholder and description is empty"
+          ],
+          "reason": "The submission's rationale is effectively meaningless and the template and name are placeholders, so it needs a human to clarify what the tool does and why it exists.",
+          "input_tokens": 993,
+          "output_tokens": 157,
+          "cost_usd": 0.0001778,
+          "response_seconds": 1.132,
+          "error": null
+        },
+        {
+          "run": 9,
+          "verdict": "risky",
+          "issues": [
+            "Rationale 'N/A - not needed for this one' is meaningless and does not explain why the tool was built this way.",
+            "Name 'New tool' is a generic placeholder and the description is empty, so the tool's purpose cannot be identified from its metadata.",
+            "Template is a single generic sentence describing a goal rather than an actual reusable communication template, so it is unclear what content is being catalogued."
+          ],
+          "reason": "The submission's rationale is unrelated filler and the name and template do not explain what the tool is or why it was built, so a human reviewer should look at it.",
+          "input_tokens": 993,
+          "output_tokens": 193,
+          "cost_usd": 0.00019580000000000002,
+          "response_seconds": 1.353,
+          "error": null
+        },
+        {
+          "run": 10,
+          "verdict": "risky",
+          "issues": [
+            "Rationale 'N/A - not needed for this one' is unrelated to explaining why the tool was built, so it does not meet the rationale requirement",
+            "Template is a single generic sentence describing a goal rather than an actual reusable prompt or template, and the name 'New tool' is a placeholder",
+            "Description is empty, though empty fields alone are handled by a separate check"
+          ],
+          "reason": "The rationale is a placeholder that does not explain why the tool was built, and the name and template are placeholder-level, so a human should review it.",
+          "input_tokens": 993,
+          "output_tokens": 180,
+          "cost_usd": 0.00018930000000000002,
+          "response_seconds": 1.249,
+          "error": null
+        }
+      ],
+      "must_not_mention": [
+        "practice"
+      ]
+    }
+  ]
+}

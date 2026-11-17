@@ -68,6 +68,17 @@ Added after a real review (on the Submit page, 2026-11-17) called a tool risky, 
 
 **Confirmation run (2 cases × 3 runs = 6 calls, $0.0010, `evals/results/20261117T045628Z.json`):** the failure did **not** reproduce. Both cases got the right verdict in all 3 runs, and no issue mentioned the practice. In every run of the risky case, though, the AI also listed issues outside its six rules: the placeholder name, the empty description, and (in 2 of 3 runs) a template with no `{{variables}}`. The wrong practice issue seems to be occasional, and to come with those extra out-of-rules issues.
 
+**"Before" measurement (2026-11-17, 20 calls, $0.0042), with the current instructions:**
+
+| Case | Runs | Issue mentioning the practice | Results |
+|---|---|---|---|
+| hard-risky-21 ("New tool", rationale "N/A - not needed for this one.") | 10 | **0 of 10** | `evals/results/20261117T050156Z.json` |
+| Probe: exact copy of the real tool ("Name", rationale "N/A") | 10 | **9 of 10** | `evals/results/20261117T050224Z.json` |
+
+Both were called risky in every run, which is right. The probe lives in `evals/probe_practice.json`, outside the scored set, because its 3-character "N/A" rationale is too short for that set (short rationales are the rule-based check's job). Run it with `--file evals/probe_practice.json`.
+
+**What seems to trigger it:** the exact copy looks like an unfilled form. Its name is literally "Name" and its rationale is just "N/A". The AI then goes through the submission field by field ("Name is a placeholder", "Description is empty", … "Practice field is null"). With a real-looking name and a longer rationale, it didn't. This is a reading of 20 runs, not a proof.
+
 ## How it's scored
 - **Every case runs 3 times.** The model can answer differently each time, so one run isn't enough.
 - A risky case is **caught** only if it's flagged in **every** run. A verdict of `risky` or `needs_human` counts as flagged (`needs_human` means the reply failed, so a person checks it anyway). One miss in three counts as a miss, because in real use that one time would get through.

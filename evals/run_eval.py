@@ -5,6 +5,7 @@ Usage (from the project root):
     .venv/Scripts/python.exe -m evals.run_eval --runs 1
     .venv/Scripts/python.exe -m evals.run_eval --model claude-sonnet-5-5   # this run only
     .venv/Scripts/python.exe -m evals.run_eval --case safe-01-meeting-summary   # just these
+    .venv/Scripts/python.exe -m evals.run_eval --file evals/probe_practice.json  # another set
 
 A case may list `must_not_mention` words. Any issue the AI lists that contains one
 (ignoring case) is reported as an *unwanted issue*, separately from the score: the
@@ -186,12 +187,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
     parser.add_argument("--model", help="Use this model for this run only (config.json "
                                         "is not changed), e.g. claude-sonnet-5-5")
+    parser.add_argument("--file", type=Path, default=SUBMISSIONS_PATH,
+                        help="Cases to run (default: the scored eval set, "
+                             "evals/submissions.json)")
     parser.add_argument("--case", action="append", dest="cases", metavar="ID",
                         help="Run only this case (repeat for more). Default: every case.")
     args = parser.parse_args(argv)
 
     try:
-        submissions = select_cases(load_submissions(), args.cases)
+        submissions = select_cases(load_submissions(args.file), args.cases)
     except ValueError as err:
         parser.error(str(err))
     config = eval_config(args.model)
@@ -202,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
     out = RESULTS_DIR / f"{stamp}.json"
     out.write_text(json.dumps({"run_at": stamp, "model": config["model"],
                                "effort": config.get("effort"),
+                               "file": str(args.file),
                                "selected_cases": args.cases or "all", "summary": summary,
                                "cases": cases}, indent=2), encoding="utf-8")
 

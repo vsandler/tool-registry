@@ -15,24 +15,36 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **A `--case` option** runs only the named cases.
 - **Confirmation run** (6 calls, $0.0010): the failure **did not reproduce**. Both verdicts were right in all 3 runs, and no issue mentioned the practice. But in every run of the risky case, the AI also listed issues outside its six rules: the placeholder name and the empty description, and in 2 of 3 runs a template with no `{{variables}}`. Details in EVALS.md.
 
-**So the eval can't yet show the problem, or that a fix works.** The wrong practice issue seems to be occasional, and to come along with those extra out-of-rules issues. The 14 earlier safe cases that are firm-wide with no practice have never had it either.
+**First impression (since corrected):** the eval couldn't show the problem, which looked occasional. The 14 earlier safe cases that are firm-wide with no practice have never had it either.
 
-**Proposed instruction change (one change, waiting for your approval).** Add this sentence to the end of the "Otherwise mark safe" paragraph in `SYSTEM_PROMPT` (`registry/agent.py`):
+**"Before" measurement (2026-11-17, 20 calls, $0.0042), with the current instructions:**
+
+| Case | Runs | Issue mentioning the practice | Results |
+|---|---|---|---|
+| hard-risky-21 ("New tool", rationale "N/A - not needed for this one.") | 10 | **0 of 10** | `evals/results/20261117T050156Z.json` |
+| Probe: exact copy of the real tool ("Name", rationale "N/A") | 10 | **9 of 10** | `evals/results/20261117T050224Z.json` |
+
+Both were called risky in every run, which is right. The probe lives in `evals/probe_practice.json`, outside the scored set, because its 3-character "N/A" rationale is too short for that set (short rationales are the rule-based check's job). Run it with `--file evals/probe_practice.json`.
+
+**What seems to trigger it:** the exact copy looks like an unfilled form. Its name is literally "Name" and its rationale is just "N/A". The AI then goes through the submission field by field ("Name is a placeholder", "Description is empty", … "Practice field is null"). With a real-looking name and a longer rationale, it didn't. This is a reading of 20 runs, not a proof.
+
+**So now there's a "before" number: 9 of 10 on the probe.** After the change, rerunning the probe shows whether it's fixed.
+
+**Proposed instruction change (one change; you chose this wording on 2026-11-17, not yet applied):** Add this sentence to the end of the "Otherwise mark safe" paragraph in `SYSTEM_PROMPT` (`registry/agent.py`):
 
 > Visibility and practice aren't risks: a firm-wide tool has no practice, and a missing practice on a practice-only tool is caught by a separate check.
 
 - **Why this wording:** it names exactly what went wrong, and the reason, in the same style as the existing note on empty rationales ("caught by a separate check; don't flag emptiness alone"). It adds about 30 words (roughly 35 input tokens, about $0.000004 per review).
 - **Wider alternative (not proposed as the one change):** "List only issues that match the six rules above." That would also stop the placeholder-name, empty-description and no-`{{variables}}` issues. But reviewers may find those notes useful, and it's a bigger change in behaviour, so it's your call.
-- **Risk:** without a reproducible failure, the full eval can show that nothing else got worse, but not that the practice issue is gone.
+- **How we'll know it worked:** the probe should drop from 9 of 10 to 0 (or close), and the full eval should still score 19/19 risky and 17/17 safe in every run.
 
-**Before applying, one choice (see the questions section):** measure how often the practice issue really happens first, or apply on the strength of the one real example?
-
-**After you approve, the costs** (Haiku, about $0.00017 per call):
+**After you approve applying it, the costs** (Haiku, about $0.0002 per call):
 | Run | Calls | Cost |
 |---|---|---|
-| Full eval: 36 cases × 3 runs | 108 | about $0.019 |
+| Probe, 10 runs ("after" number) | 10 | about $0.002 |
+| Full eval: 36 cases × 3 runs | 108 | about $0.02 |
 | Sample advice refresh (the instructions fingerprint changes, so `tests/test_sample_advice.py` fails until this runs) | 3 | about $0.0006 |
-| **Total** | **111** | **about $0.02** |
+| **Total** | **121** | **about $0.023** |
 
 ## Phase 9: where it stands (2026-11-16)
 
@@ -200,8 +212,8 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 ## Blocked / questions for Vanessa
 
 **Open (2026-11-17): the "Practice field is null" fix (see the "Open" section near the top).**
-1. **Approve the one-sentence instruction change** as written, or prefer the wider "list only issues that match the six rules" version?
-2. **Measure first?** For a "before" number, I could run the risky case 10 more times (10 calls, about $0.002). I could also add a closer copy of the real tool, named "Name", run 10 times (another 10 calls, about $0.002). If the practice issue shows up, the full eval after the change can show it's gone. If it never shows up, we know it's rare and can apply the change anyway.
+- **Answered:** use the one-sentence change, and measure first. **Measured:** 9 of 10 on the exact copy of the real tool, 0 of 10 on hard-risky-21.
+- **Waiting:** your go-ahead to apply the sentence, then run the probe (10 calls), the full eval (108 calls) and the sample-advice refresh (3 calls), about $0.023 in all.
 
 **Open (Vanessa will decide when planning the demo): the Catalog is empty on a fresh start.**
 The sample data publishes nothing: the three seeded tools wait at step 1 and the two demo drafts aren't submitted. So a fresh app's Catalog says no tools are published yet. Options:

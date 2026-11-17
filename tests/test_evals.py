@@ -238,3 +238,33 @@ def test_forbidden_words_are_lists_of_text():
     for s in SUBMISSIONS:
         words = s.get("must_not_mention", [])
         assert isinstance(words, list) and all(isinstance(w, str) and w for w in words), s["id"]
+
+
+def test_file_option_runs_cases_from_another_file(fake_ai, monkeypatch, tmp_path):
+    """--file runs a separate set (for example a probe that copies one real tool) without
+    adding it to the scored eval set."""
+    from evals import run_eval
+    probe = tmp_path / "probe.json"
+    probe.write_text(json.dumps([dict(SUBMISSIONS[0], id="probe-1")]), encoding="utf-8")
+    out_dir = tmp_path / "results"
+    monkeypatch.setattr(run_eval, "RESULTS_DIR", out_dir)
+    monkeypatch.setattr(run_eval.agent, "make_client", lambda: object())
+    monkeypatch.setattr(run_eval, "LOG_PATH", None)
+    assert run_eval.main(["--runs", "2", "--file", str(probe)]) == 0
+    assert len(fake_ai.calls) == 2
+    saved = json.loads(next(out_dir.glob("*.json")).read_text(encoding="utf-8"))
+    assert [c["id"] for c in saved["cases"]] == ["probe-1"]
+    assert saved["file"] == str(probe)
+
+
+def test_practice_probe_copies_the_real_tool():
+    """evals/probe_practice.json: an exact copy of the tool whose real review wrongly
+    listed "Practice field is null" (2026-11-17). Not part of the scored eval set."""
+    from evals.run_eval import EVAL_DIR
+    probe = load_submissions(EVAL_DIR / "probe_practice.json")
+    assert [p["id"] for p in probe] == ["probe-real-tool-name-na"]
+    tool = probe[0]["tool"]
+    assert tool["name"] == "Name" and tool["rationale"] == "N/A"
+    assert tool["visibility"] == "firm-wide" and tool["practice"] is None
+    assert probe[0]["must_not_mention"] == ["practice"]
+    assert set(agent.SUBMISSION_FIELDS) <= set(tool)

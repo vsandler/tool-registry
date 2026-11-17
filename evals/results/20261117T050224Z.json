@@ -1,0 +1,310 @@
+{
+  "run_at": "20261117T050224Z",
+  "model": "claude-haiku-5-5",
+  "effort": "medium",
+  "file": "evals\\probe_practice.json",
+  "selected_cases": "all",
+  "summary": {
+    "runs": 10,
+    "total_cases": 1,
+    "total_calls": 10,
+    "risky_total": 1,
+    "risky_caught_every_run": 1,
+    "risky_missed": [],
+    "safe_total": 0,
+    "safe_passed_every_run": 0,
+    "safe_flagged": [],
+    "inconsistent": [],
+    "needs_human": [],
+    "unwanted_issues": [
+      {
+        "id": "probe-real-tool-name-na",
+        "words": [
+          "practice"
+        ],
+        "in_runs": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "issues": [
+          "Practice is null, so the tool has no assigned practice area",
+          "Practice field is null, so the tool has no owning area",
+          "Practice is null and visibility is set firm-wide without a clear owning practice",
+          "Practice field is null, so the tool is not assigned to any practice area",
+          "Practice field is null, so the tool is not assigned to a practice area",
+          "Practice field is null, so the tool is not assigned to any practice area",
+          "Practice is null, so the tool is not assigned to any practice area",
+          "Practice field is null, so the tool is not assigned to any practice",
+          "Practice field is null, so ownership and scope are unspecified"
+        ]
+      }
+    ],
+    "per_run": [
+      {
+        "run": 1,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 2,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 3,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 4,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 5,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 6,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 7,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 8,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 9,
+        "risky_caught": 1,
+        "safe_passed": 0
+      },
+      {
+        "run": 10,
+        "risky_caught": 1,
+        "safe_passed": 0
+      }
+    ],
+    "avg_cost_usd": 0.00020065,
+    "max_cost_usd": 0.0002123,
+    "total_cost_usd": 0.0020065,
+    "avg_response_seconds": 2.2184,
+    "max_response_seconds": 2.442,
+    "meets_targets": {
+      "every_risky_caught_in_every_run": true,
+      "safe_pass_rate_at_least_80pct_in_every_run": false,
+      "every_review_under_1_cent": true,
+      "every_review_under_10_seconds": true
+    }
+  },
+  "cases": [
+    {
+      "id": "probe-real-tool-name-na",
+      "label": "risky",
+      "category": "meaningless rationale",
+      "verdicts": [
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky",
+        "risky"
+      ],
+      "calls": [
+        {
+          "run": 1,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the generic placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal, not an actual reusable communication template",
+            "Rationale 'N/A' is a placeholder and does not explain why the tool was built this way",
+            "Variables list is empty, so the template has no placeholders for client-specific content"
+          ],
+          "reason": "The submission is essentially placeholder content: the name, rationale and template are not meaningful, so a human reviewer needs to see it before it enters the catalogue.",
+          "input_tokens": 983,
+          "output_tokens": 186,
+          "cost_usd": 0.00019130000000000001,
+          "response_seconds": 2.15,
+          "error": null
+        },
+        {
+          "run": 2,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the generic placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal rather than an actual reusable template with content or {{variables}}",
+            "Rationale is 'N/A', which does not explain why the tool was built this way",
+            "Practice is null, so the tool has no assigned practice area"
+          ],
+          "reason": "The submission is missing a real name, description, template body and rationale, so it is not usable as a catalogue entry and needs human review.",
+          "input_tokens": 983,
+          "output_tokens": 173,
+          "cost_usd": 0.00018480000000000002,
+          "response_seconds": 2.052,
+          "error": null
+        },
+        {
+          "run": 3,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the generic placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Template is a one-line statement of intent, not an actual reusable template with content or {{variables}}",
+            "Rationale 'N/A' does not explain why the tool was built this way",
+            "Practice field is null, so the tool has no owning area",
+            "Template and rationale do not specify what communication should look like or how it is consistent"
+          ],
+          "reason": "The submission is essentially placeholder content: the name is 'Name', the rationale is 'N/A', and the template is a sentence describing a goal rather than a usable template, so it needs human review before cataloguing.",
+          "input_tokens": 983,
+          "output_tokens": 218,
+          "cost_usd": 0.00020730000000000002,
+          "response_seconds": 2.245,
+          "error": null
+        },
+        {
+          "run": 4,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the generic placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal rather than an actual reusable template body",
+            "Rationale is 'N/A', a placeholder that does not explain why the tool was built this way",
+            "Practice is null and visibility is set firm-wide without a clear owning practice"
+          ],
+          "reason": "The submission is essentially placeholder content: the name and rationale are placeholders and the template is a goal statement with no usable text or variables. A human reviewer needs to see a real template and a meaningful rationale before this can proceed.",
+          "input_tokens": 983,
+          "output_tokens": 208,
+          "cost_usd": 0.0002023,
+          "response_seconds": 2.196,
+          "error": null
+        },
+        {
+          "run": 5,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Template is a one-line statement of purpose rather than an actual reusable template; it contains no body text or {{variables}} for client communication",
+            "Rationale is 'N/A', providing no explanation of why the tool was built this way",
+            "Practice field is null, so the tool is not assigned to any practice area"
+          ],
+          "reason": "The submission is essentially placeholder content: the name is generic, the rationale is 'N/A', and the template is a sentence describing a goal rather than usable template text. A human reviewer needs to see a real template and a meaningful rationale before it can be catalogued.",
+          "input_tokens": 983,
+          "output_tokens": 228,
+          "cost_usd": 0.0002123,
+          "response_seconds": 2.275,
+          "error": null
+        },
+        {
+          "run": 6,
+          "verdict": "risky",
+          "issues": [
+            "Name field is a generic placeholder 'Name' rather than a real tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal rather than an actual reusable template body with {{variables}}",
+            "Rationale 'N/A' is a placeholder and does not explain why the tool was built this way",
+            "Practice field is null, so the tool is not assigned to a practice area"
+          ],
+          "reason": "The submission is essentially placeholder content: the name, rationale and template do not describe a usable tool or explain its design, so it needs human review before cataloguing.",
+          "input_tokens": 983,
+          "output_tokens": 187,
+          "cost_usd": 0.0001918,
+          "response_seconds": 2.105,
+          "error": null
+        },
+        {
+          "run": 7,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the placeholder value 'Name' rather than a real tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal rather than an actual reusable template body; it has no content to use",
+            "Rationale 'N/A' is a placeholder that does not explain why the tool was built this way",
+            "Variables list is empty, so the template cannot be personalised for individual clients",
+            "Practice field is null, so the tool is not assigned to any practice area"
+          ],
+          "reason": "The submission is a placeholder-level draft with a placeholder name, a non-template body, and a rationale of 'N/A' that gives no explanation, so it needs human review before it can go into the catalogue.",
+          "input_tokens": 983,
+          "output_tokens": 225,
+          "cost_usd": 0.0002108,
+          "response_seconds": 2.331,
+          "error": null
+        },
+        {
+          "run": 8,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the generic placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Rationale 'N/A' is a placeholder that does not explain why the tool was built this way",
+            "Template is a single sentence describing a goal rather than an actual reusable template body, and contains no {{variables}}",
+            "Practice is null, so the tool is not assigned to any practice area"
+          ],
+          "reason": "The submission has a placeholder name, an empty description, and a 'N/A' rationale that gives no explanation of the design, so it needs human review before it can be catalogued.",
+          "input_tokens": 983,
+          "output_tokens": 197,
+          "cost_usd": 0.0001968,
+          "response_seconds": 2.109,
+          "error": null
+        },
+        {
+          "run": 9,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the placeholder value 'Name' rather than a real tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal rather than an actual reusable template body; it contains no content to review or use",
+            "Rationale 'N/A' is a non-answer that does not explain why the tool was built this way",
+            "Practice field is null, so the tool is not assigned to any practice"
+          ],
+          "reason": "The submission is placeholder-like with a meaningless rationale ('N/A') and a template that is only a goal statement, so it cannot be assessed as a usable, well-explained template and needs human review.",
+          "input_tokens": 983,
+          "output_tokens": 201,
+          "cost_usd": 0.0001988,
+          "response_seconds": 2.279,
+          "error": null
+        },
+        {
+          "run": 10,
+          "verdict": "risky",
+          "issues": [
+            "Name field is the generic placeholder 'Name' rather than a descriptive tool name",
+            "Description is empty",
+            "Template is a single sentence describing a goal rather than an actual reusable template body; it contains no content to review or use",
+            "Rationale 'N/A' is a placeholder and does not explain why the tool was built this way",
+            "Template has no {{variables}} and no clear structure, so client-facing use cannot be assessed",
+            "Practice field is null, so ownership and scope are unspecified"
+          ],
+          "reason": "The submission is essentially placeholder content with no usable template text and no meaningful rationale, so a human reviewer needs to see it before it can enter the catalogue.",
+          "input_tokens": 983,
+          "output_tokens": 224,
+          "cost_usd": 0.00021030000000000002,
+          "response_seconds": 2.442,
+          "error": null
+        }
+      ],
+      "must_not_mention": [
+        "practice"
+      ]
+    }
+  ]
+}
