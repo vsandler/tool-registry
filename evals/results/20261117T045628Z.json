@@ -1,0 +1,160 @@
+{
+  "run_at": "20261117T045628Z",
+  "model": "claude-haiku-5-5",
+  "effort": "medium",
+  "selected_cases": [
+    "safe-17-firm-wide-no-practice",
+    "hard-risky-21-firm-wide-no-practice-weak-rationale"
+  ],
+  "summary": {
+    "runs": 3,
+    "total_cases": 2,
+    "total_calls": 6,
+    "risky_total": 1,
+    "risky_caught_every_run": 1,
+    "risky_missed": [],
+    "safe_total": 1,
+    "safe_passed_every_run": 1,
+    "safe_flagged": [],
+    "inconsistent": [],
+    "needs_human": [],
+    "unwanted_issues": [],
+    "per_run": [
+      {
+        "run": 1,
+        "risky_caught": 1,
+        "safe_passed": 1
+      },
+      {
+        "run": 2,
+        "risky_caught": 1,
+        "safe_passed": 1
+      },
+      {
+        "run": 3,
+        "risky_caught": 1,
+        "safe_passed": 1
+      }
+    ],
+    "avg_cost_usd": 0.00017271666666666667,
+    "max_cost_usd": 0.0001933,
+    "total_cost_usd": 0.0010363,
+    "avg_response_seconds": 1.5376666666666665,
+    "max_response_seconds": 1.728,
+    "meets_targets": {
+      "every_risky_caught_in_every_run": true,
+      "safe_pass_rate_at_least_80pct_in_every_run": true,
+      "every_review_under_1_cent": true,
+      "every_review_under_10_seconds": true
+    }
+  },
+  "cases": [
+    {
+      "id": "safe-17-firm-wide-no-practice",
+      "label": "safe",
+      "category": "firm-wide, no practice",
+      "verdicts": [
+        "safe",
+        "safe",
+        "safe"
+      ],
+      "calls": [
+        {
+          "run": 1,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses {{client_name}} and {{draft}} variables rather than hardcoded client data, has no credentials or guarantees, and the rationale clearly explains why the tool exists and how it preserves facts and advice.",
+          "input_tokens": 1108,
+          "output_tokens": 93,
+          "cost_usd": 0.0001573,
+          "response_seconds": 1.712,
+          "error": null
+        },
+        {
+          "run": 2,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses {{client_name}} and {{draft}} variables rather than hard-coded client data, has no credentials or guarantees, and gives a meaningful rationale explaining why the tool exists. It does not ask for data to leave the firm or bypass human review.",
+          "input_tokens": 1108,
+          "output_tokens": 106,
+          "cost_usd": 0.00016380000000000002,
+          "response_seconds": 1.658,
+          "error": null
+        },
+        {
+          "run": 3,
+          "verdict": "safe",
+          "issues": [],
+          "reason": "The template uses {{client_name}} and {{draft}} variables rather than hardcoded client data, has no credentials or outbound-data instructions, and its rationale clearly explains why the tool exists and why facts are preserved.",
+          "input_tokens": 1108,
+          "output_tokens": 94,
+          "cost_usd": 0.00015780000000000001,
+          "response_seconds": 1.319,
+          "error": null
+        }
+      ],
+      "must_not_mention": [
+        "practice"
+      ]
+    },
+    {
+      "id": "hard-risky-21-firm-wide-no-practice-weak-rationale",
+      "label": "risky",
+      "category": "meaningless rationale",
+      "verdicts": [
+        "risky",
+        "risky",
+        "risky"
+      ],
+      "calls": [
+        {
+          "run": 1,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is 'N/A - not needed for this one', which does not explain why the tool was built this way (criterion 3: meaningless rationale)",
+            "Name 'New tool' is generic placeholder text and the description is empty, leaving the template's purpose unclear for reviewers"
+          ],
+          "reason": "The rationale offers no explanation of design choices and the template is a vague one-line statement with no placeholders or structure, so the submission needs human review before it enters the catalogue.",
+          "input_tokens": 993,
+          "output_tokens": 165,
+          "cost_usd": 0.0001818,
+          "response_seconds": 1.728,
+          "error": null
+        },
+        {
+          "run": 2,
+          "verdict": "risky",
+          "issues": [
+            "Rationale 'N/A - not needed for this one' is a non-explanation that does not say why the tool was built this way",
+            "Template is a generic statement of purpose rather than an actual reusable template, and it contains no variables for client-specific content",
+            "Name 'New tool' is a placeholder and the description is empty"
+          ],
+          "reason": "The submission has no meaningful rationale explaining the design, and its name and template are placeholder-level, so a human should review it before it goes into the catalogue.",
+          "input_tokens": 993,
+          "output_tokens": 166,
+          "cost_usd": 0.0001823,
+          "response_seconds": 1.423,
+          "error": null
+        },
+        {
+          "run": 3,
+          "verdict": "risky",
+          "issues": [
+            "Rationale is 'N/A - not needed for this one', which does not explain why the tool was built this way and is effectively meaningless",
+            "Name 'New tool' is a generic placeholder and the description is empty, so the submission gives reviewers no usable context",
+            "Template is a single sentence describing a goal rather than an actual reusable communication template, with no {{variables}} or structure"
+          ],
+          "reason": "The submission's rationale is a non-answer and the template reads as a goal statement rather than a usable tool, so it needs human review before it can be catalogued.",
+          "input_tokens": 993,
+          "output_tokens": 188,
+          "cost_usd": 0.0001933,
+          "response_seconds": 1.386,
+          "error": null
+        }
+      ],
+      "must_not_mention": [
+        "practice"
+      ]
+    }
+  ]
+}

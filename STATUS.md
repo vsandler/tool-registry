@@ -5,6 +5,35 @@ Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). *
 
 Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
 
+## Open: AI listed "Practice field is null" for a firm-wide tool (2026-11-17)
+
+**What happened:** on the Submit page, a test tool ("Name", rationale "N/A", firm-wide) was correctly called risky because of its rationale. But one of the AI's issues was "Practice field is null, so the tool has no owning practice area". Firm-wide tools have no practice, so that issue was wrong.
+
+**Done so far (approved):**
+- **Two new eval cases**, both firm-wide with no practice: one safe (safe-17), and one risky for its rationale that mirrors the real tool (hard-risky-21).
+- **"Unwanted issues"** are now reported apart from the score. A case can list words no issue should mention; both new cases list "practice".
+- **A `--case` option** runs only the named cases.
+- **Confirmation run** (6 calls, $0.0010): the failure **did not reproduce**. Both verdicts were right in all 3 runs, and no issue mentioned the practice. But in every run of the risky case, the AI also listed issues outside its six rules: the placeholder name and the empty description, and in 2 of 3 runs a template with no `{{variables}}`. Details in EVALS.md.
+
+**So the eval can't yet show the problem, or that a fix works.** The wrong practice issue seems to be occasional, and to come along with those extra out-of-rules issues. The 14 earlier safe cases that are firm-wide with no practice have never had it either.
+
+**Proposed instruction change (one change, waiting for your approval).** Add this sentence to the end of the "Otherwise mark safe" paragraph in `SYSTEM_PROMPT` (`registry/agent.py`):
+
+> Visibility and practice aren't risks: a firm-wide tool has no practice, and a missing practice on a practice-only tool is caught by a separate check.
+
+- **Why this wording:** it names exactly what went wrong, and the reason, in the same style as the existing note on empty rationales ("caught by a separate check; don't flag emptiness alone"). It adds about 30 words (roughly 35 input tokens, about $0.000004 per review).
+- **Wider alternative (not proposed as the one change):** "List only issues that match the six rules above." That would also stop the placeholder-name, empty-description and no-`{{variables}}` issues. But reviewers may find those notes useful, and it's a bigger change in behaviour, so it's your call.
+- **Risk:** without a reproducible failure, the full eval can show that nothing else got worse, but not that the practice issue is gone.
+
+**Before applying, one choice (see the questions section):** measure how often the practice issue really happens first, or apply on the strength of the one real example?
+
+**After you approve, the costs** (Haiku, about $0.00017 per call):
+| Run | Calls | Cost |
+|---|---|---|
+| Full eval: 36 cases × 3 runs | 108 | about $0.019 |
+| Sample advice refresh (the instructions fingerprint changes, so `tests/test_sample_advice.py` fails until this runs) | 3 | about $0.0006 |
+| **Total** | **111** | **about $0.02** |
+
 ## Phase 9: where it stands (2026-11-16)
 
 | Step | What | State |
@@ -169,6 +198,10 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 </details>
 
 ## Blocked / questions for Vanessa
+
+**Open (2026-11-17): the "Practice field is null" fix (see the "Open" section near the top).**
+1. **Approve the one-sentence instruction change** as written, or prefer the wider "list only issues that match the six rules" version?
+2. **Measure first?** For a "before" number, I could run the risky case 10 more times (10 calls, about $0.002). I could also add a closer copy of the real tool, named "Name", run 10 times (another 10 calls, about $0.002). If the practice issue shows up, the full eval after the change can show it's gone. If it never shows up, we know it's rare and can apply the change anyway.
 
 **Open (Vanessa will decide when planning the demo): the Catalog is empty on a fresh start.**
 The sample data publishes nothing: the three seeded tools wait at step 1 and the two demo drafts aren't submitted. So a fresh app's Catalog says no tools are published yet. Options:

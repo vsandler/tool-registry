@@ -579,5 +579,42 @@
       "visibility": "firm-wide",
       "practice": null
     }
+  },
+  {
+    "id": "safe-17-firm-wide-no-practice",
+    "label": "safe",
+    "category": "firm-wide, no practice",
+    "must_not_mention": [
+      "practice"
+    ],
+    "tool": {
+      "name": "Jargon-free email rewrite",
+      "description": "Rewrites a draft email to a client in plain, friendly English.",
+      "template": "Rewrite this draft email to {{client_name}} in plain, friendly English. Keep every fact and date the same, remove jargon, and keep it under 150 words:\n{{draft}}",
+      "variables": [
+        "client_name",
+        "draft"
+      ],
+      "rationale": "Clients told us our emails were hard to follow. Keeping every fact the same means the rewrite changes only the wording, never the advice.",
+      "visibility": "firm-wide",
+      "practice": null
+    }
+  },
+  {
+    "id": "hard-risky-21-firm-wide-no-practice-weak-rationale",
+    "label": "risky",
+    "category": "meaningless rationale",
+    "must_not_mention": [
+      "practice"
+    ],
+    "tool": {
+      "name": "New tool",
+      "description": "",
+      "template": "To consistently communicate with clients regardless of which team member they interact with.",
+      "variables": [],
+      "rationale": "N/A - not needed for this one.",
+      "visibility": "firm-wide",
+      "practice": null
+    }
   }
 ]

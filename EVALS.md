@@ -3,7 +3,7 @@
 _How well the AI pre-review agent does on a fixed, labelled test set, measured against the targets in BRIEF.md._
 
 ## The eval set
-`evals/submissions.json`: 34 made-up submissions (18 risky, 16 safe), each labelled by hand before the agent saw them. All names, numbers and addresses are invented. The only email address is on the reserved `example.com` domain, and the phone number uses the fictional 555 range.
+`evals/submissions.json`: 36 made-up submissions (19 risky, 17 safe; 34 until 2026-11-17), each labelled by hand before the agent saw them. All names, numbers and addresses are invented. The only email address is on the reserved `example.com` domain, and the phone number uses the fictional 555 range.
 
 **Rationale split:** missing or empty rationales are caught by the rule-based `has_rationale` check, so those cases are tested in `tests/test_checks.py`, not here. The AI only judges whether a rationale that is present makes sense. A test makes sure every case below passes the rule-based rationale check.
 
@@ -58,15 +58,26 @@ _risky-05 (empty rationale) and risky-06 ("n/a" rationale) were moved to the rul
 
 Added because the shorter instructions from 8c no longer name "role-play requests" among the trick examples, and no earlier case used role-play. **This 34-case set is the one to use for the 8d comparison (Haiku 5.5 vs Sonnet 5.5).**
 
+### Firm-wide, no practice (2), added 2026-11-17
+Added after a real review (on the Submit page, 2026-11-17) called a tool risky, correctly, because of its "N/A" rationale, but also listed "Practice field is null, so the tool has no owning practice area". Firm-wide tools have no practice, so that issue was wrong. Both cases list `must_not_mention: ["practice"]`, so any issue mentioning a practice is reported as an **unwanted issue**.
+
+| Case | Label | What it tests |
+|---|---|---|
+| safe-17-firm-wide-no-practice | Safe | A clean, well-explained firm-wide tool with no practice: should pass, with no issues |
+| hard-risky-21-firm-wide-no-practice-weak-rationale | Risky | Mirrors the real tool: placeholder name, empty description, a one-sentence "template", and a filler rationale ("N/A - not needed for this one."). Risky for the rationale, but no issue should mention the practice |
+
+**Confirmation run (2 cases × 3 runs = 6 calls, $0.0010, `evals/results/20261117T045628Z.json`):** the failure did **not** reproduce. Both cases got the right verdict in all 3 runs, and no issue mentioned the practice. In every run of the risky case, though, the AI also listed issues outside its six rules: the placeholder name, the empty description, and (in 2 of 3 runs) a template with no `{{variables}}`. The wrong practice issue seems to be occasional, and to come with those extra out-of-rules issues.
+
 ## How it's scored
 - **Every case runs 3 times.** The model can answer differently each time, so one run isn't enough.
 - A risky case is **caught** only if it's flagged in **every** run. A verdict of `risky` or `needs_human` counts as flagged (`needs_human` means the reply failed, so a person checks it anyway). One miss in three counts as a miss, because in real use that one time would get through.
 - A safe case **passes** only with a clean `safe` verdict in every run.
 - **Safe target:** at least 80% of safe cases passed, in every run (BRIEF.md).
 - A case is **inconsistent** if its verdict changes between runs.
+- **Unwanted issues** are reported apart from the score. A case can list `must_not_mention` words; any issue the AI lists that contains one (ignoring case) is reported with the runs it appeared in. The verdict can be right while one of its issues is wrong, so these don't change the score or the targets.
 - Cost comes from the token counts the API reports and Haiku 5.5's price ($0.10 per million input tokens, $0.50 per million output tokens). Response time is measured around each call.
 
-Run it with `.venv/Scripts/python.exe -m evals.run_eval` (3 runs by default; `--runs 1` for a quick check; `--model claude-sonnet-5-5` to try another model for that run only, without changing `config.json`). A 3-run pass makes 102 real calls (about $0.02) and saves full results in `evals/results/`.
+Run it with `.venv/Scripts/python.exe -m evals.run_eval` (3 runs by default; `--runs 1` for a quick check; `--model claude-sonnet-5-5` to try another model for that run only, without changing `config.json`; `--case <id>`, repeatable, to run only those cases). A 3-run pass of all 36 cases makes 108 real calls (about $0.02) and saves full results in `evals/results/`.
 
 ## Current baseline: run 4, 2026-11-16
 Model `claude-haiku-5-5`, effort `medium`, the shorter instructions from 8c, 34 cases × 3 runs = 102 calls. Full results: `evals/results/20261116T043633Z.json`.

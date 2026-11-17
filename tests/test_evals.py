@@ -137,3 +137,104 @@ def test_run_reviews_every_case_once_per_run(fake_ai):
     assert [c["id"] for c in cases] == [s["id"] for s in SUBMISSIONS[:3]]
     assert all(c["verdicts"] == ["risky", "risky"] for c in cases)
     assert len(fake_ai.calls) == 6
+
+
+# --- unwanted issues and --case (false "practice is null" flag, 2026-11-17) -------------
+
+def case_with_issues(label, *issue_lists, words=None, id_="x"):
+    """One scored case whose runs listed these issues."""
+    c = {"id": id_, "label": label,
+         "verdicts": ["risky" if issues else "safe" for issues in issue_lists],
+         "calls": [{"run": i + 1, "cost_usd": 0.0001, "response_seconds": 1.0, "issues": issues}
+                   for i, issues in enumerate(issue_lists)]}
+    if words is not None:
+        c["must_not_mention"] = words
+    return c
+
+
+def test_unwanted_issues_are_reported_with_their_runs():
+    s = score([case_with_issues(
+        "risky",
+        ["Rationale is filler", "Practice field is null"],
+        ["Rationale is filler"],
+        ["The PRACTICE is missing"],
+        words=["practice"], id_="weak")])
+    assert s["unwanted_issues"] == [{
+        "id": "weak", "words": ["practice"], "in_runs": [1, 3],
+        "issues": ["Practice field is null", "The PRACTICE is missing"]}]
+
+
+def test_unwanted_issues_do_not_change_the_score():
+    """They're reported separately: the verdict is still right, so the score and the
+    targets are unchanged."""
+    clean = passing_set()
+    with_unwanted = passing_set() + [case_with_issues(
+        "risky", ["Practice is null"], ["Practice is null"], ["Practice is null"],
+        words=["practice"], id_="weak")]
+    s = score(with_unwanted)
+    assert s["risky_caught_every_run"] == score(clean)["risky_caught_every_run"] + 1
+    assert s["meets_targets"] == score(clean)["meets_targets"]
+    assert len(s["unwanted_issues"]) == 1
+
+
+def test_cases_without_forbidden_words_never_report_unwanted_issues():
+    s = score([case_with_issues("risky", ["Practice field is null"], id_="no-words"),
+               case_with_issues("risky", ["Rationale is filler"], words=["practice"], id_="ok")])
+    assert s["unwanted_issues"] == []
+
+
+def test_run_passes_forbidden_words_through(fake_ai):
+    fake_ai.verdict = "risky"   # the fake lists "Fake issue for testing."
+    subs = [dict(SUBMISSIONS[0], id="w", must_not_mention=["fake issue"])]
+    cases = run(subs, runs=2, client=object(), config={"model": "claude-haiku-5-5"},
+                log_path=None)
+    assert cases[0]["must_not_mention"] == ["fake issue"]
+    assert score(cases)["unwanted_issues"] == [{
+        "id": "w", "words": ["fake issue"], "in_runs": [1, 2],
+        "issues": ["Fake issue for testing.", "Fake issue for testing."]}]
+
+
+def test_select_cases_keeps_the_eval_sets_order():
+    from evals.run_eval import select_cases
+    ids = [SUBMISSIONS[2]["id"], SUBMISSIONS[0]["id"]]
+    assert [s["id"] for s in select_cases(SUBMISSIONS, ids)] == [
+        SUBMISSIONS[0]["id"], SUBMISSIONS[2]["id"]]
+    assert select_cases(SUBMISSIONS, None) == SUBMISSIONS
+
+
+def test_select_cases_refuses_an_unknown_id():
+    import pytest
+    from evals.run_eval import select_cases
+    with pytest.raises(ValueError, match="no-such-case"):
+        select_cases(SUBMISSIONS, ["no-such-case"])
+
+
+def test_case_option_runs_only_the_named_cases(fake_ai, monkeypatch, tmp_path):
+    from evals import run_eval
+    monkeypatch.setattr(run_eval, "RESULTS_DIR", tmp_path)
+    monkeypatch.setattr(run_eval.agent, "make_client", lambda: object())
+    monkeypatch.setattr(run_eval, "LOG_PATH", None)
+    first, third = SUBMISSIONS[0]["id"], SUBMISSIONS[2]["id"]
+    assert run_eval.main(["--runs", "1", "--case", first, "--case", third]) == 0
+    assert len(fake_ai.calls) == 2
+    saved = json.loads(next(tmp_path.glob("*.json")).read_text(encoding="utf-8"))
+    assert [c["id"] for c in saved["cases"]] == [first, third]
+    assert saved["selected_cases"] == [first, third]
+
+
+def test_eval_set_has_the_firm_wide_no_practice_cases():
+    """A firm-wide tool needs no practice: the AI shouldn't list a missing practice as
+    an issue, whether the tool is otherwise safe or risky for another reason."""
+    by_id = {s["id"]: s for s in SUBMISSIONS}
+    safe = by_id["safe-17-firm-wide-no-practice"]
+    risky = by_id["hard-risky-21-firm-wide-no-practice-weak-rationale"]
+    assert safe["label"] == "safe" and risky["label"] == "risky"
+    for s in (safe, risky):
+        assert s["tool"]["visibility"] == "firm-wide" and s["tool"]["practice"] is None
+        assert s["must_not_mention"] == ["practice"]
+
+
+def test_forbidden_words_are_lists_of_text():
+    for s in SUBMISSIONS:
+        words = s.get("must_not_mention", [])
+        assert isinstance(words, list) and all(isinstance(w, str) and w for w in words), s["id"]
