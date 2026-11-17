@@ -275,3 +275,15 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 **Why not the wider wording** ("list only issues that match the six rules"): it would also stop notes such as "the name is a placeholder" or "the description is empty", which reviewers may find useful. That's a bigger change in behaviour than this problem needed.
 
 **Trade-off:** the instructions are about 35 tokens longer (about $0.000004 per review), and the sample advice had to be refreshed. The trigger seems to be a submission that looks like an unfilled form, so other "field is empty" issues may still appear for those. They're advice only.
+
+---
+
+## 17. The AI's reply limit is 1,000 tokens (2026-11-17)
+
+**Decision:** `MAX_TOKENS` in `registry/agent.py` went from 8,000 to 1,000. It caps how long the AI's reply may get, its thinking included.
+
+**Why:** in eval run 5, one reply ran away to the 8,000-token limit: 22 seconds and $0.004 before it was cut off. A cut-off reply already becomes "needs a human", so the limit only decides how long and how costly a runaway is before a person takes over. At 1,000, that's about 3 seconds and $0.0005, inside the 10-second target. Real replies use about 120 tokens, and the longest of about 580 eval calls was 386, so 1,000 is about 2.6 times that.
+
+**Safeguard:** a test fails if the limit is ever less than twice the longest completed reply in the saved eval results.
+
+**Trade-off:** an unusually long genuine reply would be cut off and sent to a person, not lost. The old limit left "room for the model's thinking". At effort `medium` the model's output has stayed under 400 tokens, but a higher effort level could need more, so rerun the eval after raising it. Not rerun with real calls when the limit changed, because normal replies aren't affected.

@@ -21,26 +21,13 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Sample advice** refreshed (3 calls). All three verdicts unchanged.
 - **Cost of all of this:** about $0.032.
 
-## Proposal: lower the AI reply limit from 8,000 to 1,000 tokens (waiting for your approval)
+## Done: AI reply limit lowered from 8,000 to 1,000 tokens (2026-11-17)
 
-**The problem:** `MAX_TOKENS = 8000` in `registry/agent.py` is how long the AI's reply may get. A normal reply is about 120 tokens, and the longest of about 580 eval calls was 386. When a reply runs away, as in run 5, it keeps going to 8,000: 22 seconds and $0.004, 20 times a normal review. The agent already turns a cut-off reply into "needs a human", so the limit only decides how long and how much a runaway costs before that happens.
-
-**The change:** set `MAX_TOKENS = 1000`. Nothing else changes: not the instructions, the model, the effort level or the reply format.
-
-**What it would do:**
-- **Runaway reply:** cut off after about 3 seconds (Haiku writes about 360 tokens a second) for about $0.0005, instead of 22 seconds and $0.004. It stays inside the 10-second target and still goes to a person, as now.
-- **Normal replies:** unaffected. 1,000 is about 2.6 times the longest reply seen.
-
-**Why 1,000:** it's comfortably above any real reply and well under the 10-second target. 1,500 would add more headroom (about 4–5 s for a runaway); 500 would be too close to the 386 seen.
-
-**Risk:** a real reply that's unusually long (many issues, or the model thinking more) would be cut off and sent to a person, not lost. The old comment says 8,000 left "room for the model's thinking". At effort `medium`, all of the model's output, thinking included, has stayed under 400 tokens. If the effort level is raised later, this limit should be checked again.
-
-**Tests I'd add:**
-- The limit is 1,000 and is what the API call actually sends (with a fake client).
-- A guard that reads the saved eval results and fails if the limit is ever less than twice the longest reply on record, so it can't quietly become too tight.
-- The existing test that a cut-off reply becomes "needs a human" stays as it is.
-
-**Cost:** nothing needed. The reply limit isn't part of the instructions fingerprint, so the sample advice stays current, and since normal replies are unaffected, no eval rerun is needed. A quick check run (36 cases × 1 run, about $0.007) is optional if you'd like to see it with real calls.
+- **Why:** in run 5, one reply ran away to the 8,000-token limit: 22 seconds and $0.004 before it was cut off and sent to a person. Normal replies use about 120 tokens; the longest of about 580 eval calls was 386.
+- **Now:** `MAX_TOKENS = 1000` in `registry/agent.py`. A runaway stops after about 3 seconds for about $0.0005, inside the 10-second target, and still becomes "needs a human". Nothing else changed (instructions, model, effort, reply format), so the sample advice is still current.
+- **Tests:** the limit is 1,000 and is what the API call sends; a guard fails if it's ever less than twice the longest completed reply in the saved eval results. 421 passing.
+- **Not rerun with real calls** (your choice): normal replies are well under the limit.
+- **Watch for:** if the effort level in `config.json` is raised, the model may think for longer. The guard only knows replies already on record, so run the eval after such a change.
 
 ## Phase 9: where it stands (2026-11-16)
 
@@ -53,7 +40,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
 | 6 | Review queue screen: list, detail panel, progress line, decision buttons | ⏭️ Next |
 
-**Tests:** 419 passing.
+**Tests:** 421 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -207,7 +194,7 @@ Reply in the required JSON format. If safe, issues must be empty; if risky, list
 
 ## Blocked / questions for Vanessa
 
-**Open (2026-11-17): lower the AI reply limit to 1,000 tokens?** See the proposal near the top. Approve as written, choose another limit (such as 1,500), or leave it at 8,000.
+**✅ Answered on 2026-11-17:** lower the AI reply limit to 1,000 tokens, skip the check run. **Done** (DECISIONS.md #17).
 
 **✅ Answered on 2026-11-17:** the "Practice field is null" fix: use the one-sentence change, measure first, then apply. **Done**: 9 of 10 before, 0 of 10 after; run 5 recorded in EVALS.md.
 

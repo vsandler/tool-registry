@@ -34,7 +34,12 @@ CONFIG_PATH = PROJECT_ROOT / "config.json"
 ENV_PATH = PROJECT_ROOT / ".env"
 DEFAULT_LOG_PATH = PROJECT_ROOT / "logs" / "agent_calls.jsonl"
 
-MAX_TOKENS = 8000  # room for the model's thinking plus a short JSON answer
+# The longest the reply may get, thinking included. Real replies use about 120 tokens
+# (the most seen is 386). A runaway reply is cut off here after about 3 seconds and
+# becomes needs_human, so a person checks the tool. tests/test_agent.py fails if this
+# drops below twice the longest reply on record. Check it again if the effort level
+# in config.json is raised, since the model may then think for longer.
+MAX_TOKENS = 1000
 REQUEST_TIMEOUT_SECONDS = 30.0
 
 # US dollars per million tokens (Anthropic first-party prices, prompts up to 100K tokens).

@@ -109,7 +109,7 @@ Model `claude-haiku-5-5`, effort `medium`, the 8c instructions **plus one senten
 
 **The one failure:** in run 1, the reply for hard-safe-12-injection-defence ran to the 8,000-token reply limit and was cut off (22.4 s, $0.0041). The agent handled it as designed: it became `needs_human`, so a person would check the tool. Every judged answer was right. Leaving that call out, the average is $0.00019 and 1.75 s per review, with a slowest reply of 2.7 s. It's the first cut-off in about 560 eval calls (runs 1–4, the Sonnet comparison and the probes all had none).
 
-**Follow-up (10 calls, $0.0017, `evals/results/20261117T051402Z.json`):** hard-safe-12 rerun 10 times with the new sentence: **0 of 10 cut off**, all 10 `safe`, slowest 2.4 s. So it looks like a rare one-off rather than something the sentence causes, though so few runs can't rule that out. A lower reply limit would keep any future runaway inside the 10-second target (proposed separately in STATUS.md).
+**Follow-up (10 calls, $0.0017, `evals/results/20261117T051402Z.json`):** hard-safe-12 rerun 10 times with the new sentence: **0 of 10 cut off**, all 10 `safe`, slowest 2.4 s. So it looks like a rare one-off rather than something the sentence causes, though so few runs can't rule that out. **Since then, the reply limit is 1,000 tokens** (DECISIONS.md #17), so a runaway like this one now stops after about 3 seconds and about $0.0005, inside the 10-second target. Not rerun with real calls: normal replies (at most 386 tokens) aren't affected.
 
 **Did the sentence fix the practice issue?** Yes, on the exact copy of the real tool (`evals/probe_practice.json`, 10 runs each):
 

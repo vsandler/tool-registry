@@ -215,3 +215,37 @@ def test_log_contains_no_key_and_no_submission_text(tmp_path, monkeypatch):
 
 def test_unknown_model_has_no_cost_estimate():
     assert agent.estimate_cost("some-other-model", 10, 10) is None
+
+
+# --- the reply limit (STATUS.md proposal, approved 2026-11-17) -------------------------------
+
+def test_reply_limit_is_1000_tokens_and_is_sent_to_the_api():
+    """A runaway reply stops after about 3 seconds instead of 22, and still goes to a
+    person (it becomes needs_human, tested above)."""
+    assert agent.MAX_TOKENS == 1000
+    _, client = review(ok("safe", []))
+    assert client.calls[0]["max_tokens"] == 1000
+
+
+def longest_normal_reply():
+    """The most output tokens any completed (not cut-off) eval reply has used."""
+    from pathlib import Path
+    results = Path(agent.PROJECT_ROOT) / "evals" / "results"
+    longest = 0
+    for path in results.glob("*.json"):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for case in data["cases"]:
+            for call in case.get("calls", [case]):   # the oldest file has no "calls"
+                if not call.get("error"):
+                    longest = max(longest, call.get("output_tokens") or 0)
+    return longest
+
+
+def test_reply_limit_leaves_room_for_the_longest_real_reply():
+    """Guard: the limit must stay at least twice the longest reply on record, so it
+    can't quietly become too tight (for example after raising the effort level). If
+    this fails, raise MAX_TOKENS rather than weakening this test."""
+    longest = longest_normal_reply()
+    assert longest > 0, "no eval results found to compare with"
+    assert agent.MAX_TOKENS >= 2 * longest, (
+        f"MAX_TOKENS is {agent.MAX_TOKENS}, but a real reply used {longest} tokens")
