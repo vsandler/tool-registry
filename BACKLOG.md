@@ -114,6 +114,22 @@
   - **Open questions (not yet confirmed):**
     - **Scope changes:** does changing the scope (for example, a single stock versus a whole sector) need review, and who decides what counts as a scope change?
     - **Small or cosmetic changes:** which ones need a specialist review? For example, does changing an office address need compliance review? Confirm with each specialist area before building.
+- **Fill blanks from an approved data source**
+  - **What it is:** A tool's blanks can be filled automatically from a firm-approved data source that already filters by permission. The registry asks the source as the person using the tool, with their own access. It never uses a shared account that sees everything, so the source's permission rules always apply.
+  - **More than one source per tool:** a tool can be approved with more than one data source (for example, two market data providers). The person using it picks which approved source to fill from, with no new review. Adding a source the tool wasn't approved for goes back through technology review (and compliance if the data reaches clients), as in "Practice versions". The downloaded copy notes which source was used.
+  - **Why it was cut:** This is a demo with no real systems or data sources (BRIEF.md "Out of Scope"). For now people type the values into the Catalog's Personalise form themselves.
+  - **Steps to build it:**
+    1. Keep a list of approved data sources. Only sources on that list can be used.
+    2. Let a tool link its blanks to one or more approved sources. Adding a source to a tool needs technology review, plus compliance if the data reaches clients (see "Practice versions").
+    3. When someone personalises the tool, let them pick one of the sources the tool was approved for, with no new review. Ask the source as that person, using their own access, never a shared account. Whatever the source won't show them stays empty.
+    4. Use the filled values only for that person's copy. Never save them in the registry and never send them to the AI reviewer.
+    5. Note in the downloaded copy which source was used.
+    6. Add tests with pretend data sources: each person gets only what their own access allows; a source not on the approved list is refused; a source the tool wasn't approved for is refused at personalising; picking between a tool's approved sources needs no review; adding a source to a tool goes to technology review, and to compliance when the data reaches clients; the download names the source used; filled values never appear in the database or in what the AI reviewer is sent.
+  - **Open questions (not yet confirmed):**
+    - **Source down or empty:** what happens if the source can't be reached or returns nothing? For example, leave the box for the person to fill in, or stop the download.
+    - **Editing filled values:** can people change a filled value before downloading, or must it stay as the source gave it?
+    - **Field names differ by source:** each source may name its fields differently (for example "ticker" versus "symbol"), so each approved source needs its own mapping to the tool's blanks. Who sets and reviews that mapping?
+    - **Mixing sources:** can one copy mix sources (some blanks from one source, some from another), or is it one source per copy?
 - **Notifications**
   - **What it is:** When a tool reaches someone's step, notify them by email or a chat tool such as Microsoft Teams, with a link to the tool. Also notify the builder when their tool is approved, rejected (with the reason) or published.
   - **Why it was cut:** It needs a real email or chat service, and this is a demo with no real systems (BRIEF.md "Out of Scope"). The Review queue's "Waiting on me" view covers the need for now.
