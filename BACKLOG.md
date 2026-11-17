@@ -130,6 +130,20 @@
     - **Editing filled values:** can people change a filled value before downloading, or must it stay as the source gave it?
     - **Field names differ by source:** each source may name its fields differently (for example "ticker" versus "symbol"), so each approved source needs its own mapping to the tool's blanks. Who sets and reviews that mapping?
     - **Mixing sources:** can one copy mix sources (some blanks from one source, some from another), or is it one source per copy?
+- **Admin-managed practice list**
+  - **What it is:** The practices a tool can belong to come from a list that admins keep. On the Submit form, a "My practice isn't listed" link sends a request asking an admin to add it. Builders never type their own practice name, so there are no near-duplicates such as "Tax" and "Tax team".
+  - **Why it was cut:** For the demo, the Submit form's Practice dropdown lists the practices people already belong to (`GET /submit-form`), which is enough with made-up data.
+  - **Steps to build it:**
+    1. Store the practice list, and let an admin add, rename or retire a practice.
+    2. Fill the Submit form's Practice dropdown from that list.
+    3. Add "My practice isn't listed": the builder gives the practice's name and a short reason, and the request goes to an admin's list of requests.
+    4. On submit, the back end refuses a practice that isn't on the list, with a plain message next to the Practice box.
+    5. Add tests: only practices on the list are accepted; only admins can change the list; a request reaches an admin; a retired practice can't be picked for new tools.
+  - **Open questions (not yet confirmed):**
+    - **Who approves a request:** the Super admin, or any admin? Can a Practice admin add only their own practice?
+    - **While waiting:** what does the builder do: keep the tool as a draft, or submit it as firm-wide?
+    - **Renames and merges:** what happens to existing tools when a practice is renamed, merged or retired?
+    - **Telling people:** should the request and its answer use the "Notifications" item?
 - **Notifications**
   - **What it is:** When a tool reaches someone's step, notify them by email or a chat tool such as Microsoft Teams, with a link to the tool. Also notify the builder when their tool is approved, rejected (with the reason) or published.
   - **Why it was cut:** It needs a real email or chat service, and this is a demo with no real systems (BRIEF.md "Out of Scope"). The Review queue's "Waiting on me" view covers the need for now.
