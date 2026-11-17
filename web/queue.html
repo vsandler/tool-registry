@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review queue · Tool Registry</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="layout"></header>
+  <main>
+    <h1>Review queue</h1>
+    <section id="content" aria-live="polite"></section>
+  </main>
+  <script type="module">
+    import { renderLayout, onPersonaReady, loadOrExplain, showMessage } from "./app.js";
+
+    await renderLayout("queue");
+    const content = document.getElementById("content");
+
+    onPersonaReady(async () => {
+      // If this persona can't open the queue, the back end's plain message is shown
+      // here (by loadOrExplain) instead of a blank page or an error code.
+      const tools = await loadOrExplain("/admin/review-queue", content);
+      if (tools === null) return;
+      // The list, detail panel and decision buttons come in Phase 9, step 6.
+      showMessage(content, `${tools.length} tool(s) in this queue. The full screen is coming soon.`,
+                  "status");
+    });
+  </script>
+</body>
+</html>

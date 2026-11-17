@@ -18,6 +18,7 @@ _Terms used in this project, defined in plain language._
 - **Baseline:** The first measured score, used as the starting point to compare later changes against.
 - **Boundary test:** A test of the values right at the edge of a rule, such as a 9-character comment (refused) and a 10-character one (accepted). Edges are where off-by-one mistakes hide.
 - **Constraint (database):** A rule written into a table, such as "role must be one of these five", that the database itself enforces.
+- **Cross-site scripting (XSS):** When text someone typed is shown as page code and runs in another person's browser. Our pages always set text as text, which prevents it.
 - **Demo draft:** One of the two made-up sample tools saved but not submitted, so a presenter can submit it and watch the real AI review it.
 - **Effort (Claude):** A setting that controls how hard the model thinks before answering. Higher effort is more careful but slower and uses more tokens.
 - **Endpoint:** One address in the API, such as `GET /tools` (list the catalogue).
@@ -32,6 +33,7 @@ _Terms used in this project, defined in plain language._
 - **Fingerprint (hash):** A short code made from a piece of text. The same text always gives the same code, and any change gives a different one. We use it to tell whether the agent's instructions changed.
 - **Fixture (pytest):** A reusable setup step for tests, such as "give me a fresh database with the five personas in it".
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
+- **Front end:** The screens people see and click, here plain HTML, CSS and JavaScript in `web/`, served by the same server as the API.
 - **Guard test:** A test that protects against a future mistake rather than today's code, for example failing if someone adds a new admin route without thinking about who may open it.
 - **Header (HTTP):** A labelled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
 - **Inconsistent case:** An eval case that gets different verdicts in different runs. It shows where the model is unsure.
@@ -40,6 +42,7 @@ _Terms used in this project, defined in plain language._
 - **JSON Lines (.jsonl):** A log file with one JSON record per line. Easy to add to and easy to read back.
 - **JSON schema:** A description of the exact shape a JSON answer must have: which fields, what type each is, which values are allowed.
 - **Label:** The right answer for a test case (risky or safe), written down before the agent sees it.
+- **localStorage:** A small store in the browser that remembers things on this computer only, such as which persona you picked.
 - **Migration (database):** A small change that upgrades an existing database to match new code, such as adding a missing column.
 - **Multi-specialist routing:** Sending one tool to several specialist areas, in an order the Super admin picks. Each area becomes its own review step.
 - **my_action:** The part of a tool's details that tells the persona viewing it whether they can decide the current step, and if not, why, in plain words.
@@ -69,6 +72,7 @@ _Terms used in this project, defined in plain language._
 - **Specialist area:** One of the three review teams: AI enablement (technology), compliance, or marketing.
 - **SQLite:** A small database stored in a single file, built into Python. No server needed.
 - **Stale:** Out of date. Sample advice is stale when the model or the agent's instructions have changed since it was written.
+- **Static files:** Files the server sends exactly as they are, such as our HTML pages, the stylesheet and the JavaScript.
 - **Status code:** A number the API sends back with each answer to say how it went: 200 worked, 400 bad request, 401 unknown person, 403 not allowed, 404 not found.
 - **Structured outputs:** An API feature that makes the model's answer follow a JSON schema we provide.
 - **Submission:** A builder sending a draft tool in for review. The checks run at this moment.

@@ -190,6 +190,18 @@ The screens need to know, for whoever is looking, "can I decide this, and if not
 ### Oldest first, using when it was submitted
 Tools now record `submitted_at`, and the Review queue lists the longest-waiting first. Databases made before this column existed get it filled in from when each tool's checks ran, since the checks run at submission.
 
+### Serving the screens from the same server
+The pages live in `web/` as plain HTML, CSS and JavaScript. FastAPI serves them at `/app/`, and `/` sends you there. The pages and the API share one address, so the browser can call the API without any extra cross-site setup. There's no build step: what's in `web/` is exactly what the browser gets.
+
+### The screens ask, the back end decides
+`web/app.js` holds the shared layout (demo banner, persona dropdown, navigation) and one helper, `api()`, that calls the API as the chosen persona. The screens never work out who may do what. The back end sends ready-made answers: each persona's `label` and `can_open_queue`, and each tool's `my_action`. A guard test fails if the JavaScript ever uses a role or persona id as a value, reads `.role`, or compares owners, because that would mean a rule had leaked into the browser.
+
+### Refusals are always shown in plain words
+When the back end refuses something, the page shows its sentence, never a blank page or a bare code like "403". Two shared helpers make sure of it: `loadOrExplain()` for loading a page's data (for example the Review queue), and `decideOrExplain()` for approve and reject buttons. The second shows the message next to the buttons, or next to the comment box if the problem is the comment. A guard test fails if a page sends a decision without going through it.
+
+### Text, never HTML
+The pages build everything with a small helper, `h()`, that always sets text as text. Whatever someone types into a tool (even something that looks like page code) is shown as words and can't run in someone else's browser. Building pages by pasting text into HTML is how *cross-site scripting* happens.
+
 ### A guard test for future routes
 Specialist reviewers can now open the Review queue. To make sure that doesn't leak into other admin pages later, a test lists every `/admin` address and fails if a new one appears. Its message tells whoever added it to keep the new route admins-only and to test that Specialists are refused.
 

@@ -7,6 +7,18 @@ import sqlite3
 
 ROLES = ("builder", "practice_admin", "super_admin", "specialist_reviewer", "tool_user")
 ADMIN_ROLES = ("practice_admin", "super_admin")
+# The roles that take part in reviews. They may open the Review queue (DECISIONS.md
+# #10, option A; Specialists see only their own area's work there) and view the
+# details of any tool, including ones still in review.
+QUEUE_ROLES = ADMIN_ROLES + ("specialist_reviewer",)
+
+ROLE_LABELS = {
+    "builder": "Builder",
+    "practice_admin": "Practice admin",
+    "super_admin": "Super admin",
+    "specialist_reviewer": "Specialist reviewer",
+    "tool_user": "Tool user",
+}
 
 # Specialist reviewer areas. "technology" is the AI enablement team.
 SPECIALIST_AREAS = {
@@ -44,6 +56,17 @@ def seed_personas(conn: sqlite3.Connection) -> None:
 
 def get_user(conn: sqlite3.Connection, user_id: str) -> sqlite3.Row | None:
     return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
+
+def persona_label(user) -> str:
+    """How the persona dropdown names someone, e.g. "Sam Thistle: Specialist reviewer,
+    Compliance". Built here so the front end only displays it."""
+    label = f"{user['name']}: {ROLE_LABELS[user['role']]}"
+    if user["specialty"]:
+        label += f", {SPECIALIST_AREAS[user['specialty']]}"
+    elif user["practice"]:
+        label += f", {user['practice']}"
+    return label
 
 
 def is_admin(user: sqlite3.Row) -> bool:

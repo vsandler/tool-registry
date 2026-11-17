@@ -6,13 +6,16 @@ This stands in for the persona dropdown.
 
 Run it locally:
     .venv/Scripts/python -m uvicorn registry.api:create_app --factory --reload
-Then open http://127.0.0.1:8000/docs for a clickable page of every endpoint.
+Then open http://127.0.0.1:8000/ for the app (the screens, served from web/), or
+http://127.0.0.1:8000/docs for a clickable page of every endpoint.
 """
 
 import sqlite3
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from registry.approvals import (
@@ -30,7 +33,7 @@ from registry.approvals import (
 from registry.agent import get_ai_review
 from registry.checks import get_check_results
 from registry.db import connect
-from registry.personas import ADMIN_ROLES, SPECIALIST_AREAS, get_user
+from registry.personas import QUEUE_ROLES, SPECIALIST_AREAS, get_user, persona_label
 from registry.seed import seed
 from registry.tools import (
     NotAllowed,
@@ -43,7 +46,11 @@ from registry.tools import (
     submit_tool,
 )
 
-REVIEWER_ROLES = ("super_admin", "practice_admin", "specialist_reviewer")
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"  # the screens (DECISIONS.md #12)
+
+# Shown on screen if someone who can't open the Review queue reaches it anyway.
+QUEUE_REFUSED_MESSAGE = ("The Review queue is only for Practice admins, Super admins and "
+                         "Specialist reviewers. Pick one of those personas to see it.")
 
 
 # --- request bodies ---------------------------------------------------------------
@@ -145,10 +152,8 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     def queue_viewer(user: sqlite3.Row = Depends(persona)) -> sqlite3.Row:
         """Admins see the whole Review queue; Specialist reviewers see only their
         area's work (DECISIONS.md #10, option A). Everyone else is refused."""
-        if user["role"] not in ADMIN_ROLES + ("specialist_reviewer",):
-            raise HTTPException(
-                403, "Admins and Specialist reviewers only (Practice admin, Super admin, "
-                     "Specialist reviewer)")
+        if user["role"] not in QUEUE_ROLES:
+            raise HTTPException(403, QUEUE_REFUSED_MESSAGE)
         return user
 
     def load_tool(tool_id: int, conn: sqlite3.Connection) -> dict:
@@ -161,8 +166,20 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.get("/personas")
     def personas(conn: sqlite3.Connection = Depends(db)):
+        """For the persona dropdown: each person with a ready-made `label`, and
+        `can_open_queue` so the navigation shows the Review queue link only to those
+        the queue lets in (the same QUEUE_ROLES the queue itself checks)."""
         rows = conn.execute("SELECT id, name, role, practice, specialty FROM users ORDER BY id")
-        return [dict(r) for r in rows]
+        return [{**dict(r), "label": persona_label(r), "can_open_queue": r["role"] in QUEUE_ROLES}
+                for r in rows]
+
+    # -- the screens --
+
+    @app.get("/", include_in_schema=False)
+    def home():
+        return RedirectResponse("/app/")
+
+    app.mount("/app", StaticFiles(directory=WEB_DIR, html=True), name="app")
 
     @app.get("/approval-steps")
     def approval_steps(conn: sqlite3.Connection = Depends(db)):
@@ -188,7 +205,7 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     @app.get("/tools/{tool_id}")
     def one_tool(tool_id: int, user=Depends(persona), conn=Depends(db)):
         tool = load_tool(tool_id, conn)
-        allowed = (tool["owner_id"] == user["id"] or user["role"] in REVIEWER_ROLES
+        allowed = (tool["owner_id"] == user["id"] or user["role"] in QUEUE_ROLES
                    or can_see_published(user, tool))
         if not allowed:
             raise NotAllowed("You can't view this tool")

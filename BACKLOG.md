@@ -81,6 +81,39 @@
     2. Turn the shared pieces (persona dropdown, progress line, flag and AI advice panels) into components.
     3. Rebuild the screens one at a time, keeping the same API calls.
     4. Add component tests, and browser tests if not already done.
+- **Update a published tool**
+  - **What it is:** The builder can submit a change to a tool that's already published. The change becomes a new version that goes through the full review again, with no self-approval. The current published version stays in the catalogue until the new one is approved.
+  - **Why it was cut:** Today a published tool can't be changed, which keeps versions and history simple for the demo.
+  - **Steps to build it:**
+    1. Let the owner start a new draft version from a published tool, linked to it.
+    2. Run the rule-based checks and the AI pre-review on the new version, then the full approval flow, with no self-approval at every step.
+    3. Keep the current version in the catalogue while the new one is in review; swap them only when the new one is published.
+    4. Keep every version, and show who changed what and when (for example, the template and rationale before and after).
+    5. Give each tool its own **decision log**, like DECISIONS.md but per tool. Every version adds one entry: what changed, why (in the builder's words), who approved or rejected it at each step with their comments, and the date. Entries are never edited or deleted. This is the per-tool part of the "Full audit trail for a real firm" item below.
+    6. Show the log by role:
+       - **Builders:** the full log for their own tools.
+       - **Approvers:** the full log.
+       - **Tool users:** only a short "what changed" note per version, without reviewer comments.
+    7. When someone personalises a tool from the catalogue, show a short **"Why it's built this way"** note listing the key decisions and conditions from the tool's decision log (for example, "The disclaimer must stay: required by compliance"). Then they know what's safe to change and what a change would affect. Reviewers' internal comments stay hidden from tool users.
+    8. Add tests: a tool user personalising a tool sees the "Why it's built this way" note but no reviewer comments; the old version stays visible during review; the swap happens only on approval; a rejected version leaves the old one in place; the owner can't approve their own change; a log entry can't be edited or deleted; tool users never see reviewer comments.
+  - **Open questions:**
+    - **Small changes:** does fixing a typo or a wording change need the full review, or a lighter one? Who decides what counts as small?
+    - **People's own copies:** what happens to copies people already personalised and saved from the old version? Are they told about the update, and can they move to the new version?
+- **Practice versions**
+  - **What it is:** A practice can adapt a published tool for its own use. How much review the change needs depends on what it touches.
+  - **Why it was cut:** Separate practice libraries are out of scope for now (DECISIONS.md #2). Which changes need which review still has to be confirmed with each specialist area.
+  - **Steps to build it:**
+    1. Let a practice create a practice version of a published tool, linked to the original and to its decision log (see "Update a published tool").
+    2. Route the change by what it touches:
+       - **Filling in template values or changing wording:** no specialist review.
+       - **Changing the data source** (for example, a different market data provider): technology review, plus compliance if the data reaches clients.
+       - **Changing anything client-facing or locked** (such as a required disclaimer): the specialist who owns that part.
+    3. The practice admin reviews every practice version, with no self-approval at any step.
+    4. Record each practice version in its own decision log, linked to the original's.
+    5. Add tests: a wording-only change needs only the practice admin; a data-source change goes to technology, and to compliance when the data reaches clients; changing a locked part goes to its owning specialist; the practice admin can't approve their own practice version.
+  - **Open questions (not yet confirmed):**
+    - **Scope changes:** does changing the scope (for example, a single stock versus a whole sector) need review, and who decides what counts as a scope change?
+    - **Small or cosmetic changes:** which ones need a specialist review? For example, does changing an office address need compliance review? Confirm with each specialist area before building.
 - **Notifications**
   - **What it is:** When a tool reaches someone's step, notify them by email or a chat tool such as Microsoft Teams, with a link to the tool. Also notify the builder when their tool is approved, rejected (with the reason) or published.
   - **Why it was cut:** It needs a real email or chat service, and this is a demo with no real systems (BRIEF.md "Out of Scope"). The Review queue's "Waiting on me" view covers the need for now.
@@ -107,7 +140,7 @@
     - **No self-approval across both systems:** how do we know the person who approved the ticket is the same person as in the registry, and not the tool's owner? This needs a reliable match between the two systems' user accounts. The registry should still refuse the decision if they don't match.
     - **If the ticketing system is down:** do reviews wait, can specialists decide in the registry directly, and how are missed tickets created later without making duplicates?
 - **Full audit trail for a real firm**
-  - **What it is:** A complete record of who did what and when, which nothing can delete or quietly change.
+  - **What it is:** A complete record of who did what and when, which nothing can delete or quietly change. Each tool's own decision log (see "Update a published tool" above) is the per-tool part of it.
   - **Why it was cut:** It isn't needed for a demo with made-up data. Today the approval history is already add-only, the database keeps every AI review (the review screen shows only the latest), git keeps every version of the sample advice, and `logs/` records each AI call with no set time limit.
   - **Steps to build it:**
     1. Never delete or overwrite AI reviews or approval decisions. Make them add-only in the database, so a change is a new row, not an edit.

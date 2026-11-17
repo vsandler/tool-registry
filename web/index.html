@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catalog · Tool Registry</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="layout"></header>
+  <main>
+    <h1>Catalog</h1>
+    <section id="content" aria-live="polite"></section>
+  </main>
+  <script type="module">
+    import { renderLayout, onPersonaReady, showMessage } from "./app.js";
+
+    await renderLayout("catalog");
+    const content = document.getElementById("content");
+
+    onPersonaReady(() => {
+      // The catalogue list and Personalise come in Phase 9, step 4.
+      showMessage(content, "The catalog screen is coming next.", "status");
+    });
+  </script>
+</body>
+</html>

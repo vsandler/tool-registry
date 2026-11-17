@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Submit a tool · Tool Registry</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="layout"></header>
+  <main>
+    <h1>Submit a tool</h1>
+    <section id="content" aria-live="polite"></section>
+  </main>
+  <script type="module">
+    import { renderLayout, onPersonaReady, showMessage } from "./app.js";
+
+    await renderLayout("submit");
+    const content = document.getElementById("content");
+
+    onPersonaReady(() => {
+      // The submit form comes in Phase 9, step 5.
+      showMessage(content, "The submit screen is coming soon.", "status");
+    });
+  </script>
+</body>
+</html>
