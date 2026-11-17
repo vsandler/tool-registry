@@ -212,3 +212,25 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 - **Tools with no practice:** a tool whose owner has no practice (for example a Specialist's or the Super admin's own tool) is seen by no Practice admin, only by the Super admin, the owner and the Specialists reviewing it.
 - **Moves between practices:** if a builder moves to another practice, their tools in review move with them to that practice's admin.
 - **Lost overlap:** a Practice admin can no longer spot that another practice is building the same thing. The "Spot overlap" backlog item would bring that back as a summary only, without the review details.
+
+---
+
+## 14. The Catalog screen and personalising
+
+**Decisions (2026-11-16):**
+
+1. **The back end gives the Catalog everything it shows:** for each published tool this persona may see, the owner's name, a visibility label ("Firm-wide" or "Practice-only: Tax"), the description, rationale and template, and the **blanks** to fill in, each with an on-screen label ("client_name" becomes "Client name"). Rule flags, AI advice, steps, history and reviewers' comments are left out of the catalogue.
+   - **Why:** the screen only displays. Reviewing details belong to reviewing, and tool users shouldn't see reviewers' internal comments (see "Update a published tool" in BACKLOG.md).
+
+2. **The blanks come from the template itself,** not from the builder's declared list. Personalising fills what the template actually uses, so the form asks for exactly those.
+   - **Why:** if the two lists disagree (the `variables_match` check flags this, but flags don't block publishing), the form and the download still match.
+
+3. **The back end refuses unusable values,** with a plain message and a `fields` list naming the boxes, so the screen marks those boxes: *"Fill in every blank before downloading your copy: Client name."* Empty and spaces-only values count as missing. A value for a blank the tool doesn't have is refused too. "Who may use this tool" is checked first. The page has no browser-side checks of its own.
+   - **Why:** the rule holds for anyone calling the API, not just the screen, and it's tested in Python.
+
+4. **Personal copies are never saved.** The values someone types may be client details, so they're used for that one copy, returned to the browser, and forgotten. A test checks that the database is unchanged afterwards. The download's file name comes from the tool's name only ("meeting-summary.txt"), never from the values.
+   - **Why:** templates stay clean (BRIEF.md), and file names get seen in download folders and email attachments.
+   - **Trade-off:** there's no "my copies" list. If someone loses their file, they fill in the blanks again.
+
+5. **The sample data publishes nothing,** so on a fresh start the Catalog says no tools are published yet. To see it working, take a seeded tool through the three approval steps first.
+   - **Why not seed a published tool:** it would change the seeded tools, which means refreshing the sample AI advice (paid AI calls) and changing several tests' expectations. That's worth a separate decision.

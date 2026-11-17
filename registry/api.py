@@ -44,10 +44,12 @@ from registry.tools import (
     NotAllowed,
     NotFound,
     ToolError,
+    blanks_for,
     create_tool,
+    download_filename,
     get_tool,
     list_tools,
-    render,
+    personalise as fill_in_blanks,
     submit_tool,
 )
 
@@ -138,6 +140,29 @@ def check_can_view(conn: sqlite3.Connection, user: sqlite3.Row, tool: dict) -> N
     raise NotAllowed("You can't view this tool")
 
 
+# What the Catalog shows about each tool. Review internals (rule flags, AI advice,
+# steps, history and reviewers' comments) are left out: they belong to reviewing.
+CATALOGUE_FIELDS = ("id", "name", "description", "template", "rationale",
+                    "visibility", "practice")
+
+
+def visibility_label(tool: dict) -> str:
+    if tool["visibility"] == "practice-only":
+        return f"Practice-only: {tool['practice']}" if tool["practice"] else "Practice-only"
+    return "Firm-wide"
+
+
+def catalogue_entry(conn: sqlite3.Connection, tool: dict) -> dict:
+    """One published tool, ready for the Catalog screen to display as-is."""
+    owner = get_user(conn, tool["owner_id"])
+    return {
+        **{k: tool[k] for k in CATALOGUE_FIELDS},
+        "visibility_label": visibility_label(tool),
+        "owner_name": owner["name"] if owner else "Unknown",
+        "blanks": blanks_for(tool["template"]),  # what to ask for, from the template itself
+    }
+
+
 def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None = None) -> dict:
     """Everything the screens show about one tool. `my_action` is for the persona
     viewing it: can they decide the current step, and if not, why (plain words)."""
@@ -168,7 +193,10 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.exception_handler(ToolError)
     async def _bad_request(request: Request, exc: ToolError):
-        return JSONResponse(status_code=400, content={"detail": str(exc)})
+        content = {"detail": str(exc)}
+        if getattr(exc, "fields", None):  # tells a form which boxes the message is about
+            content["fields"] = exc.fields
+        return JSONResponse(status_code=400, content=content)
 
     @app.exception_handler(NotAllowed)
     async def _forbidden(request: Request, exc: NotAllowed):
@@ -236,8 +264,10 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.get("/tools")
     def catalogue(user=Depends(persona), conn=Depends(db)):
-        """Published tools this persona can see."""
-        return [t for t in list_tools(conn, status="published") if can_see_published(user, t)]
+        """Published tools this persona can see, each with its owner's name, a
+        visibility label and the blanks to fill in when personalising."""
+        return [catalogue_entry(conn, t) for t in list_tools(conn, status="published")
+                if can_see_published(user, t)]
 
     @app.get("/my-tools")
     def my_tools(user=Depends(persona), conn=Depends(db)):
@@ -272,11 +302,14 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.post("/tools/{tool_id}/personalise")
     def personalise(tool_id: int, body: Personalise, user=Depends(persona), conn=Depends(db)):
-        """Fill in a published tool's blanks to make this persona's own copy."""
+        """Fill in a published tool's blanks to make this persona's own copy, to
+        download. Every blank needs a value; a refusal names the boxes in `fields`.
+        Nothing is saved: the values may be client details."""
         tool = load_tool(tool_id, conn)
         if not can_see_published(user, tool):
             raise NotAllowed("Only published tools you can see can be personalised")
-        return {"tool_id": tool_id, "text": render(tool["template"], body.values)}
+        return {"tool_id": tool_id, "text": fill_in_blanks(tool["template"], body.values),
+                "filename": download_filename(tool["name"])}
 
     # -- admin --
 

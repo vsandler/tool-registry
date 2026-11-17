@@ -44,6 +44,52 @@ def render(template: str, values: dict[str, str]) -> str:
     return VARIABLE_PATTERN.sub(lambda m: str(values[m.group(1)]), template)
 
 
+# --- personalising from the catalogue ------------------------------------------------
+
+class PersonaliseError(ToolError):
+    """Values for a personal copy that can't be used. `fields` names the blanks the
+    message is about, so the screen can show it next to those boxes."""
+
+    def __init__(self, message: str, fields: list[str]):
+        super().__init__(message)
+        self.fields = fields
+
+
+def blank_label(name: str) -> str:
+    """How a blank is named on screen: "client_name" -> "Client name"."""
+    words = name.replace("_", " ").strip()
+    return words[:1].upper() + words[1:]
+
+
+def blanks_for(template: str) -> list[dict]:
+    """The blanks a person fills in, read from the template itself (the same ones
+    `render` fills), with an on-screen label for each."""
+    return [{"name": n, "label": blank_label(n)} for n in find_variables(template)]
+
+
+def personalise(template: str, values: dict[str, str]) -> str:
+    """Fill in a template for someone's own copy. Every blank needs a value with
+    something other than spaces in it, and every value must be for a real blank.
+    Nothing is saved: the values may be client details."""
+    names = find_variables(template)
+    unknown = [k for k in values if k not in names]
+    if unknown:
+        raise PersonaliseError(f"This tool has no blank called: {', '.join(unknown)}.", unknown)
+    missing = [n for n in names if not str(values.get(n, "")).strip()]
+    if missing:
+        labels = ", ".join(blank_label(n) for n in missing)
+        raise PersonaliseError(f"Fill in every blank before downloading your copy: {labels}.",
+                               missing)
+    return render(template, values)
+
+
+def download_filename(tool_name: str) -> str:
+    """A safe file name for a personal copy, from the tool's name only (never from the
+    values typed in): "Meeting summary" -> "meeting-summary.txt"."""
+    slug = re.sub(r"[^a-z0-9]+", "-", tool_name.lower()).strip("-")
+    return f"{slug or 'personalised-tool'}.txt"
+
+
 def create_tool(
     conn: sqlite3.Connection,
     *,

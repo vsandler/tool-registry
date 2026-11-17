@@ -69,6 +69,7 @@ export async function api(path, { method = "GET", body } = {}) {
     const error = new Error(messageFrom(data, response.status, personaId));
     error.status = response.status;
     error.field = data && data.field ? data.field : null;
+    error.fields = data && Array.isArray(data.fields) ? data.fields : [];
     throw error;
   }
   return data;
@@ -121,6 +122,18 @@ export async function loadOrExplain(path, target) {
     showMessage(target, err.message);
     return null;
   }
+}
+
+// Saves text the back end produced as a file in the person's downloads, under the
+// file name the back end chose. Nothing is sent anywhere or kept in the browser.
+export function saveTextFile(filename, text) {
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+  const link = h("a", { href: url, hidden: true });
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 // Sends an approve or reject decision. Every approve/reject button must use this

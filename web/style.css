@@ -122,3 +122,144 @@ h1 {
 .message.status {
   color: var(--muted);
 }
+
+.message.ok {
+  color: var(--ok);
+}
+
+/* --- Catalog --- */
+
+.intro {
+  color: var(--muted);
+  margin-top: -0.5rem;
+}
+
+.catalog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.card h3 {
+  margin: 1rem 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.card h3 + p {
+  margin-top: 0;
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+details {
+  margin: 0.75rem 0;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+pre.template {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+}
+
+button {
+  font: inherit;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: var(--paper);
+  color: var(--accent);
+}
+
+button:focus-visible,
+summary:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.personalise {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.field label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+textarea {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+textarea[aria-invalid="true"] {
+  border-color: var(--error);
+  background: var(--error-ground);
+}
+
+.form-message:not(:empty) {
+  margin-bottom: 0.75rem;
+}

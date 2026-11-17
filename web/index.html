@@ -10,18 +10,119 @@
   <header id="layout"></header>
   <main>
     <h1>Catalog</h1>
+    <p class="intro">Published tools you can use. Each was reviewed once, as a template.
+      Personalise one to fill in its blanks and download your own copy.</p>
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
-    import { renderLayout, onPersonaReady, showMessage } from "./app.js";
+    import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, saveTextFile }
+      from "./app.js";
 
     await renderLayout("catalog");
     const content = document.getElementById("content");
 
-    onPersonaReady(() => {
-      // The catalogue list and Personalise come in Phase 9, step 4.
-      showMessage(content, "The catalog screen is coming next.", "status");
+    onPersonaReady(async () => {
+      // The back end decides which tools this persona may see (visibility rules);
+      // if it refuses, its plain message is shown here instead.
+      const tools = await loadOrExplain("/tools", content);
+      if (tools === null) return;
+      if (tools.length === 0) {
+        showMessage(content, "No published tools you can see yet. A tool appears here " +
+                             "once it has been reviewed and published.", "status");
+        return;
+      }
+      content.replaceChildren(h("ul", { className: "catalog" }, tools.map(toolCard)));
     });
+
+    // One tool: everything shown comes straight from the back end's answer.
+    function toolCard(tool) {
+      const form = personaliseForm(tool);
+      form.hidden = true;
+      const toggle = h("button", { type: "button", className: "secondary",
+                                   "aria-expanded": "false" }, "Personalise");
+      toggle.addEventListener("click", () => {
+        form.hidden = !form.hidden;
+        toggle.setAttribute("aria-expanded", String(!form.hidden));
+        if (!form.hidden) form.querySelector("textarea, button")?.focus();
+      });
+
+      return h("li", { className: "card" },
+        h("div", { className: "card-head" },
+          h("h2", {}, tool.name),
+          h("span", { className: "badge" }, tool.visibility_label)),
+        h("p", { className: "meta" }, `Built by ${tool.owner_name}`),
+        tool.description ? h("p", {}, tool.description) : null,
+        h("h3", {}, "Why it's built this way"),
+        h("p", {}, tool.rationale || "No reason was recorded."),
+        h("details", {},
+          h("summary", {}, "See the template"),
+          h("pre", { className: "template" }, tool.template)),
+        toggle,
+        form,
+      );
+    }
+
+    // The blanks to fill come from the back end (`blanks`), and so does every check
+    // on the values: empty boxes are refused there, with a message naming them.
+    function personaliseForm(tool) {
+      const boxes = {};
+      const message = h("div", { id: `message-${tool.id}`, className: "form-message" });
+      const result = h("div", { className: "result" });
+
+      const fields = tool.blanks.map((blank) => {
+        const id = `blank-${tool.id}-${blank.name}`;
+        boxes[blank.name] = h("textarea", { id, name: blank.name, rows: "2" });
+        return h("div", { className: "field" },
+          h("label", { for: id }, blank.label), boxes[blank.name]);
+      });
+
+      const form = h("form", { className: "personalise", "aria-label": `Personalise ${tool.name}` },
+        tool.blanks.length ? fields : h("p", { className: "meta" }, "This tool has no blanks to fill in."),
+        message,
+        h("button", { type: "submit" }, "Download my copy"),
+        result,
+      );
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        message.replaceChildren();
+        result.replaceChildren();
+        for (const box of Object.values(boxes)) {
+          box.removeAttribute("aria-invalid");
+          box.removeAttribute("aria-describedby");
+        }
+        const values = Object.fromEntries(
+          Object.entries(boxes).map(([name, box]) => [name, box.value]));
+
+        let copy;
+        try {
+          copy = await api(`/tools/${encodeURIComponent(tool.id)}/personalise`,
+                           { method: "POST", body: { values } });
+        } catch (err) {
+          // Show the back end's words once, and mark the boxes it names (none if,
+          // say, the server couldn't be reached).
+          const named = err.fields || [];
+          showMessage(message, err.message);
+          for (const name of named) {
+            if (!boxes[name]) continue;
+            boxes[name].setAttribute("aria-invalid", "true");
+            boxes[name].setAttribute("aria-describedby", message.id);
+          }
+          const first = named.map((name) => boxes[name]).find(Boolean);
+          if (first) first.focus();
+          return;
+        }
+
+        saveTextFile(copy.filename, copy.text);
+        result.replaceChildren(
+          h("p", { className: "message ok", role: "status" },
+            `Downloaded as ${copy.filename}. Your values aren't saved in the registry.`),
+          h("h3", {}, "Your copy"),
+          h("pre", { className: "template" }, copy.text),
+        );
+      });
+      return form;
+    }
   </script>
 </body>
 </html>
