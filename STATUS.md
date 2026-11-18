@@ -1,7 +1,9 @@
 # Status
 
 ## Current phase
-**Phase 10: the Codex review** is in progress. Codex reviewed commit `4c23b5c` on 2026-11-18. All 3 findings are fixed, one commit each; see REVIEW.md and DECISIONS.md #22. **Tests: 558 passing.**
+**Phase 10 (the Codex review) is complete (2026-11-18). Tests: 558 passing.** Codex reviewed commit `4c23b5c` read-only, and the free plan was enough (no upgrade needed). All 3 findings are fixed, one commit each, tests first: practices only from the list, unknown people refused, and length limits. `registry/agent.py` is unchanged, so the evals didn't need rerunning. See REVIEW.md and DECISIONS.md #22.
+
+**Next:** Phase 11 (the README, with screenshots).
 
 **Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`, pushed up to "Least privilege for Practice admins". Everything since is local only, not pushed.
 
@@ -183,7 +185,7 @@ Phase 9 steps 1–4 are summarised at the top. Phase 8 and earlier:
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing right now. Phase 10 (the Codex review) is next.
+- Nothing right now. Phase 11 (the README, with screenshots) is next.
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 

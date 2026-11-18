@@ -80,6 +80,7 @@ These match the To Do list in BACKLOG.md, which has the steps for each one.
 - **Require a reason to approve against the AI's advice:** when the AI flagged a tool, an approver who approves it anyway must say why, like a rejection does today. The reason is saved and shown in the history, so going against the advice is a deliberate, recorded choice.
 - **"New" badge on the Catalog tab:** the Catalog link shows how many tools were published since the person last looked (for example "Catalog · 2 new"), counting only tools they may see. Opening the Catalog clears it.
 - **Revisit length limits with real data:** today's limits (for example 5,000 characters for a template) are at least twice the longest text in the made-up seed data and eval cases. In production, log the length of real submissions and how often people are refused for length, and adjust the limits if good tools keep hitting them.
+- **Live character counter on the Submit form:** each text box shows how much of its limit is used as you type (for example "382 / 5,000 characters"), with the limits sent by the back end, so people know before they submit rather than after a refusal.
 - **Configurable approval order:** let a Super admin add, remove and reorder approval steps.
 - **Hub-and-spoke routing (partly done):** tools can already go through several specialists in an order picked up front. What's left is letting the Super admin add the next specialist after seeing each review.
 - **Reassign orphaned tools:** an admin hands a departed owner's tool to a current user.

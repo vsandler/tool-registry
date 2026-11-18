@@ -52,6 +52,18 @@
   - **Open questions:**
     - **How long to keep the length logs,** and who may see them?
     - **Per-box or per-submission:** should there also be a limit on the whole submission's size, since that's what sets the AI's cost?
+- **Live character counter on the Submit form**
+  - **What it is:** under each text box on the Submit form (name, description, template, rationale), a counter shows how much of the limit is used as the person types, for example "382 / 5,000 characters". It changes colour and says so in words when close to or over the limit.
+  - **Why it matters:** today people only find out about a length limit after submitting, when the back end refuses (DECISIONS.md #22). A counter tells them first.
+  - **Steps to build it:**
+    1. The back end sends each box's limit with the form (`GET /submit-form`, for example `max_length` on each field in `FORM_FIELDS`), so the limits live in one place, `TEXT_LIMITS`.
+    2. Show the counter under each box, updated as the person types, and link it to the box for screen readers (`aria-describedby`).
+    3. Announce it to screen readers only when close to the limit (for example the last 10%) or over it, not on every key press.
+    4. Don't stop typing at the limit (no `maxlength`): the back end still checks, and its message still appears next to the box. The counter only displays.
+    5. Count characters the same way the back end does (Python's `len`), so the counter and the refusal agree, including for emoji and other unusual characters.
+    6. Add tests: every limit the form shows matches `TEXT_LIMITS`; the page reads the limits from the back end and has no numbers of its own; no `maxlength` on the page.
+  - **Open questions:**
+    - **Decision comments:** should the Review queue's Comment box get a counter too?
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**
