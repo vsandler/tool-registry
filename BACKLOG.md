@@ -3,14 +3,22 @@
 ## To Do
 - **Design polish: the progress line as a connected progress bar**
   - **When:** right after Phase 9, step 6 (the Review queue) is finished, and before the README screenshots in Phase 11.
-  - **What it is:** today each step is a separate box (step 6b). It should read as one progress bar: steps joined by a line, done steps clearly marked (for example a check mark and a filled connector), the current step stand out, and rejected or not-reached steps look different.
+  - **What it is:** today each step is a separate box (step 6b). It should read as one progress bar: steps joined by a line, done steps clearly marked (for example a check mark and a filled connector), the current step stand out, and rejected or skipped steps look different.
   - **Steps to build it:**
     1. Draw connectors between the steps in `web/style.css`, coloured up to the last done step.
-    2. Mark each step's state with a symbol as well as colour (done, current, rejected, not reached), so it doesn't rely on colour alone.
+    2. Mark each step's state with a symbol as well as colour (done, current, rejected, skipped), so it doesn't rely on colour alone.
     3. Keep it readable at phone width: wrap or stack the steps, with no sideways scrolling.
     4. Keep the screen-reader text as it is: each step's state stays written out in words.
     5. Check it by hand on the Submit page's results and in the Review queue, for a tool in review, a rejected tool and a published one.
     6. Only `renderProgress` in `web/app.js` and the styles change; the back end's `steps` stay as they are, so the existing tests still apply.
+- **Design polish: the Review queue's empty views**
+  - **When:** with the progress bar polish above, before the README screenshots in Phase 11.
+  - **What it is:** found in the by-hand check (2026-11-17). When a view is empty, the "Nothing is waiting on you." box and the details box beside it don't line up. And "Pick a tool to see its details." still shows when there's nothing to pick.
+  - **Steps to build it:**
+    1. Line up the tops of the empty message and the details box in `web/style.css`.
+    2. When the list being shown is empty, leave out the details box and let the empty message use the full width. Keep it when a just-decided tool is still being shown.
+    3. Check it at phone width and in both views, as a Practice admin (always empty "Waiting on me") and a specialist with nothing routed to them.
+    4. Add a page test that the "Pick a tool" hint isn't shown with an empty list.
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**
@@ -47,6 +55,7 @@
     3. Re-run the rule-based checks on resubmission.
     4. Start the approval order again from step 1.
     5. Add tests: only the owner can resubmit; checks re-run; old history is kept; the review restarts at step 1.
+    6. Change the progress line's "Skipped: rejected at step N" to "On hold: waiting for the builder to fix and resubmit" while the builder can still resubmit. It's one sentence in the back end (`skipped_reason` in `get_progress`), so the screens need no change.
 - **Make the eval set harder**
   - **Why it's needed:** The improved eval scored 17/17 risky and 16/16 safe in all 3 runs, so the test may be too easy to show where the agent fails. See EVALS.md.
   - **Steps to build it:**
@@ -179,6 +188,30 @@
     - **Syncing decisions back:** how does a decision made in the ticket reach the tool? A notification from the ticketing system when the ticket changes (a webhook), regular checking, or a person clicking a link?
     - **No self-approval across both systems:** how do we know the person who approved the ticket is the same person as in the registry, and not the tool's owner? This needs a reliable match between the two systems' user accounts. The registry should still refuse the decision if they don't match.
     - **If the ticketing system is down:** do reviews wait, can specialists decide in the registry directly, and how are missed tickets created later without making duplicates?
+- **Approved outside the registry**
+  - **What it is:** sometimes a step is signed off somewhere else, for example a compliance approval given in a ticket or a meeting. Only the Super admin can mark that step "approved elsewhere", recording who approved it, when, and a reference (such as a ticket number). It's shown, clearly labelled, in the history and the progress line, for example "Approved outside the registry by Sam Thistle on 17 Nov 2026 (ref. COMP-1042), recorded by Riley Ashgrove".
+  - **Link to "Ticketing integration" above:** once that exists, the reference becomes a link to the ticket, and a ticket approved in the other system could fill this in instead of the Super admin typing it.
+  - **Why it was cut:** the demo has no outside systems, and every decision is made in the registry.
+  - **Steps to build it:**
+    1. A Super admin-only action on the current step, "Mark approved elsewhere", asking for who approved it, when and a reference, all required and checked by the back end.
+    2. Record it as an approval of that step, marked as outside the registry, with who recorded it. It's add-only, like every decision.
+    3. Keep the usual rules: steps in order, the tool's owner can't be the approver or the one recording it, and a specialist step still needs someone who decided no other step.
+    4. Label it in the history and the progress line ("Approved outside the registry"), with the reference.
+    5. Add tests: only the Super admin can do it; each detail is required; it's labelled in the history; the owner can't be named as the approver; it can't skip a step.
+  - **Open questions:**
+    - **Evidence:** is a reference enough, or should the Super admin attach the sign-off itself (an email or document)?
+    - **People outside the registry:** can the approver be someone with no account, and how are they named?
+    - **Mistakes:** if it was recorded by mistake, is it undone by a new history entry, so nothing is deleted?
+- **Let anyone propose a tool**
+  - **What it is:** today Builders, admins and specialists can submit tools, and Tool users are refused (DECISIONS.md #19). Later, anyone could propose a tool. Whoever submits it becomes its builder (the owner), with the same rules as any builder: they can't approve or reject it, they see the rule flags and tips, and they're told why if it's rejected.
+  - **Why it was cut:** for the demo, Tool users only use published tools, which keeps the personas' roles clear.
+  - **Steps to build it:**
+    1. Allow every role in `SUBMIT_ROLES` (`registry/personas.py`), so "Submit a tool" shows for everyone through `can_submit`.
+    2. Show "Built by" as whoever submitted, and use their practice as the tool's practice, as today.
+    3. Add tests: a Tool user submits, becomes the owner, can't approve it, and sees their tool's progress.
+  - **Open questions:**
+    - **Extra step for proposals:** should a tool proposed by someone who isn't a Builder first be adopted by a Builder before review?
+    - **Support:** who helps first-time submitters improve a flagged tool?
 - **Full audit trail for a real firm**
   - **What it is:** A complete record of who did what and when, which nothing can delete or quietly change. Each tool's own decision log (see "Update a published tool" above) is the per-tool part of it.
   - **Why it was cut:** It isn't needed for a demo with made-up data. Today the approval history is already add-only, the database keeps every AI review (the review screen shows only the latest), git keeps every version of the sample advice, and `logs/` records each AI call with no set time limit.
