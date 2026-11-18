@@ -317,6 +317,8 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 
 **Who can submit:** Builders, and also admins and specialists (`SUBMIT_ROLES` in `registry/personas.py`). The request was "only Builders submit", but the approval rules already expect admins and specialists to build tools ("nobody approves a tool they own, admins included", #7), and tests rely on it. So only Tool users were taken out. Limiting it to Builders alone would be a one-line change to `SUBMIT_ROLES`, plus the tests that use admin- or specialist-owned tools.
 
+**Confirmed by Vanessa (2026-11-18):** keep it this way. Only Tool users are blocked from submitting. Admins and specialists can still submit, and the no-self-approval rule still covers them: they can't approve or reject a tool they own. The test change below (a made-up Audit builder instead of Jamie) is also confirmed.
+
 **Safeguards:** a test checks, for every persona, that `can_submit` matches whether a real submission is accepted. Another checks that a Tool user's draft saved before this rule can't be submitted.
 
 **Test change:** the least-privilege tests used Jamie Larkspur, a Tool user in Audit, as the owner of an Audit-practice tool. They now add a made-up Audit builder ("Casey Example") instead, the same way they already add a made-up Audit admin. What they check is unchanged.

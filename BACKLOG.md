@@ -204,14 +204,17 @@
     - **Mistakes:** if it was recorded by mistake, is it undone by a new history entry, so nothing is deleted?
 - **Let anyone propose a tool**
   - **What it is:** today Builders, admins and specialists can submit tools, and Tool users are refused (DECISIONS.md #19). Later, anyone could propose a tool. Whoever submits it becomes its builder (the owner), with the same rules as any builder: they can't approve or reject it, they see the rule flags and tips, and they're told why if it's rejected.
+  - **A Tool user becomes a Builder** when they make their first submission: their role changes, so from then on they're treated as a Builder everywhere (the persona label, the "Submit a tool" link, and their own tools).
   - **Why it was cut:** for the demo, Tool users only use published tools, which keeps the personas' roles clear.
   - **Steps to build it:**
     1. Allow every role in `SUBMIT_ROLES` (`registry/personas.py`), so "Submit a tool" shows for everyone through `can_submit`.
     2. Show "Built by" as whoever submitted, and use their practice as the tool's practice, as today.
-    3. Add tests: a Tool user submits, becomes the owner, can't approve it, and sees their tool's progress.
+    3. On a Tool user's first submission, change their role to Builder, in the same save as the submission, and record the change (who, when, which tool) so it's traceable.
+    4. Add tests: a Tool user submits, becomes the owner and a Builder, can't approve it, and sees their tool's progress; a refused submission (for example a missing rationale) doesn't change their role.
   - **Open questions:**
     - **Extra step for proposals:** should a tool proposed by someone who isn't a Builder first be adopted by a Builder before review?
     - **Support:** who helps first-time submitters improve a flagged tool?
+    - **Role source:** with real sign-in, roles come from the firm's directory. Does the registry change the role itself, or ask the directory to?
 - **Full audit trail for a real firm**
   - **What it is:** A complete record of who did what and when, which nothing can delete or quietly change. Each tool's own decision log (see "Update a published tool" above) is the per-tool part of it.
   - **Why it was cut:** It isn't needed for a demo with made-up data. Today the approval history is already add-only, the database keeps every AI review (the review screen shows only the latest), git keeps every version of the sample advice, and `logs/` records each AI call with no set time limit.
