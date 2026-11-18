@@ -87,7 +87,7 @@ def test_self_approval_is_still_refused_first(flow):
 
 def test_wrong_persona_is_still_refused_first(flow):
     tid = submitted_tool(flow)
-    with pytest.raises(ApprovalError, match="must be decided by a super_admin"):
+    with pytest.raises(ApprovalError, match="must be decided by the Super admin, not a "):
         decide(flow, tid, COMPLIANCE, "rejected", "")
 
 

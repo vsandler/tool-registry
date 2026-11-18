@@ -139,7 +139,7 @@ def test_two_specialists_in_order_then_publish(flow):
 def test_second_area_cannot_go_first(flow):
     tid = submitted_tool(flow)
     route(flow, tid, ["compliance", "marketing"])
-    with pytest.raises(ApprovalError, match="compliance review"):
+    with pytest.raises(ApprovalError, match="is the Compliance review"):
         decide(flow, tid, MARKETING, "approved")
     assert len(get_history(flow, tid)) == 1
 
@@ -148,7 +148,7 @@ def test_specialist_from_an_area_not_chosen_is_refused(flow):
     tid = submitted_tool(flow)
     route(flow, tid, ["compliance", "marketing"])
     decide(flow, tid, COMPLIANCE, "approved")
-    with pytest.raises(ApprovalError, match="marketing review"):
+    with pytest.raises(ApprovalError, match="is the Marketing review"):
         decide(flow, tid, TECH, "approved")
 
 
@@ -164,7 +164,7 @@ def test_publish_waits_for_every_review(flow):
     tid = submitted_tool(flow)
     route(flow, tid, ["compliance", "marketing"])
     decide(flow, tid, COMPLIANCE, "approved")
-    with pytest.raises(ApprovalError, match="specialist_reviewer"):
+    with pytest.raises(ApprovalError, match="must be decided by a Specialist reviewer"):
         decide(flow, tid, SUPER, "approved", visibility="firm-wide")
     assert get_tool(flow, tid)["status"] == "in_review"
 
@@ -288,7 +288,7 @@ def routed_the_old_way(conn, area="compliance"):
 
 def test_older_tool_still_reviews_and_publishes(flow):
     tid = routed_the_old_way(flow, "marketing")
-    with pytest.raises(ApprovalError, match="routed to marketing"):
+    with pytest.raises(ApprovalError, match="routed to Marketing"):
         decide(flow, tid, COMPLIANCE, "approved")
     decide(flow, tid, MARKETING, "approved")
     decide(flow, tid, SUPER, "approved", visibility="firm-wide")

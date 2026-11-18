@@ -167,6 +167,7 @@ def test_waiting_on_me_matches_what_a_decision_would_be_allowed(user, stage):
             assert (r.status_code == 200) == can, (tool["name"], r.text)
             if not can:
                 assert r.status_code == 403
+                assert "_" not in r.json()["detail"], r.json()["detail"]  # no raw codes
 
 
 def test_walk_through_route_two_areas_review_and_publish(client):

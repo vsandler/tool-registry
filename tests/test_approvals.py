@@ -114,7 +114,7 @@ def test_routing_needs_a_valid_specialist_area(flow, bad_area):
 def test_only_super_admin_can_route(flow, user):
     # Owned by someone not in the list, so the refusal is about role, not self-approval.
     tid = submitted_tool(flow, owner=MARKETING)
-    with pytest.raises(ApprovalError, match="must be decided by a super_admin"):
+    with pytest.raises(ApprovalError, match="must be decided by the Super admin, not a "):
         decide(flow, tid, user, "approved", route_to="compliance")
 
 
@@ -130,14 +130,14 @@ def test_specialist_cannot_skip_ahead_before_routing(flow):
 def test_only_specialist_from_routed_area_can_review(flow, wrong):
     tid = submitted_tool(flow)
     route(flow, tid, "compliance")
-    with pytest.raises(ApprovalError, match="routed to compliance"):
+    with pytest.raises(ApprovalError, match=r"Compliance review \(this tool was routed to Compliance\)"):
         decide(flow, tid, wrong, "approved")
 
 
 def test_super_admin_cannot_do_the_specialist_step(flow):
     tid = submitted_tool(flow)
     route(flow, tid, "compliance")
-    with pytest.raises(ApprovalError, match="specialist_reviewer"):
+    with pytest.raises(ApprovalError, match="must be decided by a Specialist reviewer"):
         decide(flow, tid, SUPER, "approved")
 
 
@@ -167,7 +167,7 @@ def test_tool_returns_to_super_admin_after_specialist(flow):
     decide(flow, tid, MARKETING, "approved")
     step = current_step(flow, tid)
     assert step["approver_role"] == "super_admin" and step["action"] == "publish"
-    with pytest.raises(ApprovalError, match="must be decided by a super_admin"):
+    with pytest.raises(ApprovalError, match="must be decided by the Super admin, not a "):
         decide(flow, tid, MARKETING, "approved", visibility="firm-wide")
 
 

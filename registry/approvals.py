@@ -224,15 +224,17 @@ def _check_turn(conn: sqlite3.Connection, tool: dict, user: sqlite3.Row) -> dict
         return refuse("no_order", "No approval order has been set up")
     if user["role"] != step["approver_role"]:
         return refuse("wrong_role",
-                      f"Step {step['position']} ({step['name']}) must be decided by a "
-                      f"{step['approver_role']}, not a {user['role']}")
+                      f"Step {step['position']} ({step['name']}) must be decided by "
+                      f"{role_phrase(step['approver_role'])}, not {role_phrase(user['role'])}")
     if step["action"] == "review" and user["specialty"] != step["area"]:
         if step["area"] is None:
             return refuse("wrong_area", "This tool hasn't been routed to a specialist area yet")
+        routed = ", then ".join(SPECIALIST_AREAS.get(a, a) for a in _routed_areas(steps))
         return refuse("wrong_area",
-                      f"Step {step['position']} is the {step['area']} review (this tool was "
-                      f"routed to {', then '.join(_routed_areas(steps))}); a "
-                      f"{user['specialty']} specialist can't decide it")
+                      f"Step {step['position']} is the "
+                      f"{SPECIALIST_AREAS.get(step['area'], step['area'])} review (this tool "
+                      f"was routed to {routed}); {area_phrase(user['specialty'])} "
+                      "can't decide it")
     history = get_history(conn, tool["id"])
     if step["different_person"] and any(h["approver_id"] == user["id"] for h in history):
         return refuse("already_decided",
