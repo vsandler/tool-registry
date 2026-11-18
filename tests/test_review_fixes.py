@@ -168,3 +168,114 @@ def test_the_guard_checks_the_person_before_anything_else(conn, fake_ai):
 def test_the_api_still_refuses_an_unknown_persona_first(client):
     r = client.post("/submissions", headers=persona("u-nobody"), json=NEW_TOOL)
     assert r.status_code == 401
+
+
+# --- finding 3: length limits, so what's sent to the AI is bounded -------------------------------
+
+from registry.tools import TEXT_LIMITS, MAX_VARIABLES, MAX_VARIABLE_LENGTH  # noqa: E402
+
+LIMITS = {"name": 100, "description": 500, "template": 5000, "rationale": 1000}
+
+
+def test_the_limits_are_the_ones_recorded_in_decisions():
+    assert TEXT_LIMITS == LIMITS
+    assert (MAX_VARIABLES, MAX_VARIABLE_LENGTH) == (50, 100)
+
+
+def test_the_limits_leave_room_for_every_real_tool_and_eval_case(conn):
+    # At least twice the longest seed tool and eval case, so none is near a limit (the
+    # same margin as the AI reply limit, MAX_TOKENS, has over the longest reply).
+    import json
+    from pathlib import Path
+    from registry import seed
+    cases = json.loads((Path(__file__).resolve().parent.parent / "evals" / "submissions.json")
+                       .read_text(encoding="utf-8"))
+    tools = seed.SAFE_TOOLS + [seed.FAILING_TOOL] + seed.DEMO_DRAFTS + [c["tool"] for c in cases]
+    for field, limit in LIMITS.items():
+        longest = max(len(t.get(field) or "") for t in tools)
+        assert longest * 2 <= limit, (field, longest)
+
+
+@pytest.mark.parametrize("field, label", [
+    ("name", "name"), ("description", "description"), ("template", "template"),
+    ("rationale", "explanation"),
+])
+@pytest.mark.parametrize("path", ["/tools", "/submissions"])
+def test_text_over_its_limit_is_refused_next_to_its_box(client, fake_ai, path, field, label):
+    limit = LIMITS[field]
+    before = tool_count(client)
+    r = client.post(path, headers=persona("u-builder"),
+                    json={**NEW_TOOL, field: "x" * (limit + 1)})
+    assert r.status_code == 400, r.text
+    assert r.json()["fields"] == [field]
+    assert r.json()["messages"][field] == (
+        f"Keep the {label} to {limit:,} characters or fewer (it has {limit + 1:,}).")
+    assert tool_count(client) == before
+    assert fake_ai.calls == []  # nothing too long is ever sent to the AI
+
+
+@pytest.mark.parametrize("field", list(LIMITS))
+def test_text_exactly_at_its_limit_is_accepted(client, field):
+    r = client.post("/submissions", headers=persona("u-builder"),
+                    json={**NEW_TOOL, field: "x" * LIMITS[field]})
+    assert r.status_code == 201, r.text
+
+
+def test_too_many_blanks_are_refused(client, fake_ai):
+    r = client.post("/submissions", headers=persona("u-builder"),
+                    json={**NEW_TOOL, "variables": [f"v{i}" for i in range(51)]})
+    assert r.status_code == 400
+    assert r.json()["fields"] == ["variables"]
+    assert r.json()["messages"]["variables"] == (
+        "A tool can have at most 50 blanks, each up to 100 characters.")
+    assert fake_ai.calls == []
+
+
+def test_a_blank_name_that_is_too_long_is_refused(client):
+    r = client.post("/tools", headers=persona("u-builder"),
+                    json={**NEW_TOOL, "variables": ["v" * 101]})
+    assert r.status_code == 400
+    assert r.json()["fields"] == ["variables"]
+
+
+def test_a_template_of_many_blanks_within_the_limits_is_accepted(client):
+    template = " ".join(f"{{{{v{i}}}}}" for i in range(50))
+    r = client.post("/submissions", headers=persona("u-builder"),
+                    json={**NEW_TOOL, "template": template})
+    assert r.status_code == 201, r.text
+
+
+def test_an_old_draft_that_is_too_long_is_not_sent_to_the_ai(conn, fake_ai):
+    # A draft saved before the limits: refused at submit, before any check or AI call.
+    tid = create_tool(conn, owner_id="u-builder", **NEW_TOOL)
+    conn.execute("UPDATE tools SET template = ? WHERE id = ?", ("x" * 5001, tid))
+    with pytest.raises(InputError) as refused:
+        submit_tool(conn, tid, "u-builder")
+    assert refused.value.fields == ["template"]
+    assert fake_ai.calls == []
+    assert get_tool(conn, tid)["status"] == "draft"
+
+
+COMMENT_LIMIT = 1000
+
+
+def test_a_decision_comment_over_its_limit_is_refused_next_to_the_box(client):
+    r = client.post("/submissions", headers=persona("u-builder"), json=NEW_TOOL)
+    tid = r.json()["tool"]["id"]
+    for decision in ("approved", "rejected"):
+        r = client.post(f"/tools/{tid}/decisions", headers=persona(SUPER),
+                        json={"decision": decision, "route_to": ["compliance"],
+                              "comment": "x" * (COMMENT_LIMIT + 1)})
+        assert r.status_code == 400
+        assert r.json()["field"] == "comment"
+        assert r.json()["detail"] == (
+            "Keep the comment to 1,000 characters or fewer (it has 1,001).")
+    history = client.get(f"/tools/{tid}", headers=persona(SUPER)).json()["history"]
+    assert history == []  # nothing was recorded
+
+
+def test_a_decision_comment_at_its_limit_is_accepted(flow):
+    tid = create_tool(flow, owner_id="u-builder", **NEW_TOOL)
+    submit_tool(flow, tid, "u-builder")
+    decide(flow, tid, SUPER, "rejected", "x" * COMMENT_LIMIT)
+    assert get_tool(flow, tid)["status"] == "rejected"

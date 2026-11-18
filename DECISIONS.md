@@ -367,3 +367,20 @@ The findings, who found them and their status are in REVIEW.md. One commit per f
 **Finding 1: only practices from the list.** A practice-only tool's practice must be one of the practices people belong to (`practice_names`: Audit and Tax in the demo). This is checked when a tool is saved or submitted, and when the Super admin publishes it as Practice-only. Anything else is refused with "Choose a practice from the list: Audit or Tax.", next to the Practice box, and nothing is saved. Unchanged: a blank practice is still saved and flagged by the checks, not refused, and a firm-wide tool ignores the practice box. The screens already offered only listed practices, so this closes the gap for direct API calls. Once admins keep the practice list (BACKLOG.md "Admin-managed practice list"), the check reads from that list instead.
 
 **Finding 2: someone not in the registry can't save or submit.** `check_can_submit` now refuses an unknown person ("Only people in the registry can save or submit tools.") before anything else runs: no save, no checks, no AI call. Before, it let them through, and only other checks stopped them: the API's persona check, then the database's owner link (as a crash, not a plain message) or the owner-only submit check. Those stay as extra layers. **Test change:** `test_unknown_owner_refused_by_database` now checks the database's own refusal with a direct insert, because `create_tool` no longer reaches the database for an unknown owner. What it checks is unchanged.
+
+**Finding 3: length limits.** Everything in a submission is sent to the AI, and `MAX_TOKENS` only caps the reply, so a very long submission made one review's cost unbounded. Now:
+
+| Box | Limit (characters) | Longest in the seed data and eval cases |
+|---|---|---|
+| Name | 100 | 42 |
+| Description | 500 | 247 |
+| Template | 5,000 | 382 |
+| Why you built it this way (rationale) | 1,000 | 214 |
+| Blanks (`variables`) | at most 50, each up to 100 | |
+| A decision's comment | 1,000 | |
+
+- **Why these numbers:** each is at least twice the longest real text on record, the same margin the AI reply limit keeps over the longest reply (#17). A test fails if seed tools or eval cases ever get within that margin. The template allows about 1,250 words, enough for a long prompt. The seed and eval data are made up, so the limits should be checked against real submissions later (BACKLOG.md "Revisit length limits with real data").
+- **Worst-case cost now:** about 12,000 input tokens per review with every box full of unusual characters, roughly $0.0013 on Haiku (normal reviews: about 1,300 tokens, $0.0001).
+- **Where it's checked:** when a tool is saved, submitted or decided. A refusal names each box with a plain message, "Keep the template to 5,000 characters or fewer (it has 6,001).", and nothing is saved. A draft saved before the limits is refused at submit, before any check or AI call. A comment over its limit is refused next to the Comment box, and nothing is recorded.
+- **`registry/agent.py` unchanged,** so the eval results and sample advice still apply. The limits stop long input before it reaches the agent.
+- **Not covered:** the values typed when personalising a Catalog tool (never saved or sent to the AI), and the Submit form's live list of blanks (`POST /templates/blanks`, which saves nothing and calls no AI). The Submit form doesn't show the limits ahead of time. It shows the back end's message once the limit is passed.

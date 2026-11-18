@@ -86,6 +86,36 @@ def input_problems(*, name, template, visibility, rationale=None) -> dict[str, s
     return problems
 
 
+# The longest each box may be, in characters (REVIEW.md finding 3, DECISIONS.md #22).
+# Everything in a submission is sent to the AI, so these keep the cost of one review
+# bounded. Each is at least twice the longest seed tool or eval case.
+TEXT_LIMITS = {"name": 100, "description": 500, "template": 5000, "rationale": 1000}
+LIMIT_WORDS = {"name": "name", "description": "description", "template": "template",
+               "rationale": "explanation"}
+MAX_VARIABLES = 50
+MAX_VARIABLE_LENGTH = 100
+
+
+def too_long_message(word: str, limit: int, length: int) -> str:
+    return f"Keep the {word} to {limit:,} characters or fewer (it has {length:,})."
+
+
+def length_problems(fields: dict) -> dict[str, str]:
+    """Which boxes are over their limit, box by box. Also the list of blanks
+    (`variables`), which can be sent separately from the template."""
+    problems = {}
+    for field, limit in TEXT_LIMITS.items():
+        value = fields.get(field) or ""
+        if isinstance(value, str) and len(value) > limit:
+            problems[field] = too_long_message(LIMIT_WORDS[field], limit, len(value))
+    variables = fields.get("variables") or []
+    if len(variables) > MAX_VARIABLES or any(len(str(v)) > MAX_VARIABLE_LENGTH
+                                             for v in variables):
+        problems["variables"] = (f"A tool can have at most {MAX_VARIABLES} blanks, each up to "
+                                 f"{MAX_VARIABLE_LENGTH} characters.")
+    return problems
+
+
 def unknown_practice_message(conn: sqlite3.Connection) -> str:
     """"Choose a practice from the list: Audit or Tax." (REVIEW.md finding 1)."""
     names = practice_names(conn)
@@ -190,6 +220,8 @@ def create_tool(
     check_can_submit(conn, owner_id)
     refuse_if_problems({
         **input_problems(name=name, template=template, visibility=visibility),
+        **length_problems(dict(name=name, description=description, template=template,
+                               rationale=rationale, variables=variables)),
         **practice_problems(conn, visibility=visibility, practice=practice),
     })
     name = name.strip()
@@ -265,6 +297,8 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
         raise NotAllowed(f"Only drafts can be submitted; this tool is {tool['status']}")
     if sample_advice is None and not tool["rationale"].strip():
         refuse_if_problems({"rationale": RATIONALE_REQUIRED})
+    # A draft saved before the limits existed may be too long: never send it to the AI.
+    refuse_if_problems(length_problems(tool))
     results = run_checks(conn, tool)
     if sample_advice is None:
         ai_result = agent.review_for_submission(tool)  # never raises
@@ -290,6 +324,7 @@ def create_and_submit(conn: sqlite3.Connection, owner_id: str, **fields) -> dict
         **input_problems(
             name=fields.get("name"), template=fields.get("template"),
             visibility=fields.get("visibility"), rationale=fields.get("rationale") or ""),
+        **length_problems(fields),
         **practice_problems(conn, visibility=fields.get("visibility"),
                             practice=fields.get("practice")),
     })

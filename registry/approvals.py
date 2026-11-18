@@ -41,6 +41,7 @@ from registry.tools import (
     NotFound,
     get_tool,
     now,
+    too_long_message,
     unknown_practice_message,
 )
 
@@ -61,6 +62,16 @@ class CommentRequired(ApprovalInputError):
     """A rejection needs a comment. `field` tells a form which box the message is for."""
 
     field = "comment"
+
+
+class CommentTooLong(ApprovalInputError):
+    """A decision's comment is over its limit. `field` tells a form which box."""
+
+    field = "comment"
+
+
+# The longest a decision's comment may be, in characters (DECISIONS.md #22).
+MAX_COMMENT = 1000
 
 
 # A rejection is final, so the builder must be told why (DECISIONS.md #12).
@@ -443,6 +454,8 @@ def decide(
     step, steps = turn["step"], turn["steps"]
 
     comment = (comment or "").strip()
+    if len(comment) > MAX_COMMENT:  # REVIEW.md finding 3
+        raise CommentTooLong(too_long_message("comment", MAX_COMMENT, len(comment)))
     if decision == "rejected" and len(comment) < MIN_REJECT_COMMENT:
         raise CommentRequired(REJECT_COMMENT_MESSAGE)
 
