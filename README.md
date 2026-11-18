@@ -52,6 +52,18 @@ The **Submit a tool** page (`POST /submissions`) checks the form, then saves the
 - A rationale that's there but too short (under 20 characters, such as "n/a") is accepted and flagged by the `has_rationale` check.
 - The sample "Client welcome letter" still has no rationale: it stands for a submission made before this rule (DECISIONS.md #15).
 
+## Reviewing a tool
+
+The **Review queue** page is for the Super admin, Practice admins and Specialist reviewers:
+
+- **Two views:** "Waiting on me" (tools whose current step you can decide) and "All in review" (every tool you're allowed to see), oldest submitted first.
+- **Picking a tool** shows its progress line, the template and rationale, the **rule flags** and the **AI advice** (kept separate: the advice never decides), and the history.
+- **Your decision** appears only when it's your turn. Otherwise the page says why, for example "Waiting for a Compliance specialist." or "You built this tool, so you can't approve or reject it."
+  - **Routing:** tick the specialist areas in the order they should review, numbered 1, 2, 3.
+  - **Publishing:** choose the visibility (and practice), starting from what the builder asked for. "This is the final approval. Approving publishes the tool."
+  - **Rejecting:** needs a comment of at least 10 characters, which the builder will see.
+- **Every rule is in the back end.** The page shows the choices it's given and the back end's own message for any refusal, next to the box or buttons it's about.
+
 ## Approval flow
 
 1. **Super admin** routes the tool to one or more specialist areas, in order: AI enablement (technology), compliance and/or marketing. Each chosen area becomes its own review step.

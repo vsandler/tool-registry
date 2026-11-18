@@ -1,7 +1,7 @@
 # Status
 
 ## Current phase
-Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). **Steps 1–5 are done; next is step 6, the Review queue screen.** The branch is pushed up to "Least privilege for Practice admins". Everything since (step 4, the data-source backlog item, the STATUS update and step 5) is local only, not pushed.
+Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). **Steps 1–6 are done** (step 6, the Review queue, on 2026-11-17). The branch is pushed up to "Least privilege for Practice admins". Everything since (steps 4–6, the backlog items, the AI fixes and the docs) is local only, not pushed.
 
 Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
 
@@ -29,7 +29,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Not rerun with real calls** (your choice): normal replies are well under the limit.
 - **Watch for:** if the effort level in `config.json` is raised, the model may think for longer. The guard only knows replies already on record, so run the eval after such a change.
 
-## Phase 9: where it stands (2026-11-16)
+## Phase 9: where it stands (2026-11-17)
 
 | Step | What | State |
 |---|---|---|
@@ -38,9 +38,9 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a–6e done; 6f–6g next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | ✅ Done |
 
-**Tests:** 485 passing.
+**Tests:** 488 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -59,42 +59,38 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Test change:** `test_cannot_submit_twice` now gives its tool a rationale, because a tool with none can't be submitted at all now. Its check (a second submit is refused) is unchanged.
 - **Not checked in a browser yet**, like step 4.
 
-### Step 6: Review queue (in progress)
-**Your answers (2026-11-17):** areas ticked in order (checkboxes, numbered 1, 2, 3); publish starts from what the builder asked for; flags and advice drawn by shared code in `app.js` for both screens; an empty "Waiting on me" says "Nothing is waiting on you" with a button to "All in review"; old "waiting for" tests updated to the new wording.
+### Step 6: Review queue (done, 2026-11-17)
+**Your answers:** areas ticked in order (checkboxes, numbered 1, 2, 3); publish starts from what the builder asked for; flags, advice and the progress line drawn by shared code in `app.js` for both screens; an empty "Waiting on me" says "Nothing is waiting on you" with a button to "All in review"; tests that checked the old wording now expect the new text. Recorded in DECISIONS.md #18.
 
-**6a, back end (done):**
-- **"Waiting for" in the names people see:** "the Super admin", "a Compliance specialist", "an AI enablement (technology) specialist" (was "a super admin", "a compliance specialist"). The Submit page's "What happens next" uses it too.
-- **Choices for each decision** on `my_action.choices`: the specialist areas with labels when routing; when publishing, the visibility options, the practices and the builder's request to start from. Empty when nothing needs choosing. The practice list is now one shared function, also used by the Submit form.
-- **Tests (38 new):** the wording, the choices, a check for every persona at every stage of a review (each on a fresh app) that "can decide" is true exactly when approving is accepted, and walk-throughs (route to two areas and publish; a too-short rejection refused next to the comment box; a rejection leaving the queue with its note). Four older tests now expect the new wording; one of them checks the exact text where it used to check only that "marketing" appeared.
-**6b, shared display pieces (done):**
-- **In `app.js`:** `renderFlags` (rule flags with "Next time" tips, plus all checks), `renderAdvice` ("AI advice: you decide", kept apart from the flags) and `renderProgress` (every step: done by whom and when, waiting for whom, rejected, or not reached, with the current step outlined). The progress line adds "This is the final approval. Approving publishes the tool." only when the back end says this persona can decide the final step.
-- **The Submit page uses them.** Its "What happens next" is now the full progress line instead of a plain list of step names.
-- **Tests:** 4 new, for the shared pieces; the Submit test that looked for "Rule flags" in `submit.html` now looks in the shared code and checks the page calls it.
-- **Not checked in a browser yet.** No JavaScript runtime is installed, so the page code can't be checked for typos here. Check the Submit page's results view by hand.
-**6c, the list (done):**
-- **Two views:** "Waiting on me" (the default) and "All in review", each with its count. "Waiting on me" uses the back end's `my_action.can_decide` for each tool.
-- **One row per tool,** in the back end's order (oldest submitted first): name, who built it, when it was submitted, the step it's on, and either "Waiting on you" or the back end's own reason (for example "Waiting for a Compliance specialist." or "You built this tool, so you can't approve or reject it."). A "Has rule flags" badge where any check flagged.
-- **Empty views:** "Nothing is waiting on you." with a "Show all in review" button; "Nothing is in review right now." when the queue is empty.
-- **Back end:** a tool's details now include the builder's name (`owner_name`).
-- **Picking a row** shows the tool's name and progress line on the right; the full detail panel is 6d. On a narrow screen the details go below the list.
-- **Tests:** 5 new (builder's name; the views and empty messages; "Waiting on me" from the back end and no rule fields read by the page; rows show the back end's fields in its order).
+**The screen** (`web/queue.html`):
+- **The list:** "Waiting on me" (the default) and "All in review", each with its count, oldest submitted first. Each row: name, builder, submitted date, the step it's on, and "Waiting on you" or the back end's reason (for example "Waiting for a Compliance specialist."), plus a "Has rule flags" badge.
+- **The detail panel:** builder and date; the progress line (with "This is the final approval. Approving publishes the tool." when the back end says so); the "Rejected" note if rejected; description, template and "Why it's built this way"; "Rule flags" and "AI advice: you decide" as separate sections; "Your decision"; and the history with comments.
+- **Decisions,** shown only when the back end says it's your turn (otherwise its plain reason, no buttons): route by ticking areas in order ("Approve and route"); "Approve" a review; publish with visibility and practice ("Approve and publish"); one comment box and "Reject" on every step. Every check is the back end's; a comment problem shows next to the box, anything else next to the buttons. All through `decideOrExplain`.
+- **After a decision:** "Decision recorded. This tool is now: Published." (or In review / Rejected), plus "It has left the queue." when it has. The panel keeps showing the tool from the decision's own answer, and the list reloads.
 
-**6d, the detail panel (done):** picking a tool shows, in order: its name, who built it and when it was submitted; the progress line (with the final-approval note when the back end says so); the "Rejected" note (who, when, at which step, why) if it was rejected; the description, template and "Why it's built this way"; "Rule flags" and "AI advice: you decide" as separate sections (the same shared pieces as the Submit page); and the history, oldest first, with each comment.
-- **Back end:** each history entry has a readable `detail_label` ("Routed to AI enablement (technology), then Marketing", "Published as Practice-only (Tax)"). The stored `detail` is unchanged; the page never shows it.
-- **Tests:** 6 new (the readable labels and that stored text is kept; the panel's sections, rejection note and history fields; the page doesn't read the raw stored text).
+**Back end additions,** so the screen only displays:
+- `my_action.choices`: the areas with labels when routing; visibility options, practices and the builder's request when publishing.
+- Readable names everywhere the screen shows text: "waiting for" ("the Super admin", "a Compliance specialist"), refusal messages ("must be decided by the Super admin, not a Specialist reviewer"; "Choose a visibility before publishing: Firm-wide or Practice-only."), each history entry's `detail_label` ("Routed to AI enablement (technology), then Marketing"; the stored record is unchanged), and `status_label`.
+- `owner_name` on a tool's details; one shared `practice_names()` (also used by the Submit form).
 
-**6e, decisions (done):** a "Your decision" section in the detail panel, shown only when the back end says this persona can decide; otherwise it shows the back end's reason, with no buttons.
-- **Route:** a checkbox per area (from `my_action.choices`), numbered 1, 2, 3 in the order ticked, with "Review order: Compliance, then Marketing." written out. Unticking moves the later ones up. "Approve and route".
-- **Review:** "Approve".
-- **Publish:** visibility and practice, starting from what the builder asked for; the Practice box shows only for a visibility that needs one. "Approve and publish".
-- **Every step:** one comment box (optional when approving; to reject, at least 10 characters, shown as a hint) and "Reject". All checks are the back end's: a refusal about the comment appears next to the box, anything else next to the buttons. Everything goes through `decideOrExplain`.
-- **Refusals reworded** to the names people see: "Choose at least one specialist area to route to: AI enablement (technology), Compliance or Marketing.", "Each specialist area can only be chosen once. Picked more than once: Compliance.", "Choose a visibility before publishing: Firm-wide or Practice-only.", "Choose a practice for a Practice-only tool." Two older tests expect the new text.
-- **After a decision,** for now the list reloads; 6f keeps the updated tool on screen even when it leaves the queue.
-- **Tests:** 11 new (the reworded refusals through the API; publishing with the requested practice; an approval with a comment; the controls use only `my_action`, say what they do, and do no checking of their own).
+**Shared with the Submit page:** `renderFlags`, `renderAdvice` and `renderProgress` in `app.js`. The Submit page's "What happens next" is now the full progress line.
 
-- **After step 6 (before the Phase 11 README screenshots):** design polish so the progress line reads as a connected progress bar (BACKLOG.md).
+**Tests:** 67 new in `tests/test_review_queue_screen.py` (488 in all). The main one checks, for every persona at every stage of a review and each on a fresh app, that "can decide" is true exactly when approving is accepted, and that no refusal shows a raw code. Older tests updated to the new wording, each as specific as before: 4 for "waiting for", 9 for the "who may decide" refusals, 2 for the publish refusals, and the Submit page test that now finds the flags and advice in the shared code.
 
-- **Refusal messages reworded too** (your go-ahead, 2026-11-17): "Step 1 (…) must be decided by the Super admin, not a Specialist reviewer" and "Step 2 is the Compliance review (this tool was routed to Compliance, then Marketing); a Marketing specialist can't decide it" (were "a super_admin", "a specialist_reviewer", "compliance"). Nine older tests now expect the new text, each as specific as before: the three you named, plus six that matched the same messages in other ways. The persona-by-stage check now also fails if any refusal shows a raw code. History entries ("routed to compliance") are stored records and are unchanged.
+**Not checked in a browser.** No JavaScript runtime is installed, so the page code hasn't run anywhere yet. Please go through the checklist below.
+
+#### By-hand checklist (start fresh: delete `registry.db`, then `.venv/Scripts/python -m uvicorn registry.api:app --reload`, open http://127.0.0.1:8000/app/queue.html)
+1. **Riley Ashgrove (Super admin):** "Waiting on me (3)". Pick "Meeting summary": flags and AI advice are separate, the AI advice says it's sample advice, and the history says "No decisions yet." Tick Marketing, then Compliance: the numbers read 2 and 1 and the line says "Review order: Marketing, then Compliance." Untick Marketing: Compliance stays 1. Tick Marketing again, then "Approve and route": "Decision recorded. This tool is now: In review." The progress line shows Marketing review, then Compliance review.
+2. **Riley, route with nothing ticked:** the message "Choose at least one specialist area…" appears next to the buttons.
+3. **Riley, reject with "no":** the message appears next to the comment box, and the box is outlined.
+4. **Quinn Harrow (Marketing):** sees only "Meeting summary". "Approve". Then **Sam Thistle (Compliance)** approves it.
+5. **Riley again:** "Meeting summary" says "This is the final approval. Approving publishes the tool." The visibility starts as the builder asked. Choose Practice-only: the Practice box appears. "Approve and publish": "This tool is now: Published. It has left the queue." The tool appears in the Catalog.
+6. **Riley rejects "Client welcome letter"** with a proper comment: "Rejected" note with who, when, which step and why; it leaves the queue.
+7. **Devon Marsh (technology):** "Nothing is in review right now." (a specialist's queue holds only tools waiting for their own area), unless something was routed to technology.
+8. **Morgan Fennel (Practice admin, Tax):** "Nothing is waiting on you."; "All in review" shows only Tax tools; each says "Waiting for…" and has no buttons.
+9. **Avery Quill (Builder) and Jamie Larkspur (Tool user):** no Review queue link; typing the address shows the back end's plain refusal.
+10. **Submit page as Avery:** after submitting, the results show the new progress line under "What happens next".
+11. **Narrow window (phone width):** the details go below the list, and nothing scrolls sideways.
 
 ### Also done during Phase 9
 - **Routing to one or more specialist areas, in order** (DECISIONS.md #11), so each tool has its own list of steps for the progress line.
@@ -103,7 +99,8 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Backlog:** "Real sign-in", "Spot overlap", and "Fill blanks from an approved data source" (with more than one approved source per tool) added to BACKLOG.md and the README.
 
 ### What's next
-- **Step 6, Review queue screen:** "Waiting on me" and "All in review", the detail panel with the progress line, rule flags kept apart from AI advice, and decision buttons shown only when it's your turn.
+- **Your by-hand check of step 6,** using the checklist above.
+- **Design polish:** the progress line as a connected progress bar (BACKLOG.md), right after step 6 and before the Phase 11 README screenshots.
 
 ## Phase 8, 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
 

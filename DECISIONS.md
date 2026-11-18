@@ -287,3 +287,22 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 **Safeguard:** a test fails if the limit is ever less than twice the longest completed reply in the saved eval results.
 
 **Trade-off:** an unusually long genuine reply would be cut off and sent to a person, not lost. The old limit left "room for the model's thinking". At effort `medium` the model's output has stayed under 400 tokens, but a higher effort level could need more, so rerun the eval after raising it. Not rerun with real calls when the limit changed, because normal replies aren't affected.
+
+---
+
+## 18. How the Review queue screen asks and displays (2026-11-17)
+
+**Decision (Vanessa's answers to the step 6 plan):**
+1. **Routing order:** one checkbox per area; the order is the order they're ticked, shown as 1, 2, 3. Unticking moves the later ones up. Chosen over "Move up / Move down" buttons: simpler, and nothing to drag.
+2. **Publish defaults:** visibility and practice start from what the builder asked for, so the Super admin usually just confirms.
+3. **Shared display code:** the rule flags, the AI advice and the progress line are drawn by one copy in `web/app.js` (`renderFlags`, `renderAdvice`, `renderProgress`), used by both the Submit page and the Review queue, so the two can't drift apart.
+4. **Empty "Waiting on me":** "Nothing is waiting on you." with a "Show all in review" button. Practice admins never decide a step (#13), so they always see this first; no new rule was needed.
+5. **Readable wording:** text the screens show uses the names in the persona dropdown ("the Super admin", "a Compliance specialist", "Firm-wide"), including refusal messages. Tests that checked the old wording expect the new text and are as specific as before.
+
+**How this keeps rules out of the screen (#12):**
+- The back end sends the **choices** for each decision (`my_action.choices`): the areas when routing, and the visibility options, practices and builder's request when publishing. The page has no list of its own.
+- "Waiting on me" is the back end's `my_action.can_decide` per tool. A test checks, for every persona at every stage of a review, that it's true exactly when the decision would be accepted.
+- The page checks nothing a person types or picks; the back end's message appears next to the comment box or the buttons.
+- Stored history records stay as written; the back end adds a readable `detail_label` for the screen.
+
+**Trade-off:** the back end carries a few display-only fields (`choices`, `detail_label`, `status_label`, `owner_name`). They're cheap, and they keep wording and rules in one place.

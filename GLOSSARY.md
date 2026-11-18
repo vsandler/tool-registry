@@ -90,3 +90,5 @@ _Terms used in this project, defined in plain language._
 - **Visibility label:** Each tool's setting for who can see it once approved: `practice-only` (one practice) or `firm-wide` (everyone).
 - **Waiting on me:** The Review queue's default view: only the tools whose current step the viewing persona can decide.
 - **detail_label:** The readable version of what a decision did, shown in a tool's history (for example "Routed to Compliance, then Marketing"). Worked out by the back end from the stored record, which is never changed.
+- **status_label:** A tool's status in plain words ("In review", "Published", "Rejected"), sent by the back end for the screens to show as-is.
+- **Waiting on me:** The Review queue view listing the tools whose current step the persona can decide, as the back end says (`my_action.can_decide`).
