@@ -628,6 +628,22 @@ button.queue-row.selected {
 .tool-details {
   min-width: 0;
 }
+/* The tool's name, with its "Published · …" badge beside it (wraps on a phone). */
+.detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+.detail-head h2 {
+  margin: 0.5rem 0;
+}
+.badge.published {
+  color: var(--ok);
+  background: #ecfdf3;
+  border-color: #abefc6;
+  font-weight: 600;
+}
 /* Sections inside the detail panel: a dividing line instead of a box in a box. */
 .tool-details .panel {
   border: 0;

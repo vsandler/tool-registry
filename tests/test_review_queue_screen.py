@@ -677,3 +677,48 @@ def test_publish_confirmation_says_where_it_went():
     note = note[:note.index("\n    }\n")]
     assert "tool.published_label" in note
     assert "It has left the review queue." in note
+
+
+# --- the published badge and the bold publish line (2026-11-18) ---------------------------------
+
+@pytest.mark.parametrize("submit, label, badge", [
+    ({}, "Published firm-wide", "Published · Firm-wide"),
+    ({"visibility": "practice-only", "practice": "Tax"}, "Published to the Tax practice only",
+     "Published · Tax practice only"),
+])
+def test_published_tool_has_a_short_badge(client, submit, label, badge):
+    tid = at_publish_step(client, name="Badge tool", **submit)
+    body = approve_with_choices(client, tid, SUPER).json()
+    assert (body["published_label"], body["published_badge"]) == (label, badge)
+
+
+def test_unpublished_tools_have_no_badge(client):
+    tid = submit_via_api(client, name="No badge tool")
+    assert client.get(f"/tools/{tid}", headers=persona(SUPER)).json()["published_badge"] is None
+
+
+def test_history_says_which_entry_published_the_tool(flow):
+    from registry.approvals import get_history
+    tid = submitted_tool(flow)
+    decide(flow, tid, SUPER, "approved", route_to="compliance")
+    decide(flow, tid, COMPLIANCE, "approved")
+    decide(flow, tid, SUPER, "approved", visibility="firm-wide")
+    assert [h["detail_kind"] for h in get_history(flow, tid)] == ["routed", "", "published"]
+
+
+def test_details_panel_shows_the_badge_next_to_the_name():
+    code = queue_page()
+    detail = code[code.index("function showDetail"):]
+    detail = detail[:detail.index("\n    }\n")]
+    assert "tool.published_badge" in detail
+    assert '"badge published"' in detail
+    assert "var(--ok)" in css_rule(".badge.published")
+
+
+def test_publish_line_in_the_history_is_bold():
+    code = queue_page()
+    history = code[code.index("function historyList"):]
+    history = history[:history.index("\n    }\n")]
+    assert "entry.detail_kind" in history
+    assert 'h("strong", {}, entry.detail_label)' in history
+    assert "startsWith(" not in history  # the back end says which line it is

@@ -122,7 +122,19 @@ def get_history(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
         "WHERE a.tool_id = ? ORDER BY a.id",
         (tool_id,),
     )
-    return [{**dict(r), "detail_label": readable_detail(r["detail"])} for r in rows]
+    return [{**dict(r), "detail_label": readable_detail(r["detail"]),
+             "detail_kind": detail_kind(r["detail"])} for r in rows]
+
+
+def detail_kind(detail: str) -> str:
+    """What a history entry's stored `detail` records, so the screens can style it
+    without reading the words: "routed", "published", or "" for anything else."""
+    detail = detail or ""
+    if detail.startswith("routed to "):
+        return "routed"
+    if detail.startswith("published as "):
+        return "published"
+    return ""
 
 
 def readable_detail(detail: str) -> str:

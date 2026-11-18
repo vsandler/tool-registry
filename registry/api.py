@@ -192,6 +192,18 @@ def published_label(tool: dict) -> str | None:
     return "Published firm-wide"
 
 
+def published_badge(tool: dict) -> str | None:
+    """The same, short enough for a badge next to the tool's name, e.g.
+    "Published · Firm-wide" or "Published · Tax practice only". None until published."""
+    if tool["status"] != "published":
+        return None
+    if tool["visibility"] == "practice-only":
+        if tool["practice"]:
+            return f"Published · {tool['practice']} practice only"
+        return "Published · One practice only"
+    return "Published · Firm-wide"
+
+
 def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None = None) -> dict:
     """Everything the screens show about one tool. `my_action` is for the persona
     viewing it: can they decide the current step, and if not, why (plain words)."""
@@ -202,6 +214,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None
         "owner_name": owner["name"] if owner else "Unknown",
         "status_label": STATUS_LABELS.get(tool["status"], tool["status"]),
         "published_label": published_label(tool),
+        "published_badge": published_badge(tool),
         "checks": checks,
         "flagged": any(not c["passed"] for c in checks),
         "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides

@@ -148,7 +148,11 @@
       }
       fill(target,
         justDecided() ? confirmation(tool, listed === null) : null,
-        h("h2", {}, tool.name),
+        h("div", { className: "detail-head" },
+          h("h2", {}, tool.name),
+          tool.published_badge
+            ? h("span", { className: "badge published" }, tool.published_badge)
+            : null),
         h("p", { className: "meta" },
           `Built by ${tool.owner_name} · submitted ${when(tool.submitted_at)}`),
         renderProgress(tool.steps, tool.my_action),
@@ -339,7 +343,8 @@
         h("p", {}, `Reason: ${rejection.reason}`));
     }
 
-    // Every decision so far, oldest first, in readable words (`detail_label`).
+    // Every decision so far, oldest first, in readable words (`detail_label`). The
+    // entry that published the tool (the back end's `detail_kind`) is in bold.
     function historyList(history) {
       return h("section", { className: "panel" },
         h("h2", {}, "History"),
@@ -348,7 +353,11 @@
               h("li", {},
                 h("strong", {}, `${entry.approver_name} ${entry.decision}`),
                 ` step ${entry.position} (${entry.step_name}), ${when(entry.decided_at)}.`,
-                entry.detail_label ? ` ${entry.detail_label}.` : "",
+                entry.detail_label ? " " : "",
+                entry.detail_kind === "published"
+                  ? h("strong", {}, entry.detail_label)
+                  : entry.detail_label,
+                entry.detail_label ? "." : "",
                 entry.comment ? h("p", { className: "step-comment" }, `“${entry.comment}”`) : null)))
           : h("p", {}, "No decisions yet."));
     }

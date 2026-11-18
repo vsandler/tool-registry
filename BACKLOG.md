@@ -28,6 +28,18 @@
     - **"Needs a human":** when the AI couldn't give advice (for example it timed out), does approving need a reason too?
     - **Which steps:** every approval step, or only the specialist reviews and the final publish?
     - **Rule flags:** should approving a tool with rule flags (not just AI flags) also need a reason?
+- **"New" badge on the Catalog tab**
+  - **What it is:** the Catalog link in the navigation shows a "new" badge (for example "Catalog · 2 new") when tools were published since the person last looked at the Catalog. Opening the Catalog clears it, and the new tools are marked on their cards.
+  - **Why it matters:** people find out about new tools without being told separately.
+  - **Steps to build it:**
+    1. The back end records when each person last opened the Catalog, and counts the published tools they may see that were published after that (`published_at`, recorded at the publish step).
+    2. Send the count with the persona (for example `new_in_catalog`), the same way `can_submit` is sent, so the navigation only displays it.
+    3. Opening the Catalog marks it as seen, and the cards of tools published since the last visit show "New".
+    4. Write it out for screen readers ("Catalog, 2 new tools"), not just a coloured dot.
+    5. Add tests: a tool published after the last visit counts; one the person may not see (another practice's practice-only tool) never counts; opening the Catalog clears the count; a first visit doesn't mark everything new.
+  - **Open questions:**
+    - **First visit:** is everything new, or nothing?
+    - **Where "last looked" is kept:** in the back end (works on any device), or only in this browser (simpler, but lost on another device)? With real sign-in, the back end is the natural home.
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**
@@ -268,3 +280,5 @@
   - In the details box, a tool with more than 3 steps shows them stacked, so the text isn't squeezed. 3 or fewer stay side by side, and the Submit page is unchanged. DECISIONS.md #21.
 - **Publish confirmation says where the tool went** (2026-11-18)
   - "Decision recorded. Published firm-wide." or "… Published to the Tax practice only.", worded by the back end (`published_label`). DECISIONS.md #21.
+- **Published badge and bold publish line in the Review queue** (2026-11-18)
+  - After publishing, a green "Published · Firm-wide" (or "Published · Tax practice only") badge sits next to the tool's name, worded by the back end (`published_badge`). The history's "Published as …" is in bold, picked out by the back end's `detail_kind`.
