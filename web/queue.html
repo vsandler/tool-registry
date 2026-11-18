@@ -305,10 +305,20 @@
       content.querySelector(".decision-done")?.focus();
     }
 
-    function confirmation(tool, leftQueue) {
-      return h("p", { className: "message ok decision-done", role: "status", tabindex: "-1" },
-        `Decision recorded. This tool is now: ${tool.status_label}.`,
-        leftQueue ? " It has left the queue." : "");
+    // Still in review: say who it's waiting for now (it may have left only *your*
+    // queue). Finished (published or rejected): say so; it has left the review queue.
+    function confirmation(tool, leftMyQueue) {
+      const next = tool.steps.find((s) => s.current);
+      let text;
+      if (next && leftMyQueue) {
+        text = `Decision recorded. It has left your queue and is now waiting for ${next.waiting_for}.`;
+      } else if (next) {
+        text = `Decision recorded. It's now waiting for ${next.waiting_for}.`;
+      } else {
+        text = `Decision recorded. This tool is now: ${tool.status_label}. ` +
+               "It has left the review queue.";
+      }
+      return h("p", { className: "message ok decision-done", role: "status", tabindex: "-1" }, text);
     }
 
     // Who rejected it, when, at which step and why: all from the back end.

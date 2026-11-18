@@ -491,7 +491,11 @@ def test_page_keeps_showing_the_decided_tool_and_reloads_the_list():
     assert "reload()" in after
     assert "updated" in after
     assert "Decision recorded." in code and "status_label" in code
-    assert "It has left the queue." in code
+    # A tool that leaves the queue is finished; one that leaves only *your* queue is
+    # still in review, so the page says who it's waiting for now.
+    assert "It has left the review queue." in code
+    assert "It has left your queue and is now waiting for" in code
+    assert "It has left the queue." not in code
     assert "6f will" not in code  # the stopgap note is gone
 
 
@@ -509,3 +513,22 @@ def test_on_a_phone_picking_a_tool_scrolls_to_its_details():
     assert ".focus({ preventScroll: true })" in show  # screen readers follow too
     row_click = code[code.index('"data-tool-id": tool.id'):]
     assert "revealDetails()" in row_click[:row_click.index("},\n")]
+
+
+def test_after_a_specialist_approves_the_answer_says_who_is_next(client):
+    tid = submit_via_api(client, name="Next up tool")
+    approve_with_choices(client, tid, SUPER)                  # technology, then compliance
+    r = approve_with_choices(client, tid, TECH)
+    current = [s for s in r.json()["steps"] if s["current"]]
+    assert r.json()["status_label"] == "In review"
+    assert current[0]["waiting_for"] == "a Compliance specialist"
+    tech_queue = client.get("/admin/review-queue", headers=persona(TECH)).json()
+    assert tid not in [t["id"] for t in tech_queue]           # left *their* queue
+
+
+def test_confirmation_says_who_is_next_when_still_in_review():
+    code = queue_page()
+    note = code[code.index("function confirmation"):]
+    note = note[:note.index("\n    }\n")]
+    assert "waiting_for" in note and ".current" in note
+    assert "It's now waiting for" in note
