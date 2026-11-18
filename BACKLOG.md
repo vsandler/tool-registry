@@ -32,7 +32,7 @@
   - **What it is:** the Catalog link in the navigation shows a "new" badge (for example "Catalog · 2 new") when tools were published since the person last looked at the Catalog. Opening the Catalog clears it, and the new tools are marked on their cards.
   - **Why it matters:** people find out about new tools without being told separately.
   - **Steps to build it:**
-    1. The back end records when each person last opened the Catalog, and counts the published tools they may see that were published after that (`published_at`, recorded at the publish step).
+    1. The back end records when each person last opened the Catalog, and counts the published tools they may see that were published after that. Tools don't record when they were published yet, so add a `published_at` date, set at the publish step.
     2. Send the count with the persona (for example `new_in_catalog`), the same way `can_submit` is sent, so the navigation only displays it.
     3. Opening the Catalog marks it as seen, and the cards of tools published since the last visit show "New".
     4. Write it out for screen readers ("Catalog, 2 new tools"), not just a coloured dot.
