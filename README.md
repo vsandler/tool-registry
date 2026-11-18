@@ -76,8 +76,8 @@ Nobody approves a tool they own, admins included. Each specialist must be a diff
 
 These match the To Do list in BACKLOG.md, which has the steps for each one.
 
-- **Design (next, before the README screenshots):** in the Review queue's narrow details box, show the progress bar stacked when a tool has more than 3 steps, so its text isn't squeezed.
 - **Confirm AI advice:** instead of typing a comment, a specialist can confirm the AI advice by selecting which of its points they agree with. The selected points become the recorded reason, shown in the history as the person's decision ("Devon Marsh confirmed these AI points"), never as the AI deciding. To guard against rubber-stamping (automation bias), each reviewer's agreement rate and decision time are tracked.
+- **Require a reason to approve against the AI's advice:** when the AI flagged a tool, an approver who approves it anyway must say why, like a rejection does today. The reason is saved and shown in the history, so going against the advice is a deliberate, recorded choice.
 - **Configurable approval order:** let a Super admin add, remove and reorder approval steps.
 - **Hub-and-spoke routing (partly done):** tools can already go through several specialists in an order picked up front. What's left is letting the Super admin add the next specialist after seeing each review.
 - **Reassign orphaned tools:** an admin hands a departed owner's tool to a current user.

@@ -1,15 +1,6 @@
 # Backlog
 
 ## To Do
-- **Design: stacked progress bar in the Review queue's narrow details box**
-  - **When:** before the README screenshots in Phase 11.
-  - **What it is:** found after the progress bar polish (2026-11-18). In the Review queue on a desktop, the details box is only about 35rem wide, so a tool with 4 or more steps is squeezed side by side and its dates wrap onto 3–4 lines. There, use the stacked layout (steps down the page) when there are more than 3 steps.
-  - **Steps to build it:**
-    1. In `web/style.css`, keep steps side by side in the details box only when there are 3 or fewer (for example `.tool-details .progress-line:has(> .step:nth-child(4))` switches to stacked). Count the steps the back end sent; the page works nothing else out.
-    2. Leave the Submit page as it is: its box is wide enough for 5 steps side by side.
-    3. Keep the phone layout (always stacked) and the screen-reader text unchanged.
-    4. Check it by hand in the Review queue for a 3-step tool (side by side) and a 5-step tool (stacked), and on the Submit page.
-    5. Add a page test that the details box has the stacked rule for more than 3 steps.
 - **Confirm AI advice**
   - **What it is:** instead of typing a comment, a specialist can confirm the AI advice by selecting which of the AI's points they agree with. The selected points become the recorded reason. The history shows it as the person's decision, for example "Devon Marsh confirmed these AI points", never as the AI deciding.
   - **Why it matters:** it saves typing when the AI's points are right, while the person still makes and owns the decision. The risk is rubber-stamping (automation bias: agreeing with the AI without really checking), so each reviewer's agreement rate and decision time are tracked.
@@ -24,6 +15,19 @@
     - **Thresholds:** what agreement rate or decision time counts as "too high" or "too fast", and who reviews it?
     - **Partial agreement:** can a reviewer confirm some points and add a typed comment for the rest?
     - **Privacy:** who may see each reviewer's numbers, and is it framed as coaching rather than a score?
+- **Require a reason to approve against the AI's advice**
+  - **What it is:** when the AI's advice flagged a tool, an approver who approves it anyway must say why, the same way a rejection needs a reason today. The reason is saved with the decision and shown in the history, so it's clear a person chose to go against the advice.
+  - **Why it matters:** the AI's advice is only advice (it never decides), but going against it should be a deliberate, recorded choice, not a click. It pairs with "Confirm AI advice" above: agreeing and disagreeing with the AI both leave a reason.
+  - **Steps to build it:**
+    1. The back end works out "approving against the advice" from the tool's saved AI review, so the screen never decides it.
+    2. Refuse such an approval without a reason, in plain words next to the Comment box (for example "The AI flagged this tool. Say why you're approving it anyway."), using the same minimum length as a rejection comment.
+    3. Send it in `my_action` (for example `needs_reason: true`), so the Comment box's hint says a reason is needed before the person clicks Approve.
+    4. Label it in the history, for example "Approved against the AI's advice: …".
+    5. Add tests: a flagged tool approved with no reason is refused and nothing is saved; with a reason it's accepted and labelled; a tool the AI called safe needs no reason; the hint matches what the back end refuses.
+  - **Open questions:**
+    - **"Needs a human":** when the AI couldn't give advice (for example it timed out), does approving need a reason too?
+    - **Which steps:** every approval step, or only the specialist reviews and the final publish?
+    - **Rule flags:** should approving a tool with rule flags (not just AI flags) also need a reason?
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**
@@ -260,3 +264,7 @@
 - **Design polish: the progress bar and the Review queue's empty views** (2026-11-18)
   - The progress line is now one connected bar on the Submit page and in the Review queue: a circle per step (✓ done, ● now, ✕ rejected, – skipped, empty for later), joined by a line that turns green up to the last done step. Side by side when there's room, stacked on a phone. Screen readers still hear each step's state in words.
   - Review queue: when the list is empty, the "Pick a tool" box is left out and the empty message uses the full width; when a just-decided tool is still shown, the two boxes' tops line up.
+- **Design: stacked progress bar in the Review queue's narrow details box** (2026-11-18)
+  - In the details box, a tool with more than 3 steps shows them stacked, so the text isn't squeezed. 3 or fewer stay side by side, and the Submit page is unchanged. DECISIONS.md #21.
+- **Publish confirmation says where the tool went** (2026-11-18)
+  - "Decision recorded. Published firm-wide." or "… Published to the Tax practice only.", worded by the back end (`published_label`). DECISIONS.md #21.

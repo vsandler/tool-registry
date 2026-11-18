@@ -312,7 +312,8 @@
     }
 
     // Still in review: say who it's waiting for now (it may have left only *your*
-    // queue). Finished (published or rejected): say so; it has left the review queue.
+    // queue). Published: say where it went, in the back end's words. Rejected: say so.
+    // Either way it has left the review queue.
     function confirmation(tool, leftMyQueue) {
       const next = tool.steps.find((s) => s.current);
       let text;
@@ -320,6 +321,8 @@
         text = `Decision recorded. It has left your queue and is now waiting for ${next.waiting_for}.`;
       } else if (next) {
         text = `Decision recorded. It's now waiting for ${next.waiting_for}.`;
+      } else if (tool.published_label) {
+        text = `Decision recorded. ${tool.published_label}. It has left the review queue.`;
       } else {
         text = `Decision recorded. This tool is now: ${tool.status_label}. ` +
                "It has left the review queue.";

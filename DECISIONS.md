@@ -341,3 +341,19 @@ All 11 checks passed. These changes followed:
 8. **The start command** in STATUS.md was wrong (`registry.api:app`); it's `.venv/Scripts/python -m uvicorn registry.api:create_app --factory --reload`. A test checks every doc.
 
 **Still to do** (BACKLOG.md "Design polish", before the README screenshots): line up the Review queue's empty views, and hide "Pick a tool" when there's nothing to pick.
+
+---
+
+## 21. Design polish and the fixes after its check (2026-11-18)
+
+**The progress bar (from BACKLOG.md "Design polish"):** the progress line is one connected bar, on the Submit page and in the Review queue (one shared `renderProgress` in `web/app.js`). Each step is a circle with a symbol as well as a colour: ✓ done, ● now, ✕ rejected, – skipped, an empty circle for later. A line joins the circles and turns green up to the last done step. The symbols are hidden from screen readers, which still hear each state in words. Only the screen changed: the back end's `steps` are as before.
+
+**Side by side or stacked:** the steps sit side by side when their box is at least 34rem wide, and stack down the page otherwise (phones). The width is measured on the progress bar's own box (a CSS container query), not the whole window, so the same rule works in the wide Submit page and the narrow queue details box.
+
+**More than 3 steps in the queue's details box stack** (your fix after the browser check). That box is about 35rem wide on a desktop, so 4 or 5 steps side by side squeezed the dates onto 3–4 lines. The stylesheet counts the steps the back end sent; the page works nothing out. The Submit page is wide enough and keeps 5 steps side by side.
+
+**The empty Review queue:** when the list being shown is empty, the "Pick a tool to see its details." box is left out and the empty message uses the full width. When a just-decided tool is still shown beside an empty list, the two boxes' tops line up.
+
+**The publish confirmation says where the tool went** (your fix): "Decision recorded. Published firm-wide. It has left the review queue." or "… Published to the Tax practice only. …". The back end sends the words as `published_label` (empty until a tool is published), from what was actually published, which may differ from what the builder asked for. The page doesn't read the visibility itself, keeping #12's rule that screens only display what the back end says.
+
+**Added to the backlog, not built:** "Confirm AI advice" (a specialist selects the AI points they agree with as their reason, shown as the person's decision; agreement rate and decision time tracked against rubber-stamping) and "Require a reason to approve against the AI's advice".

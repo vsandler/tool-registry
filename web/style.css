@@ -392,7 +392,7 @@ button:disabled {
    to the last done step. Steps stack down the page by default (phones), and sit side
    by side when the box is wide enough (the @container rule below). */
 .progress {
-  container-type: inline-size;
+  container: progress / inline-size;
   --marker: 1.75rem;
   --track: #bcccdc;
 }
@@ -511,8 +511,14 @@ button:disabled {
 .progress-line .step-not_reached .step-state {
   opacity: 0.7;
 }
+/* The Review queue's details box is narrow: more than 3 steps side by side would be
+   squeezed, so keep them stacked. Without the "progress" name, the side-by-side rule
+   below finds no box to measure, and never applies. */
+.tool-details .progress:has(> .progress-line > .step:nth-child(4)) {
+  container-name: none;
+}
 /* Wide enough: steps side by side, circles on one line, words centred below. */
-@container (min-width: 34rem) {
+@container progress (min-width: 34rem) {
   .progress-line {
     flex-direction: row;
   }

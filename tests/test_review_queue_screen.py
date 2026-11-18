@@ -609,9 +609,9 @@ def test_progress_bar_states_look_different():
 
 
 def test_progress_bar_fits_a_phone_without_sideways_scrolling():
-    assert "container-type: inline-size" in css_rule(".progress")
+    assert "container: progress / inline-size" in css_rule(".progress")
     # Side by side only when there's room; otherwise the steps stack.
-    assert re.search(r"@container \(min-width: \d+rem\)", css())
+    assert re.search(r"@container progress \(min-width: \d+rem\)", css())
     assert "overflow-x" not in css_rule(".progress-line")
 
 
@@ -630,3 +630,50 @@ def test_empty_message_lines_up_with_the_details_box():
     assert "margin: 0" in rule
     assert "margin: 0" in css_rule(".queue-empty .message")
     assert "grid-template-columns: 1fr" in css_rule(".queue-layout.single")
+
+
+# --- fixes after the design polish check (2026-11-18) -------------------------------------------
+
+def test_narrow_details_box_stacks_a_progress_bar_of_more_than_3_steps():
+    # In the Review queue's details box, 4 or more steps would be squeezed side by side.
+    # Switching off the container's name there means the side-by-side rule never applies.
+    rule = css_rule(".tool-details .progress:has(> .progress-line > .step:nth-child(4))")
+    assert "container-name: none" in rule
+    # The Submit page and 3-step tools in the queue keep the side-by-side layout.
+    assert ".tool-details .progress {" not in css()
+
+
+@pytest.mark.parametrize("submit, expected", [
+    ({}, "Published firm-wide"),
+    ({"visibility": "practice-only", "practice": "Tax"}, "Published to the Tax practice only"),
+])
+def test_published_tool_says_where_it_went(client, submit, expected):
+    tid = at_publish_step(client, name="Where tool", **submit)
+    r = approve_with_choices(client, tid, SUPER)
+    assert r.json()["published_label"] == expected
+    assert client.get(f"/tools/{tid}", headers=persona(SUPER)).json()["published_label"] == expected
+
+
+def test_published_label_follows_the_publish_choice_not_the_request(client):
+    tid = at_publish_step(client, name="Changed tool")  # asked for firm-wide
+    r = client.post(f"/tools/{tid}/decisions", headers=persona(SUPER),
+                    json={"decision": "approved", "visibility": "practice-only",
+                          "practice": "Audit"})
+    assert r.status_code == 200, r.text
+    assert r.json()["published_label"] == "Published to the Audit practice only"
+
+
+def test_unpublished_tools_have_no_published_label(client):
+    tid = submit_via_api(client, name="Not yet tool")
+    assert client.get(f"/tools/{tid}", headers=persona(SUPER)).json()["published_label"] is None
+    r = client.post(f"/tools/{tid}/decisions", headers=persona(SUPER),
+                    json={"decision": "rejected", "comment": "Duplicates the welcome letter."})
+    assert r.json()["published_label"] is None
+
+
+def test_publish_confirmation_says_where_it_went():
+    code = queue_page()
+    note = code[code.index("function confirmation"):]
+    note = note[:note.index("\n    }\n")]
+    assert "tool.published_label" in note
+    assert "It has left the review queue." in note

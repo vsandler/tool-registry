@@ -180,6 +180,18 @@ STATUS_LABELS = {"draft": "Draft", "in_review": "In review", "rejected": "Reject
                  "published": "Published"}
 
 
+def published_label(tool: dict) -> str | None:
+    """Where a published tool went, in words, e.g. "Published firm-wide" or
+    "Published to the Tax practice only". None until it's published."""
+    if tool["status"] != "published":
+        return None
+    if tool["visibility"] == "practice-only":
+        if tool["practice"]:
+            return f"Published to the {tool['practice']} practice only"
+        return "Published to one practice only"
+    return "Published firm-wide"
+
+
 def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None = None) -> dict:
     """Everything the screens show about one tool. `my_action` is for the persona
     viewing it: can they decide the current step, and if not, why (plain words)."""
@@ -189,6 +201,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None
         **tool,
         "owner_name": owner["name"] if owner else "Unknown",
         "status_label": STATUS_LABELS.get(tool["status"], tool["status"]),
+        "published_label": published_label(tool),
         "checks": checks,
         "flagged": any(not c["passed"] for c in checks),
         "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides
