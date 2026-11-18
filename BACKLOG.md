@@ -1,6 +1,29 @@
 # Backlog
 
 ## To Do
+- **Design: stacked progress bar in the Review queue's narrow details box**
+  - **When:** before the README screenshots in Phase 11.
+  - **What it is:** found after the progress bar polish (2026-11-18). In the Review queue on a desktop, the details box is only about 35rem wide, so a tool with 4 or more steps is squeezed side by side and its dates wrap onto 3–4 lines. There, use the stacked layout (steps down the page) when there are more than 3 steps.
+  - **Steps to build it:**
+    1. In `web/style.css`, keep steps side by side in the details box only when there are 3 or fewer (for example `.tool-details .progress-line:has(> .step:nth-child(4))` switches to stacked). Count the steps the back end sent; the page works nothing else out.
+    2. Leave the Submit page as it is: its box is wide enough for 5 steps side by side.
+    3. Keep the phone layout (always stacked) and the screen-reader text unchanged.
+    4. Check it by hand in the Review queue for a 3-step tool (side by side) and a 5-step tool (stacked), and on the Submit page.
+    5. Add a page test that the details box has the stacked rule for more than 3 steps.
+- **Confirm AI advice**
+  - **What it is:** instead of typing a comment, a specialist can confirm the AI advice by selecting which of the AI's points they agree with. The selected points become the recorded reason. The history shows it as the person's decision, for example "Devon Marsh confirmed these AI points", never as the AI deciding.
+  - **Why it matters:** it saves typing when the AI's points are right, while the person still makes and owns the decision. The risk is rubber-stamping (automation bias: agreeing with the AI without really checking), so each reviewer's agreement rate and decision time are tracked.
+  - **Steps to build it:**
+    1. In the decision panel, show each of the AI's points with a checkbox, next to the Comment box. Selecting points is an alternative to typing a comment, not an extra step.
+    2. Send the selected points with the decision. The back end checks they are exactly points from that tool's saved AI advice, and saves them as the decision's reason, with who decided and when.
+    3. Count confirmed points as the reason a rejection needs, so a rejection can rest on selected points instead of a typed comment. The no self-approval and order rules stay the same.
+    4. In the history, label it as the person's decision: "Devon Marsh confirmed these AI points", followed by the points. Never "the AI approved" or "the AI rejected".
+    5. For each reviewer, record how often they confirm the AI's points and how long they take from opening a tool to deciding. Show it to the Super admin, with a note when someone agrees almost every time or decides very fast.
+    6. Add tests: only points from the saved advice are accepted; the history names the person, not the AI; a rejection with selected points is accepted; a made-up point is refused; the agreement rate and decision time are recorded.
+  - **Open questions:**
+    - **Thresholds:** what agreement rate or decision time counts as "too high" or "too fast", and who reviews it?
+    - **Partial agreement:** can a reviewer confirm some points and add a typed comment for the rest?
+    - **Privacy:** who may see each reviewer's numbers, and is it framed as coaching rather than a score?
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**
