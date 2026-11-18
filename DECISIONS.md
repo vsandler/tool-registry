@@ -306,3 +306,36 @@ Otherwise they're refused with a plain message: *"This tool isn't waiting for yo
 - Stored history records stay as written; the back end adds a readable `detail_label` for the screen.
 
 **Trade-off:** the back end carries a few display-only fields (`choices`, `detail_label`, `status_label`, `owner_name`). They're cheap, and they keep wording and rules in one place.
+
+---
+
+## 19. Tool users can't submit tools (2026-11-18)
+
+**Decision:** Tool users only use published tools. The back end refuses them when they load the Submit form, save a draft or submit, with "Tool users can't submit tools. You can use the published tools in the Catalog." Nothing is saved. The navigation hides "Submit a tool" for them, using a `can_submit` flag the back end sends with each persona, the same way the Review queue link uses `can_open_queue`.
+
+**Why:** found in the by-hand check of step 6. The link was shown to everyone, and the back end didn't refuse: a Tool user could save and submit their own tool. Only the owner check stopped them submitting someone else's.
+
+**Who can submit:** Builders, and also admins and specialists (`SUBMIT_ROLES` in `registry/personas.py`). The request was "only Builders submit", but the approval rules already expect admins and specialists to build tools ("nobody approves a tool they own, admins included", #7), and tests rely on it. So only Tool users were taken out. Limiting it to Builders alone would be a one-line change to `SUBMIT_ROLES`, plus the tests that use admin- or specialist-owned tools.
+
+**Safeguards:** a test checks, for every persona, that `can_submit` matches whether a real submission is accepted. Another checks that a Tool user's draft saved before this rule can't be submitted.
+
+**Test change:** the least-privilege tests used Jamie Larkspur, a Tool user in Audit, as the owner of an Audit-practice tool. They now add a made-up Audit builder ("Casey Example") instead, the same way they already add a made-up Audit admin. What they check is unchanged.
+
+**Later:** "Let anyone propose a tool" (BACKLOG.md): whoever submits becomes the builder.
+
+---
+
+## 20. Fixes from the by-hand check of the Review queue (2026-11-18)
+
+All 11 checks passed. These changes followed:
+
+1. **No screen shows "null".** The browser's `replaceChildren()` shows an empty value as the word "null" (no rejection and no description gave "nullnull"). A shared `fill()` in `web/app.js` skips empty values the way `h()` does, and every page uses it. A guard test fails if any page puts content on screen another way. A missing date now shows nothing, not 1 January 1970.
+2. **On a phone, picking a tool scrolls to its details** and moves focus to their heading. The page works out whether the details sit below the list from where they are on screen, so it follows the stylesheet without a second copy of its breakpoint. The scroll is instant for people who prefer reduced motion.
+3. **After a decision, say who's next.** "It has left the queue" was confusing after a specialist approved, because the tool was still in review. Now: "It has left your queue and is now waiting for the Super admin.", or "It's now waiting for …" when it's still in your queue. Finished tools say "This tool is now: Published. It has left the review queue."
+4. **"Published. Nothing left to decide."** replaces "This tool is already published.", which read like an error after a successful publish.
+5. **"Skipped: rejected at step N"** replaces "Not reached" on the progress line. The back end sends it as `skipped_reason`; the status code stays `not_reached`. Once fix-and-resubmit exists, it becomes "On hold: waiting for the builder to fix and resubmit" (BACKLOG.md).
+6. **US wording:** "select" and "clear" instead of "tick" and "untick" on every screen, checked by a test. #18 keeps its original wording as a record of what was decided then.
+7. **Tool users can't submit** (#19).
+8. **The start command** in STATUS.md was wrong (`registry.api:app`); it's `.venv/Scripts/python -m uvicorn registry.api:create_app --factory --reload`. A test checks every doc.
+
+**Still to do** (BACKLOG.md "Design polish", before the README screenshots): line up the Review queue's empty views, and hide "Pick a tool" when there's nothing to pick.

@@ -92,3 +92,6 @@ _Terms used in this project, defined in plain language._
 - **detail_label:** The readable version of what a decision did, shown in a tool's history (for example "Routed to Compliance, then Marketing"). Worked out by the back end from the stored record, which is never changed.
 - **status_label:** A tool's status in plain words ("In review", "Published", "Rejected"), sent by the back end for the screens to show as-is.
 - **Waiting on me:** The Review queue view listing the tools whose current step the persona can decide, as the back end says (`my_action.can_decide`).
+- **can_submit:** Sent with each persona: whether they may submit tools (Tool users can't). The navigation shows "Submit a tool" only when it's true.
+- **skipped_reason:** On a progress-line step after a rejection, the back end's words for why it wasn't reached, for example "Skipped: rejected at step 2".
+- **fill():** The shared helper the pages use to put content on screen. It skips empty values, so nothing ever shows the word "null".

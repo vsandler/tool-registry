@@ -40,7 +40,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
 | 6 | Review queue screen: list, detail panel, progress line, decision buttons | ✅ Done |
 
-**Tests:** 488 passing.
+**Tests:** 504 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -66,7 +66,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **The list:** "Waiting on me" (the default) and "All in review", each with its count, oldest submitted first. Each row: name, builder, submitted date, the step it's on, and "Waiting on you" or the back end's reason (for example "Waiting for a Compliance specialist."), plus a "Has rule flags" badge.
 - **The detail panel:** builder and date; the progress line (with "This is the final approval. Approving publishes the tool." when the back end says so); the "Rejected" note if rejected; description, template and "Why it's built this way"; "Rule flags" and "AI advice: you decide" as separate sections; "Your decision"; and the history with comments.
 - **Decisions,** shown only when the back end says it's your turn (otherwise its plain reason, no buttons): route by selecting areas in order ("Approve and route"); "Approve" a review; publish with visibility and practice ("Approve and publish"); one comment box and "Reject" on every step. Every check is the back end's; a comment problem shows next to the box, anything else next to the buttons. All through `decideOrExplain`.
-- **After a decision:** "Decision recorded. This tool is now: Published." (or In review / Rejected), plus "It has left the queue." when it has. The panel keeps showing the tool from the decision's own answer, and the list reloads.
+- **After a decision:** "Decision recorded. This tool is now: Published." (or In review / Rejected), or, if it's still in review, who it's waiting for now ("It has left your queue and is now waiting for the Super admin."). The panel keeps showing the tool from the decision's own answer, and the list reloads.
 
 **Back end additions,** so the screen only displays:
 - `my_action.choices`: the areas with labels when routing; visibility options, practices and the builder's request when publishing.
@@ -80,17 +80,20 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 **Not checked in a browser.** No JavaScript runtime is installed, so the page code hasn't run anywhere yet. Please go through the checklist below.
 
 #### By-hand checklist (start fresh: delete `registry.db`, then `.venv/Scripts/python -m uvicorn registry.api:create_app --factory --reload`, open http://127.0.0.1:8000/app/queue.html)
-1. **Riley Ashgrove (Super admin):** "Waiting on me (3)". Pick "Meeting summary": flags and AI advice are separate, the AI advice says it's sample advice, and the history says "No decisions yet." Select Marketing, then Compliance: the numbers read 2 and 1 and the line says "Review order: Marketing, then Compliance." Clear Marketing: Compliance stays 1. Select Marketing again, then "Approve and route": "Decision recorded. This tool is now: In review." The progress line shows Marketing review, then Compliance review.
+1. **Riley Ashgrove (Super admin):** "Waiting on me (3)". Pick "Meeting summary": flags and AI advice are separate, the AI advice says it's sample advice, and the history says "No decisions yet." Select Marketing, then Compliance: the numbers read 2 and 1 and the line says "Review order: Marketing, then Compliance." Clear Marketing: Compliance stays 1. Select Marketing again, then "Approve and route": "Decision recorded. It's now waiting for a Marketing specialist." The progress line shows Marketing review, then Compliance review.
 2. **Riley, route with nothing selected:** the message "Choose at least one specialist area…" appears next to the buttons.
 3. **Riley, reject with "no":** the message appears next to the comment box, and the box is outlined.
-4. **Quinn Harrow (Marketing):** sees only "Meeting summary". "Approve". Then **Sam Thistle (Compliance)** approves it.
-5. **Riley again:** "Meeting summary" says "This is the final approval. Approving publishes the tool." The visibility starts as the builder asked. Choose Practice-only: the Practice box appears. "Approve and publish": "This tool is now: Published. It has left the queue." The tool appears in the Catalog.
-6. **Riley rejects "Client welcome letter"** with a proper comment: "Rejected" note with who, when, which step and why; it leaves the queue.
+4. **Quinn Harrow (Marketing):** sees only "Meeting summary". "Approve": "It has left your queue and is now waiting for a Compliance specialist." Then **Sam Thistle (Compliance)** approves it.
+5. **Riley again:** "Meeting summary" says "This is the final approval. Approving publishes the tool." The visibility starts as the builder asked. Choose Practice-only: the Practice box appears. "Approve and publish": "This tool is now: Published. It has left the review queue." and "Your decision" says "Published. Nothing left to decide." The tool appears in the Catalog.
+6. **Riley rejects "Client welcome letter"** with a proper comment: "Rejected" note with who, when, which step and why; the later steps say "Skipped: rejected at step 1"; it leaves the queue.
 7. **Devon Marsh (technology):** "Nothing is in review right now." (a specialist's queue holds only tools waiting for their own area), unless something was routed to technology.
 8. **Morgan Fennel (Practice admin, Tax):** "Nothing is waiting on you."; "All in review" shows only Tax tools; each says "Waiting for…" and has no buttons.
-9. **Avery Quill (Builder) and Jamie Larkspur (Tool user):** no Review queue link; typing the address shows the back end's plain refusal.
+9. **Avery Quill (Builder) and Jamie Larkspur (Tool user):** no Review queue link; typing the address shows the back end's plain refusal. Jamie also has no "Submit a tool" link, and typing its address shows "Tool users can't submit tools…".
 10. **Submit page as Avery:** after submitting, the results show the new progress line under "What happens next".
-11. **Narrow window (phone width):** the details go below the list, and nothing scrolls sideways.
+11. **Narrow window (phone width):** the details go below the list, picking a tool scrolls to them, and nothing scrolls sideways.
+12. **No "null" anywhere:** pick a tool with no description; nothing says "null".
+
+**By-hand check (Vanessa, 2026-11-18): all 11 items passed.** Fixes that followed, one commit each (DECISIONS.md #19 and #20): no "null" on any screen; on a phone, picking a tool scrolls to its details; after a decision, "It has left your queue and is now waiting for …"; "Published. Nothing left to decide."; "Skipped: rejected at step N"; "select" instead of "tick"; Tool users can't submit (the back end didn't refuse them before); the start command above corrected. Backlog: approved outside the registry, let anyone propose a tool, "On hold" once resubmitting exists, and the queue's empty views. Items 2, 3, 6, 9, 11 and 12 above changed to match, so they're worth a quick second look.
 
 ### Also done during Phase 9
 - **Routing to one or more specialist areas, in order** (DECISIONS.md #11), so each tool has its own list of steps for the progress line.
@@ -99,8 +102,8 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Backlog:** "Real sign-in", "Spot overlap", and "Fill blanks from an approved data source" (with more than one approved source per tool) added to BACKLOG.md and the README.
 
 ### What's next
-- **Your by-hand check of step 6,** using the checklist above.
-- **Design polish:** the progress line as a connected progress bar (BACKLOG.md), right after step 6 and before the Phase 11 README screenshots.
+- **Design polish** (BACKLOG.md), before the Phase 11 README screenshots: the progress line as a connected progress bar, and the Review queue's empty views lined up with no "Pick a tool" hint when there's nothing to pick.
+- **A quick second look** at checklist items 2, 3, 6, 9, 11 and 12, whose wording changed.
 
 ## Phase 8, 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
 

@@ -45,7 +45,7 @@ This makes 3 real AI calls (well under 1 cent) and rewrites `registry/sample_adv
 
 ## Submitting a tool
 
-The **Submit a tool** page (`POST /submissions`) checks the form, then saves the tool and sends it for review in one go:
+The **Submit a tool** page (`POST /submissions`) checks the form, then saves the tool and sends it for review in one go. Builders, admins and specialists can submit; Tool users can't (they use the Catalog), and the page link is hidden for them.
 
 - **Required:** a name, the template text, who can see it (firm-wide or practice-only) and a rationale ("Why did you build it this way?"). If any is empty, nothing is saved and the back end says what's missing, box by box, so the page shows each message next to its box. The same rule applies to `POST /tools/{id}/submit`: a draft can be saved without a rationale, but can't be submitted until it has one.
 - **Flags never block:** after that, the six rule-based checks and the AI pre-review run. A flagged tool still goes into review. The builder sees a confirmation, then each rule flag in plain words with a tip for next time, and the AI advice, kept separate.
