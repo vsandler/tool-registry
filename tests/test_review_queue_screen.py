@@ -538,3 +538,19 @@ def test_after_publishing_the_panel_reads_as_done_not_as_an_error(client):
     tid = at_publish_step(client, name="Done tool")
     r = approve_with_choices(client, tid, SUPER)
     assert r.json()["my_action"]["reason"] == "Published. Nothing left to decide."
+
+
+def test_steps_after_a_rejection_say_they_were_skipped_and_why(flow):
+    tid = submitted_tool(flow)
+    decide(flow, tid, SUPER, "approved", route_to=["compliance", "marketing"])
+    decide(flow, tid, COMPLIANCE, "rejected", "Makes a promise about returns.")
+    progress = get_progress(flow, tid)
+    assert [p["status"] for p in progress] == ["done", "rejected", "not_reached", "not_reached"]
+    assert [p["skipped_reason"] for p in progress] == [
+        None, None, "Skipped: rejected at step 2", "Skipped: rejected at step 2"]
+
+
+def test_progress_line_shows_the_skipped_reason():
+    code = shared_function("renderProgress")
+    assert "s.skipped_reason" in code
+    assert "Not reached" not in code

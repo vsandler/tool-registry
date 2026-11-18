@@ -357,6 +357,7 @@ def get_progress(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
     Each step has a `status`: "done" (approved), "rejected", "waiting" (not decided
     yet) or "not_reached" (after a rejection). `current` marks the step waiting now,
     `final` marks the last step, and decided steps say who decided them and when.
+    A not-reached step's `skipped_reason` says why, for the screen to show as-is.
     """
     tool = get_tool(conn, tool_id)
     if tool is None:
@@ -364,6 +365,8 @@ def get_progress(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
     history = {h["position"]: h for h in get_history(conn, tool_id)}
     now_step = current_step(conn, tool_id)
     steps = get_tool_steps(conn, tool_id)
+    rejected_at = next((h["position"] for h in history.values()
+                        if h["decision"] == "rejected"), None)
     progress = []
     for step in steps:
         decided = history.get(step["position"])
@@ -386,6 +389,10 @@ def get_progress(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
             "comment": decided["comment"] if decided else "",
             "detail": decided["detail"] if decided else "",
             "waiting_for": _waiting_for(step) if status == "waiting" else None,
+            # Once fix-and-resubmit exists, this becomes "On hold: waiting for the
+            # builder to fix and resubmit" (BACKLOG.md).
+            "skipped_reason": (f"Skipped: rejected at step {rejected_at}"
+                               if status == "not_reached" else None),
         })
     return progress
 

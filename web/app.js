@@ -234,15 +234,16 @@ export function renderAdvice(advice) {
       : h("p", {}, "No AI advice for this tool."));
 }
 
-// The progress line: every step, done (who, when), waiting (for whom), rejected or not
-// reached. `myAction` is the viewer's `my_action`: when the back end says they can
+// The progress line: every step, done (who, when), waiting (for whom), rejected, or
+// skipped after a rejection (the back end says why). `myAction` is the viewer's
+// `my_action`: when the back end says they can
 // decide the final step, a note says approving publishes the tool.
 export function renderProgress(steps, myAction = null) {
   const items = steps.map((s) => {
     let state;
     if (s.status === "done") state = `Done by ${s.decided_by}, ${when(s.decided_at)}`;
     else if (s.status === "rejected") state = `Rejected by ${s.decided_by}, ${when(s.decided_at)}`;
-    else if (s.status === "not_reached") state = "Not reached";
+    else if (s.status === "not_reached") state = s.skipped_reason;
     else if (s.current) state = `Now: waiting for ${s.waiting_for}`;
     else state = `Later: ${s.waiting_for}`;
     return h("li", { className: `step step-${s.status}${s.current ? " step-current" : ""}`,
