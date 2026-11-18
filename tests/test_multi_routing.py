@@ -242,7 +242,7 @@ def test_progress_marks_each_step_done_or_waiting_with_who_and_when(flow):
     assert progress[0]["decided_by_id"] == SUPER and progress[0]["decided_at"]
     assert progress[1]["decided_by_id"] == COMPLIANCE
     assert progress[2]["decided_by_id"] is None
-    assert "marketing" in progress[2]["waiting_for"]
+    assert progress[2]["waiting_for"] == "a Marketing specialist"
 
 
 def test_progress_flags_the_final_step(flow):

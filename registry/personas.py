@@ -71,5 +71,26 @@ def persona_label(user) -> str:
     return label
 
 
+def practice_names(conn: sqlite3.Connection) -> list[str]:
+    """The practices people belong to, in alphabetical order: the choices on the
+    Submit form and on the publish step of the Review queue."""
+    return [r[0] for r in conn.execute(
+        "SELECT DISTINCT practice FROM users WHERE practice IS NOT NULL ORDER BY practice")]
+
+
+def role_phrase(role: str) -> str:
+    """A role as a sentence names it, e.g. "the Super admin" or "a Practice admin".
+    There is one Super admin, so it reads as "the"."""
+    label = ROLE_LABELS.get(role, role.replace("_", " "))
+    return f"the {label}" if role == "super_admin" else f"a {label}"
+
+
+def area_phrase(area: str) -> str:
+    """A specialist area as a sentence names it, e.g. "a Compliance specialist"."""
+    label = SPECIALIST_AREAS.get(area, area)
+    article = "an" if label[:1].upper() in "AEIOU" else "a"
+    return f"{article} {label} specialist"
+
+
 def is_admin(user: sqlite3.Row) -> bool:
     return user["role"] in ADMIN_ROLES

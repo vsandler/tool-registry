@@ -46,7 +46,7 @@ _Terms used in this project, defined in plain language._
 - **localStorage:** A small store in the browser that remembers things on this computer only, such as which persona you picked.
 - **Migration (database):** A small change that upgrades an existing database to match new code, such as adding a missing column.
 - **Multi-specialist routing:** Sending one tool to several specialist areas, in an order the Super admin picks. Each area becomes its own review step.
-- **my_action:** The part of a tool's details that tells the persona viewing it whether they can decide the current step, and if not, why, in plain words.
+- **my_action:** The part of a tool's details that tells the persona viewing it whether they can decide the current step, and if not, why, in plain words. When they can, its `choices` list what to pick from: areas to route to, or visibility and practice to publish with.
 - **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.

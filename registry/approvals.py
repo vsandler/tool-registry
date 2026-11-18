@@ -26,8 +26,22 @@ Rules:
 
 import sqlite3
 
-from registry.personas import ROLES, SPECIALIST_AREAS, get_user
-from registry.tools import VISIBILITIES, NotAllowed, NotFound, get_tool, now
+from registry.personas import (
+    ROLES,
+    SPECIALIST_AREAS,
+    area_phrase,
+    get_user,
+    practice_names,
+    role_phrase,
+)
+from registry.tools import (
+    VISIBILITIES,
+    VISIBILITY_OPTIONS,
+    NotAllowed,
+    NotFound,
+    get_tool,
+    now,
+)
 
 
 class ApprovalError(NotAllowed):
@@ -237,9 +251,10 @@ _NOT_IN_REVIEW = {
 def my_action(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict | None:
     """What the persona viewing a tool can do with it right now, for the screens.
 
-    {"can_decide", "reason", "needs", "step_position", "step_name", "final",
+    {"can_decide", "reason", "needs", "choices", "step_position", "step_name", "final",
      "reject_comment_min"}. `reason` is a plain sentence when they can't decide;
-    `needs` says what deciding asks for ("areas" to route, "visibility" to publish).
+    `needs` says what deciding asks for ("areas" to route, "visibility" to publish),
+    and `choices` lists what to pick from (None when nothing needs picking).
     Uses exactly the same rules as decide(). None if the tool doesn't exist.
     """
     tool = get_tool(conn, tool_id)
@@ -248,7 +263,7 @@ def my_action(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict | No
     user = get_user(conn, user_id)
     if user is None:
         return {"can_decide": False, "reason": "Pick a persona first.", "needs": None,
-                "step_position": None, "step_name": None, "final": False,
+                "choices": None, "step_position": None, "step_name": None, "final": False,
                 "reject_comment_min": MIN_REJECT_COMMENT}
     turn = _check_turn(conn, tool, user)
     step, steps = turn["step"], turn["steps"]
@@ -273,6 +288,7 @@ def my_action(conn: sqlite3.Connection, tool_id: int, user_id: str) -> dict | No
         "can_decide": reason is None,
         "reason": reason,
         "needs": needs,
+        "choices": _choices(conn, tool, needs),
         "step_position": step["position"] if step else None,
         "step_name": step["name"] if step else None,
         "final": bool(step and steps and step["position"] == steps[-1]["position"]),
@@ -292,9 +308,22 @@ def get_rejection(conn: sqlite3.Connection, tool_id: int) -> dict | None:
 
 
 def _waiting_for(step: dict) -> str:
+    """Who the step is waiting for, using the names people see in the persona dropdown."""
     if step["action"] == "review":
-        return f"a {step['area']} specialist" if step["area"] else "a specialist (not routed yet)"
-    return "a " + step["approver_role"].replace("_", " ")
+        return area_phrase(step["area"]) if step["area"] else "a specialist (not routed yet)"
+    return role_phrase(step["approver_role"])
+
+
+def _choices(conn: sqlite3.Connection, tool: dict, needs: str | None) -> dict | None:
+    """What the screen offers for this decision, so it never works out choices itself.
+    Routing: every specialist area, in order. Publishing: the visibility options,
+    the practices, and what the builder asked for, to start from."""
+    if needs == "areas":
+        return {"areas": [{"value": k, "label": v} for k, v in SPECIALIST_AREAS.items()]}
+    if needs == "visibility":
+        return {"visibilities": VISIBILITY_OPTIONS, "practices": practice_names(conn),
+                "requested": {"visibility": tool["visibility"], "practice": tool["practice"]}}
+    return None
 
 
 def get_progress(conn: sqlite3.Connection, tool_id: int) -> list[dict]:

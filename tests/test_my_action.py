@@ -74,7 +74,7 @@ def test_others_are_told_who_it_is_waiting_for_at_routing(flow, user):
     tid = submitted_tool(flow)
     a = action(flow, tid, user)
     assert a["can_decide"] is False
-    assert a["reason"] == "Waiting for a super admin."
+    assert a["reason"] == "Waiting for the Super admin."
 
 
 def test_review_steps_say_which_specialist_is_next(flow):
@@ -85,10 +85,10 @@ def test_review_steps_say_which_specialist_is_next(flow):
     for user in (MARKETING, TECH, SUPER):
         a = action(flow, tid, user)
         assert a["can_decide"] is False
-        assert a["reason"] == "Waiting for a compliance specialist."
+        assert a["reason"] == "Waiting for a Compliance specialist."
     decide(flow, tid, COMPLIANCE, "approved")
     assert action(flow, tid, MARKETING)["can_decide"] is True
-    assert action(flow, tid, COMPLIANCE)["reason"] == "Waiting for a marketing specialist."
+    assert action(flow, tid, COMPLIANCE)["reason"] == "Waiting for a Marketing specialist."
 
 
 def test_publish_step_asks_the_super_admin_for_visibility(flow):

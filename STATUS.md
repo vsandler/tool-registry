@@ -38,9 +38,9 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | ⏭️ Next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a (back end) done; 6b–6g next |
 
-**Tests:** 421 passing.
+**Tests:** 459 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -58,6 +58,15 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **After submitting:** a confirmation, each rule flag in plain words with a tip for next time, the AI advice kept separate, and whose turn it is next. Flags never block.
 - **Test change:** `test_cannot_submit_twice` now gives its tool a rationale, because a tool with none can't be submitted at all now. Its check (a second submit is refused) is unchanged.
 - **Not checked in a browser yet**, like step 4.
+
+### Step 6: Review queue (in progress)
+**Your answers (2026-11-17):** areas ticked in order (checkboxes, numbered 1, 2, 3); publish starts from what the builder asked for; flags and advice drawn by shared code in `app.js` for both screens; an empty "Waiting on me" says "Nothing is waiting on you" with a button to "All in review"; old "waiting for" tests updated to the new wording.
+
+**6a, back end (done):**
+- **"Waiting for" in the names people see:** "the Super admin", "a Compliance specialist", "an AI enablement (technology) specialist" (was "a super admin", "a compliance specialist"). The Submit page's "What happens next" uses it too.
+- **Choices for each decision** on `my_action.choices`: the specialist areas with labels when routing; when publishing, the visibility options, the practices and the builder's request to start from. Empty when nothing needs choosing. The practice list is now one shared function, also used by the Submit form.
+- **Tests (38 new):** the wording, the choices, a check for every persona at every stage of a review (each on a fresh app) that "can decide" is true exactly when approving is accepted, and walk-throughs (route to two areas and publish; a too-short rejection refused next to the comment box; a rejection leaving the queue with its note). Four older tests now expect the new wording; one of them checks the exact text where it used to check only that "marketing" appeared.
+- **Not changed:** the refusal messages from a decision the rules don't allow still use the raw role names ("must be decided by a super_admin"). The screen hides the buttons in those cases, so people should rarely see them. Rewording them would change three more tests, so I've left it for you to decide.
 
 ### Also done during Phase 9
 - **Routing to one or more specialist areas, in order** (DECISIONS.md #11), so each tool has its own list of steps for the progress line.

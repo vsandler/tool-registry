@@ -38,6 +38,7 @@ from registry.personas import (
     SPECIALIST_AREAS,
     get_user,
     persona_label,
+    practice_names,
 )
 from registry.seed import seed
 from registry.tools import (
@@ -275,9 +276,8 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
         choices: visibility options (each saying whether it needs a practice), the
         practices people belong to, this persona's own practice to start with, and the
         shortest rationale the checks accept without a flag."""
-        practices = [r[0] for r in conn.execute(
-            "SELECT DISTINCT practice FROM users WHERE practice IS NOT NULL ORDER BY practice")]
-        return {"fields": FORM_FIELDS, "visibilities": VISIBILITY_OPTIONS, "practices": practices,
+        return {"fields": FORM_FIELDS, "visibilities": VISIBILITY_OPTIONS,
+                "practices": practice_names(conn),
                 "default_practice": user["practice"], "rationale_min": MIN_RATIONALE_LENGTH}
 
     @app.post("/templates/blanks")
