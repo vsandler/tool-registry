@@ -493,11 +493,11 @@ button.queue-row.selected {
   align-items: flex-start;
   gap: 0.5rem;
 }
-.detail {
+.tool-details {
   min-width: 0;
 }
 /* Sections inside the detail panel: a dividing line instead of a box in a box. */
-.detail .panel {
+.tool-details .panel {
   border: 0;
   border-top: 1px solid var(--line);
   border-radius: 0;

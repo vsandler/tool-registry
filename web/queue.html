@@ -52,7 +52,7 @@
     function render(focusId = null) {
       const mine = waitingOnMe();
       const shown = view === "mine" ? mine : tools;
-      const detail = h("section", { className: "detail panel", "aria-live": "polite" });
+      const detail = h("section", { className: "tool-details panel", "aria-live": "polite" });
 
       fill(content,
         h("div", { className: "views", role: "group", "aria-label": "Which tools to show" },
@@ -96,7 +96,12 @@
           className: `queue-row${selected ? " selected" : ""}`,
           "data-tool-id": tool.id,
           "aria-current": selected ? "true" : null,
-          onClick: () => { selectedId = tool.id; decided = null; render(tool.id); },
+          onClick: () => {
+            selectedId = tool.id;
+            decided = null;
+            render(tool.id);
+            revealDetails();
+          },
         },
           h("span", { className: "row-name" }, tool.name),
           h("span", { className: "meta" },
@@ -105,6 +110,22 @@
           h("span", { className: a.can_decide ? "row-next mine" : "row-next" },
             a.can_decide ? "Waiting on you" : a.reason),
           tool.flagged ? h("span", { className: "badge" }, "Has rule flags") : null));
+    }
+
+    // On a narrow screen the details sit below the list, out of sight: scroll to them
+    // and move focus to their heading. Worked out from where the two boxes are, so it
+    // follows the stylesheet without a second copy of its breakpoint.
+    function revealDetails() {
+      const list = content.querySelector(".queue-list");
+      const detail = content.querySelector(".tool-details");
+      const heading = detail?.querySelector("h2");
+      if (!list || !heading) return;
+      const stacked = detail.getBoundingClientRect().top >= list.getBoundingClientRect().bottom;
+      if (!stacked) return;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      detail.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
     }
 
     // The tool just decided, if it's the one selected: shown from the decision's own

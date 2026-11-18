@@ -493,3 +493,19 @@ def test_page_keeps_showing_the_decided_tool_and_reloads_the_list():
     assert "Decision recorded." in code and "status_label" in code
     assert "It has left the queue." in code
     assert "6f will" not in code  # the stopgap note is gone
+
+
+# --- by-hand check fixes (2026-11-17) ----------------------------------------------------------
+
+def test_on_a_phone_picking_a_tool_scrolls_to_its_details():
+    code = queue_page()
+    show = code[code.index("function revealDetails"):]
+    show = show[:show.index("\n    }\n")]
+    # Only when the details sit below the list (narrow screens), worked out from where
+    # they are on screen rather than a second copy of the CSS breakpoint.
+    assert "getBoundingClientRect()" in show
+    assert "scrollIntoView(" in show
+    assert "prefers-reduced-motion" in show
+    assert ".focus({ preventScroll: true })" in show  # screen readers follow too
+    row_click = code[code.index('"data-tool-id": tool.id'):]
+    assert "revealDetails()" in row_click[:row_click.index("},\n")]
