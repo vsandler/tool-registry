@@ -2,9 +2,9 @@
 
 ## What was reviewed
 - **What:** the whole Tool Registry after Phase 9: the back end (`registry/`), the three screens (`web/`), the tests (`tests/`) and the AI pre-review agent with its evals (`evals/`).
-- **Version:** branch `phase-9-frontend`, at the commit that adds this file. _(Fill in the commit id when the review starts.)_
-- **Tool:** OpenAI Codex, given the prompt in [docs/codex-review-prompt.md](docs/codex-review-prompt.md). It was told only to read and report, not to change any files. _(Fill in the Codex version or model.)_
-- **When:** _(fill in the date of the review)_. Prepared on 2026-11-18.
+- **Version:** branch `phase-9-frontend`, at commit `4c23b5c` (the commit that adds this file).
+- **Tool:** OpenAI Codex v0.169.0, model GPT-6-Luna, reasoning effort medium, with Read Only permissions. It was given the prompt in [docs/codex-review-prompt.md](docs/codex-review-prompt.md), and told only to read and report, not to change any files.
+- **When:** reviewed on 2026-11-18. Prepared the same day.
 - **A second opinion:** Codex is a different AI from the one that wrote the code (Claude), so it's less likely to share the same blind spots. Claude's own findings are added after Codex's, so they don't steer its review. The **Found by** column says which is which.
 
 ## What it was asked to look for
@@ -20,9 +20,16 @@ Bugs; security issues; ways around the approval rules (self-approval, the wrong 
 
 | # | Finding | Severity | Area | Found by | Fix | Status |
 |---|---|---|---|---|---|---|
-| | _None yet._ | | | | | |
+| 1 | Any non-empty practice name is accepted, both when creating a tool and when publishing it as Practice-only, so a typo such as "Txa" makes a practice nobody belongs to. `registry/tools.py:175-185`, `registry/approvals.py:462-466` | Medium | Input validation | Codex | | Open |
+| 2 | `check_can_submit` lets an unknown user id through: it only refuses a known user whose role can't submit. The API refuses unknown personas first, so it isn't a live hole, but the guard is fragile if another way in is added. `registry/tools.py:200` | Low | Approval rules | Claude (missed by Codex) | | Open |
+| 3 | No length limits on text fields (name, description, template, rationale, comments). A very long template is sent to the AI in full, so input tokens and cost per review are unbounded; `MAX_TOKENS` only caps the reply. `registry/tools.py:73`, `registry/approvals.py:444` | Medium | Input validation (cost) | Claude (missed by Codex) | | Open |
 
 **Area** is one of: Approval rules, Security, AI pre-review, Secrets, Input validation, Bug, Front end, Tests.
+
+## The blind test
+While preparing the prompt, Claude spotted 3 possible problems (findings 1–3). It held them back from the prompt and this table so Codex would review unsteered. Codex found 1 of the 3 on its own (finding 1, the practice name). It missed the unknown-user guard (finding 2) and the missing length limits (finding 3). Claude added those after Codex reported.
+
+**What this shows:** a second AI reviewer adds a real check, but it didn't catch everything. Neither reviewer is a full guarantee, so each finding gets a test.
 
 ## How each finding is handled
 1. Copy Codex's findings into the table as they are, with file and line in the Finding column.
