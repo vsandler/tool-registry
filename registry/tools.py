@@ -218,10 +218,17 @@ def get_tool(conn: sqlite3.Connection, tool_id: int) -> dict | None:
     return tool
 
 
+UNKNOWN_PERSON_MESSAGE = "Only people in the registry can save or submit tools."
+
+
 def check_can_submit(conn: sqlite3.Connection, user_id: str) -> None:
-    """Only the roles in SUBMIT_ROLES may save or submit tools (Tool users can't)."""
+    """Only the roles in SUBMIT_ROLES may save or submit tools (Tool users can't).
+    Someone who isn't in the registry is refused too, here and not only by the API,
+    so the guard holds whatever way in is added later (REVIEW.md finding 2)."""
     user = get_user(conn, user_id)
-    if user is not None and user["role"] not in SUBMIT_ROLES:
+    if user is None:
+        raise NotAllowed(UNKNOWN_PERSON_MESSAGE)
+    if user["role"] not in SUBMIT_ROLES:
         raise NotAllowed(SUBMIT_REFUSED_MESSAGE)
 
 

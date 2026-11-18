@@ -43,5 +43,11 @@ def test_unknown_visibility_refused(conn):
 
 
 def test_unknown_owner_refused_by_database(conn):
+    # create_tool now refuses an unknown owner before the database is reached
+    # (REVIEW.md finding 2, tests/test_review_fixes.py). The database's own check
+    # stays as a second layer, so it's tested directly, skipping create_tool.
     with pytest.raises(sqlite3.IntegrityError):
-        create_tool(conn, name="T", template="x", owner_id="nobody", visibility="firm-wide")
+        conn.execute(
+            "INSERT INTO tools (name, description, template, variables, visibility, practice, "
+            "owner_id, rationale, status, created_at) "
+            "VALUES ('T', '', 'x', '[]', 'firm-wide', NULL, 'nobody', '', 'draft', 'now')")

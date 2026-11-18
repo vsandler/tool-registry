@@ -132,3 +132,39 @@ def test_create_tool_refuses_an_unknown_practice_directly(conn):
         create_tool(conn, owner_id="u-builder", **{**NEW_TOOL, "visibility": "practice-only",
                                                    "practice": "Txa"})
     assert refused.value.fields == ["practice"]
+
+
+# --- finding 2: an unknown person can't save or submit a tool ----------------------------------
+
+UNKNOWN_MESSAGE = "Only people in the registry can save or submit tools."
+
+
+def test_an_unknown_person_cannot_save_a_draft(conn):
+    from registry.tools import NotAllowed
+    before = conn.execute("SELECT count(*) FROM tools").fetchone()[0]
+    with pytest.raises(NotAllowed) as refused:
+        create_tool(conn, owner_id="u-nobody", **NEW_TOOL)
+    assert str(refused.value) == UNKNOWN_MESSAGE
+    assert conn.execute("SELECT count(*) FROM tools").fetchone()[0] == before
+
+
+def test_an_unknown_person_cannot_submit(conn):
+    from registry.tools import NotAllowed
+    tid = create_tool(conn, owner_id="u-builder", **NEW_TOOL)
+    with pytest.raises(NotAllowed) as refused:
+        submit_tool(conn, tid, "u-nobody")
+    assert str(refused.value) == UNKNOWN_MESSAGE
+    assert get_tool(conn, tid)["status"] == "draft"
+
+
+def test_the_guard_checks_the_person_before_anything_else(conn, fake_ai):
+    # Refused before any check or AI call runs.
+    from registry.tools import NotAllowed, create_and_submit
+    with pytest.raises(NotAllowed):
+        create_and_submit(conn, "u-nobody", **NEW_TOOL)
+    assert fake_ai.calls == []
+
+
+def test_the_api_still_refuses_an_unknown_persona_first(client):
+    r = client.post("/submissions", headers=persona("u-nobody"), json=NEW_TOOL)
+    assert r.status_code == 401
