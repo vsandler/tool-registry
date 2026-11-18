@@ -38,9 +38,9 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a (back end) done; 6b–6g next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a and 6b done; 6c–6g next |
 
-**Tests:** 459 passing.
+**Tests:** 463 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -66,6 +66,13 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **"Waiting for" in the names people see:** "the Super admin", "a Compliance specialist", "an AI enablement (technology) specialist" (was "a super admin", "a compliance specialist"). The Submit page's "What happens next" uses it too.
 - **Choices for each decision** on `my_action.choices`: the specialist areas with labels when routing; when publishing, the visibility options, the practices and the builder's request to start from. Empty when nothing needs choosing. The practice list is now one shared function, also used by the Submit form.
 - **Tests (38 new):** the wording, the choices, a check for every persona at every stage of a review (each on a fresh app) that "can decide" is true exactly when approving is accepted, and walk-throughs (route to two areas and publish; a too-short rejection refused next to the comment box; a rejection leaving the queue with its note). Four older tests now expect the new wording; one of them checks the exact text where it used to check only that "marketing" appeared.
+**6b, shared display pieces (done):**
+- **In `app.js`:** `renderFlags` (rule flags with "Next time" tips, plus all checks), `renderAdvice` ("AI advice: you decide", kept apart from the flags) and `renderProgress` (every step: done by whom and when, waiting for whom, rejected, or not reached, with the current step outlined). The progress line adds "This is the final approval. Approving publishes the tool." only when the back end says this persona can decide the final step.
+- **The Submit page uses them.** Its "What happens next" is now the full progress line instead of a plain list of step names.
+- **Tests:** 4 new, for the shared pieces; the Submit test that looked for "Rule flags" in `submit.html` now looks in the shared code and checks the page calls it.
+- **Not checked in a browser yet.** No JavaScript runtime is installed, so the page code can't be checked for typos here. Check the Submit page's results view by hand.
+- **For 6d:** each history entry's `detail` is stored with raw codes ("routed to compliance, then marketing", "published as practice-only"). I'll add a readable version in the back end for the detail panel rather than show those.
+
 - **Refusal messages reworded too** (your go-ahead, 2026-11-17): "Step 1 (…) must be decided by the Super admin, not a Specialist reviewer" and "Step 2 is the Compliance review (this tool was routed to Compliance, then Marketing); a Marketing specialist can't decide it" (were "a super_admin", "a specialist_reviewer", "compliance"). Nine older tests now expect the new text, each as specific as before: the three you named, plus six that matched the same messages in other ways. The persona-by-stage check now also fails if any refusal shows a raw code. History entries ("routed to compliance") are stored records and are unchanged.
 
 ### Also done during Phase 9

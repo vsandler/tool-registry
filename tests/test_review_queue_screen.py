@@ -7,6 +7,8 @@ The screen only asks and displays (DECISIONS.md #12). So the back end gives it:
   - `my_action.can_decide`, which must match exactly what a decision would be allowed.
 """
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -215,3 +217,52 @@ def test_rejection_leaves_the_queue_and_carries_the_note(client):
     assert body["my_action"]["can_decide"] is False
     queue = client.get("/admin/review-queue", headers=persona(SUPER)).json()
     assert tid not in [t["id"] for t in queue]
+
+
+# --- shared display pieces in app.js (6b) ------------------------------------------------------
+
+WEB = Path(__file__).resolve().parent.parent / "web"
+
+
+def shared_function(name):
+    js = (WEB / "app.js").read_text(encoding="utf-8")
+    marker = f"export function {name}("
+    assert marker in js, f"app.js has no shared {name}()"
+    body = js[js.index(marker):]
+    return body[:body.index("\n}\n")]
+
+
+def test_rule_flags_are_drawn_once_for_every_screen():
+    code = shared_function("renderFlags")
+    assert '"Rule flags"' in code
+    assert "Facts from the fixed checks, not opinions." in code
+    assert "c.passed" in code and "c.label" in code and "c.message" in code
+    assert "Next time: " in code and "c.tip" in code
+    assert "None: every rule-based check passed." in code
+
+
+def test_ai_advice_is_drawn_once_and_kept_apart_from_the_flags():
+    code = shared_function("renderAdvice")
+    assert '"AI advice: you decide"' in code
+    assert "Advice only: it never approves or rejects a tool." in code
+    for field in ("label", "summary", "issues", "reason"):
+        assert f"advice.{field}" in code
+    assert "No AI advice for this tool." in code
+    assert "checks" not in code  # flags and advice stay separate
+
+
+def test_progress_line_shows_every_step_from_the_back_end():
+    code = shared_function("renderProgress")
+    for field in ("status", "current", "decided_by", "decided_at", "waiting_for", "comment"):
+        assert f"s.{field}" in code, f"the progress line doesn't show {field}"
+    # The final-approval note appears only when the back end says this persona can
+    # decide the final step: the page doesn't work out which step is last.
+    assert "This is the final approval. Approving publishes the tool." in code
+    assert "myAction.final" in code and "myAction.can_decide" in code
+    assert "steps.length" not in code and "at(-1)" not in code
+
+
+def test_shared_display_pieces_draw_text_only():
+    for name in ("renderFlags", "renderAdvice", "renderProgress"):
+        code = shared_function(name)
+        assert "innerHTML" not in code and "insertAdjacentHTML" not in code

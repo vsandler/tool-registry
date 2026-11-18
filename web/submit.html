@@ -13,8 +13,8 @@
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
-    import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, markInvalid }
-      from "./app.js";
+    import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, markInvalid,
+             renderFlags, renderAdvice, renderProgress } from "./app.js";
 
     await renderLayout("submit");
     const content = document.getElementById("content");
@@ -165,13 +165,12 @@
       return h("input", { id, name: field.name, type: "text", autocomplete: "off" });
     }
 
-    // After submitting: the same rule flags and AI advice an approver sees, kept apart.
+    // After submitting: the same rule flags, AI advice and progress line an approver
+    // sees (shared with the Review queue, in app.js), with flags and advice kept apart.
     async function showSubmitted(toolId) {
       const tool = await loadOrExplain(`/tools/${encodeURIComponent(toolId)}`, content);
       if (tool === null) return;
       const flags = tool.checks.filter((c) => !c.passed);
-      const advice = tool.ai_review;
-      const next = tool.steps.find((s) => s.current);
 
       content.replaceChildren(
         h("p", { className: "message ok", role: "status" },
@@ -181,38 +180,11 @@
           : "No rule flags. ",
           "Flags don't block submission: a person reviews every tool."),
 
-        h("section", { className: "panel" },
-          h("h2", {}, "Rule flags"),
-          h("p", { className: "hint" }, "Facts from the fixed checks, not opinions."),
-          flags.length
-            ? h("ul", { className: "flags" }, flags.map((c) =>
-                h("li", {},
-                  h("strong", {}, c.label), `: ${c.message}`,
-                  c.tip ? h("p", { className: "tip" }, h("strong", {}, "Next time: "), c.tip) : null)))
-            : h("p", {}, "None: every rule-based check passed."),
-          h("details", {},
-            h("summary", {}, `All ${tool.checks.length} checks`),
-            h("ul", {}, tool.checks.map((c) =>
-              h("li", {}, `${c.passed ? "Passed" : "Flagged"}: ${c.label}. ${c.message}`))))),
-
-        h("section", { className: "panel" },
-          h("h2", {}, "AI advice: you decide"),
-          advice
-            ? [
-                advice.label ? h("p", { className: "hint" }, advice.label) : null,
-                h("p", {}, h("strong", {}, advice.summary)),
-                advice.issues.length
-                  ? h("ul", {}, advice.issues.map((issue) => h("li", {}, issue)))
-                  : null,
-                advice.reason ? h("p", {}, advice.reason) : null,
-                h("p", { className: "hint" }, "Advice only: it never approves or rejects a tool."),
-              ]
-            : h("p", {}, "No AI advice for this tool.")),
-
+        renderFlags(tool.checks),
+        renderAdvice(tool.ai_review),
         h("section", { className: "panel" },
           h("h2", {}, "What happens next"),
-          next ? h("p", {}, `${next.name}: waiting for ${next.waiting_for}.`) : null,
-          h("ol", {}, tool.steps.map((s) => h("li", {}, s.name)))),
+          renderProgress(tool.steps)),
 
         h("button", { type: "button", className: "secondary", onClick: showForm },
           "Submit another tool"),

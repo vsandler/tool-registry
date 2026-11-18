@@ -176,6 +176,77 @@ export async function decideOrExplain(toolId, decision, { buttonsArea, commentAr
   }
 }
 
+// --- showing a tool's review: flags, advice, progress (Submit page and Review queue) -----------
+//
+// One copy, so both screens always show these the same way. Everything shown comes
+// from the back end as it is; nothing here decides anything.
+
+// A date and time from the back end, in the reader's own format.
+export function when(iso) {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime())
+    ? String(iso || "")
+    : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+// The rule-based checks: facts, each flag with its "Next time" tip.
+export function renderFlags(checks) {
+  const flags = checks.filter((c) => !c.passed);
+  return h("section", { className: "panel" },
+    h("h2", {}, "Rule flags"),
+    h("p", { className: "hint" }, "Facts from the fixed checks, not opinions."),
+    flags.length
+      ? h("ul", { className: "flags" }, flags.map((c) =>
+          h("li", {},
+            h("strong", {}, c.label), `: ${c.message}`,
+            c.tip ? h("p", { className: "tip" }, h("strong", {}, "Next time: "), c.tip) : null)))
+      : h("p", {}, "None: every rule-based check passed."),
+    h("details", {},
+      h("summary", {}, `All ${checks.length} checks`),
+      h("ul", {}, checks.map((c) =>
+        h("li", {}, `${c.passed ? "Passed" : "Flagged"}: ${c.label}. ${c.message}`)))));
+}
+
+// The AI's pre-review: advice for a person, shown apart from the rule flags.
+export function renderAdvice(advice) {
+  return h("section", { className: "panel" },
+    h("h2", {}, "AI advice: you decide"),
+    advice
+      ? [
+          advice.label ? h("p", { className: "hint" }, advice.label) : null,
+          h("p", {}, h("strong", {}, advice.summary)),
+          advice.issues.length ? h("ul", {}, advice.issues.map((issue) => h("li", {}, issue))) : null,
+          advice.reason ? h("p", {}, advice.reason) : null,
+          h("p", { className: "hint" }, "Advice only: it never approves or rejects a tool."),
+        ]
+      : h("p", {}, "No AI advice for this tool."));
+}
+
+// The progress line: every step, done (who, when), waiting (for whom), rejected or not
+// reached. `myAction` is the viewer's `my_action`: when the back end says they can
+// decide the final step, a note says approving publishes the tool.
+export function renderProgress(steps, myAction = null) {
+  const items = steps.map((s) => {
+    let state;
+    if (s.status === "done") state = `Done by ${s.decided_by}, ${when(s.decided_at)}`;
+    else if (s.status === "rejected") state = `Rejected by ${s.decided_by}, ${when(s.decided_at)}`;
+    else if (s.status === "not_reached") state = "Not reached";
+    else if (s.current) state = `Now: waiting for ${s.waiting_for}`;
+    else state = `Later: ${s.waiting_for}`;
+    return h("li", { className: `step step-${s.status}${s.current ? " step-current" : ""}`,
+                     "aria-current": s.current ? "step" : null },
+      h("span", { className: "step-name" }, s.name),
+      h("span", { className: "step-state" }, state),
+      s.comment ? h("span", { className: "step-comment" }, `“${s.comment}”`) : null);
+  });
+  return h("div", { className: "progress" },
+    h("ol", { className: "progress-line" }, items),
+    myAction && myAction.can_decide && myAction.final
+      ? h("p", { className: "final-note" },
+          "This is the final approval. Approving publishes the tool.")
+      : null);
+}
+
 // --- the shared layout: demo banner, persona dropdown, navigation ------------------------------
 
 export async function renderLayout(activePage) {

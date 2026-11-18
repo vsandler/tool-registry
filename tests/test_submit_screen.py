@@ -366,13 +366,24 @@ def test_submit_page_submits_in_one_call_then_shows_the_back_ends_answer():
 
 
 def test_submit_page_shows_flags_and_advice_apart():
+    """Flags, advice and the progress line are drawn by the shared pieces in app.js
+    (Phase 9, step 6b), so the Submit page and the Review queue show them the same way."""
     code = page()
-    assert "Rule flags" in code and "AI advice: you decide" in code
     assert "Flags don't block submission: a person reviews every tool" in code
     assert "Submitted for review" in code       # the confirmation
-    for field in ("checks", "message", "tip", "ai_review", "summary", "issues", "reason",
-                  "waiting_for"):
-        assert field in code, f"the Submit page doesn't show {field}"
+    for call in ("renderFlags(tool.checks)", "renderAdvice(tool.ai_review)",
+                 "renderProgress(tool.steps"):
+        assert call in code, f"the Submit page doesn't use {call}"
+    shared = shared_display_code()
+    assert "Rule flags" in shared and "AI advice: you decide" in shared
+    for field in ("message", "tip", "summary", "issues", "reason", "waiting_for"):
+        assert field in shared, f"the shared display code doesn't show {field}"
+
+
+def shared_display_code():
+    js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+    start = js.index("// --- showing a tool's review")
+    return js[start:js.index("// ---", start + 10)]
 
 
 def test_submit_page_does_not_find_blanks_or_check_input_itself():
