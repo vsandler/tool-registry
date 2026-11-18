@@ -14,7 +14,7 @@
   </main>
   <script type="module">
     import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, markInvalid,
-             renderFlags, renderAdvice, renderProgress } from "./app.js";
+             renderFlags, renderAdvice, renderProgress, fill } from "./app.js";
 
     await renderLayout("submit");
     const content = document.getElementById("content");
@@ -29,7 +29,7 @@
     async function showForm() {
       const form = await loadOrExplain("/submit-form", content);
       if (form === null) return;
-      content.replaceChildren(buildForm(form));
+      fill(content, buildForm(form));
     }
 
     function buildForm(choices) {
@@ -49,11 +49,11 @@
         if (field.required) box.setAttribute("aria-required", "true");
         boxes[field.name] = box;
 
-        const hint = h("p", { id: hintId, className: "hint" }, field.hint);
-        if (field.name === "rationale") {
-          hint.append(` Aim for at least ${choices.rationale_min} characters, or it's ` +
-                      "flagged for the reviewer.");
-        }
+        const hint = h("p", { id: hintId, className: "hint" }, field.hint,
+          field.name === "rationale"
+            ? ` Aim for at least ${choices.rationale_min} characters, or it's ` +
+              "flagged for the reviewer."
+            : null);
         const block = h("div", { className: "field" },
           h("label", { for: id }, field.label,
             field.required ? h("span", { className: "required-mark", "aria-hidden": "true" }, " *") : null,
@@ -87,11 +87,11 @@
             found = await api("/templates/blanks", { method: "POST",
                                                      body: { template: boxes.template.value } });
           } catch (err) {
-            if (mine === asked) blanksList.replaceChildren(h("p", { className: "hint" }, err.message));
+            if (mine === asked) fill(blanksList, h("p", { className: "hint" }, err.message));
             return;
           }
           if (mine !== asked) return;   // an older answer arrived after a newer one
-          blanksList.replaceChildren(found.blanks.length
+          fill(blanksList, found.blanks.length
             ? h("p", {}, "Blanks found: ",
                 found.blanks.flatMap((b, i) => [i ? ", " : "", h("strong", {}, b.label),
                                                 ` (${b.name})`]))
@@ -129,7 +129,7 @@
           // The back end's message for each box goes right next to it.
           const named = (err.fields || []).filter((name) => errors[name]);
           for (const name of named) {
-            errors[name].replaceChildren(
+            fill(errors[name],
               h("span", { className: "message error inline" }, err.messages[name] || err.message));
           }
           showMessage(general, named.length
@@ -172,7 +172,7 @@
       if (tool === null) return;
       const flags = tool.checks.filter((c) => !c.passed);
 
-      content.replaceChildren(
+      fill(content,
         h("p", { className: "message ok", role: "status" },
           `Submitted for review: “${tool.name}”.`),
         h("p", {}, flags.length

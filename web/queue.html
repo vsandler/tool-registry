@@ -15,7 +15,7 @@
   </main>
   <script type="module">
     import { renderLayout, onPersonaReady, loadOrExplain, h, when, renderProgress, renderFlags,
-             renderAdvice, decideOrExplain }
+             renderAdvice, decideOrExplain, fill }
       from "./app.js";
 
     await renderLayout("queue");
@@ -54,7 +54,7 @@
       const shown = view === "mine" ? mine : tools;
       const detail = h("section", { className: "detail panel", "aria-live": "polite" });
 
-      content.replaceChildren(
+      fill(content,
         h("div", { className: "views", role: "group", "aria-label": "Which tools to show" },
           viewButton("mine", `Waiting on me (${mine.length})`),
           viewButton("all", `All in review (${tools.length})`)),
@@ -117,10 +117,10 @@
       const listed = tools.find((t) => t.id === selectedId) || null;
       const tool = justDecided() || listed;
       if (!tool) {
-        target.replaceChildren(h("p", { className: "hint" }, "Pick a tool to see its details."));
+        fill(target, h("p", { className: "hint" }, "Pick a tool to see its details."));
         return;
       }
-      target.replaceChildren(
+      fill(target,
         justDecided() ? confirmation(tool, listed === null) : null,
         h("h2", {}, tool.name),
         h("p", { className: "meta" },

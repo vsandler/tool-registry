@@ -187,3 +187,44 @@ def test_front_end_contains_no_approval_rules():
                 f"{path.name} uses {word!r} as a value: keep that rule in the back end")
         assert "owner_id" not in code, f"{path.name} compares owners: keep that in the back end"
         assert ".role" not in code, f"{path.name} reads a role: ask the API instead"
+
+
+# --- no screen ever shows "null" ------------------------------------------------------------------
+
+def _web_code():
+    return {path.name: path.read_text(encoding="utf-8")
+            for path in sorted(WEB_DIR.iterdir()) if path.suffix in (".html", ".js")}
+
+
+def _function_body(js, name):
+    start = js.index(f"export function {name}(")
+    return js[start:js.index("\n}\n", start)]
+
+
+def test_no_screen_ever_shows_null():
+    """The browser's replaceChildren() and append() turn an empty value into the text
+    "null" (a tool with no description showed "nullnull"). Pages put content on screen
+    only through h() and fill(), which skip empty values."""
+    js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+    fill = _function_body(js, "fill")
+    assert "null" in fill and "undefined" in fill and "false" in fill
+    builder = _function_body(js, "h")
+    assert "child === null" in builder and "child === undefined" in builder
+
+    for name, code in _web_code().items():
+        if name == "app.js":  # the two helpers that do it safely, and the download link
+            code = code.replace(fill, "").replace(builder, "")
+            code = code.replace("document.body.append(link)", "")
+        for match in re.finditer(r"\.(replaceChildren|append|prepend|before|after)\(\s*(\S)",
+                                 code):
+            if match.group(1) == "replaceChildren" and match.group(2) == ")":
+                continue  # clearing a box, with nothing to show
+            line = code[:match.start()].count("\n") + 1
+            raise AssertionError(f"{name} (about line {line}) puts content on screen "
+                                 "without fill() or h()")
+
+
+def test_dates_that_are_missing_show_nothing():
+    js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+    when = _function_body(js, "when")
+    assert 'if (!iso) return "";' in when  # not "1 Jan 1970" or "null"

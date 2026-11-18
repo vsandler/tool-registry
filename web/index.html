@@ -16,7 +16,7 @@
   </main>
   <script type="module">
     import { renderLayout, onPersonaReady, loadOrExplain, showMessage, api, h, saveTextFile,
-             markInvalid }
+             markInvalid, fill }
       from "./app.js";
 
     await renderLayout("catalog");
@@ -32,7 +32,7 @@
                              "once it has been reviewed and published.", "status");
         return;
       }
-      content.replaceChildren(h("ul", { className: "catalog" }, tools.map(toolCard)));
+      fill(content, h("ul", { className: "catalog" }, tools.map(toolCard)));
     });
 
     // One tool: everything shown comes straight from the back end's answer.
@@ -106,7 +106,7 @@
         }
 
         saveTextFile(copy.filename, copy.text);
-        result.replaceChildren(
+        fill(result,
           h("p", { className: "message ok", role: "status" },
             `Downloaded as ${copy.filename}. Your values aren't saved in the registry.`),
           h("h3", {}, "Your copy"),

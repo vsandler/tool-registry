@@ -105,11 +105,22 @@ export function h(tag, props = {}, ...children) {
   return node;
 }
 
+// Puts content in a box, replacing what was there. Like h(), it skips empty values
+// (null, undefined, false): the browser's own replaceChildren() would show them as
+// the word "null". Every page fills boxes this way (tests/test_web.py checks).
+export function fill(target, ...children) {
+  const kept = children.flat(Infinity)
+    .filter((child) => child !== null && child !== undefined && child !== false)
+    .map((child) => (child instanceof Node ? child : document.createTextNode(String(child))));
+  target.replaceChildren(...kept);
+  return target;
+}
+
 // Shows a message in place of a section's content. Errors are announced to screen
 // readers straight away ("alert"); other notes are read politely ("status").
 export function showMessage(target, text, kind = "error") {
   const isError = kind === "error";
-  target.replaceChildren(
+  fill(target,
     h("p", { className: `message ${kind}`, role: isError ? "alert" : "status" }, text),
   );
 }
@@ -183,6 +194,7 @@ export async function decideOrExplain(toolId, decision, { buttonsArea, commentAr
 
 // A date and time from the back end, in the reader's own format.
 export function when(iso) {
+  if (!iso) return "";
   const date = new Date(iso);
   return Number.isNaN(date.getTime())
     ? String(iso || "")
@@ -254,7 +266,7 @@ export async function renderLayout(activePage) {
   const nav = h("nav", { "aria-label": "Main" });
   const picker = h("div", { className: "persona-picker" });
 
-  root.replaceChildren(
+  fill(root,
     h(
       "p",
       { className: "demo-banner", role: "note" },
@@ -290,7 +302,7 @@ export async function renderLayout(activePage) {
     window.dispatchEvent(new CustomEvent("personachange"));
   });
 
-  picker.replaceChildren(h("label", { for: "persona" }, "Viewing as"), select);
+  fill(picker, h("label", { for: "persona" }, "Viewing as"), select);
   renderNav(nav, activePage);
 }
 
@@ -304,7 +316,7 @@ function renderNav(nav, activePage) {
         item.name,
       ),
     );
-  nav.replaceChildren(...links);
+  fill(nav, ...links);
 }
 
 // Runs `load` now, and again whenever a different persona is picked.
