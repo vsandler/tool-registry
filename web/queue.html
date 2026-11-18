@@ -24,10 +24,12 @@
     let tools = [];          // as the back end sent them, already in order
     let view = "mine";       // "mine" = Waiting on me, "all" = All in review
     let selectedId = null;
+    let decided = null;      // the tool just decided, exactly as the back end answered
 
     onPersonaReady(async () => {
       view = "mine";
       selectedId = null;
+      decided = null;
       await reload();
     });
 
@@ -37,7 +39,8 @@
       const loaded = await loadOrExplain("/admin/review-queue", content);
       if (loaded === null) return;
       tools = loaded;
-      if (!tools.some((t) => t.id === selectedId)) selectedId = null;
+      const keep = tools.some((t) => t.id === selectedId) || justDecided() !== null;
+      if (!keep) selectedId = null;
       render();
     }
 
@@ -93,7 +96,7 @@
           className: `queue-row${selected ? " selected" : ""}`,
           "data-tool-id": tool.id,
           "aria-current": selected ? "true" : null,
-          onClick: () => { selectedId = tool.id; render(tool.id); },
+          onClick: () => { selectedId = tool.id; decided = null; render(tool.id); },
         },
           h("span", { className: "row-name" }, tool.name),
           h("span", { className: "meta" },
@@ -104,13 +107,21 @@
           tool.flagged ? h("span", { className: "badge" }, "Has rule flags") : null));
     }
 
+    // The tool just decided, if it's the one selected: shown from the decision's own
+    // answer, so it stays on screen even after it leaves the queue.
+    function justDecided() {
+      return decided && decided.id === selectedId ? decided : null;
+    }
+
     function showDetail(target) {
-      const tool = tools.find((t) => t.id === selectedId);
+      const listed = tools.find((t) => t.id === selectedId) || null;
+      const tool = justDecided() || listed;
       if (!tool) {
         target.replaceChildren(h("p", { className: "hint" }, "Pick a tool to see its details."));
         return;
       }
       target.replaceChildren(
+        justDecided() ? confirmation(tool, listed === null) : null,
         h("h2", {}, tool.name),
         h("p", { className: "meta" },
           `Built by ${tool.owner_name} · submitted ${when(tool.submitted_at)}`),
@@ -264,10 +275,19 @@
       }) };
     }
 
-    // After a decision: reload the list (6f will keep showing the updated tool).
+    // After a decision: keep showing the tool as the back end now describes it
+    // (`updated`), and reload the list, which it may have left.
     async function afterDecision(updated) {
       selectedId = updated.id;
+      decided = updated;
       await reload();
+      content.querySelector(".decision-done")?.focus();
+    }
+
+    function confirmation(tool, leftQueue) {
+      return h("p", { className: "message ok decision-done", role: "status", tabindex: "-1" },
+        `Decision recorded. This tool is now: ${tool.status_label}.`,
+        leftQueue ? " It has left the queue." : "");
     }
 
     // Who rejected it, when, at which step and why: all from the back end.

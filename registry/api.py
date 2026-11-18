@@ -173,6 +173,11 @@ def catalogue_entry(conn: sqlite3.Connection, tool: dict) -> dict:
     }
 
 
+# A tool's status as the screens show it.
+STATUS_LABELS = {"draft": "Draft", "in_review": "In review", "rejected": "Rejected",
+                 "published": "Published"}
+
+
 def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None = None) -> dict:
     """Everything the screens show about one tool. `my_action` is for the persona
     viewing it: can they decide the current step, and if not, why (plain words)."""
@@ -181,6 +186,7 @@ def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None
     return {
         **tool,
         "owner_name": owner["name"] if owner else "Unknown",
+        "status_label": STATUS_LABELS.get(tool["status"], tool["status"]),
         "checks": checks,
         "flagged": any(not c["passed"] for c in checks),
         "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides

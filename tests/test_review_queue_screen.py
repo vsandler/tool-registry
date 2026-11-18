@@ -458,3 +458,38 @@ def test_decision_controls_do_no_checking_of_their_own():
     assert "practice-only" not in code and "firm-wide" not in code
     for area in SPECIALIST_AREAS:
         assert f'"{area}"' not in code  # areas come from choices.areas
+
+
+# --- after a decision (6f) ---------------------------------------------------------------------
+
+def test_tool_details_say_the_status_in_plain_words(client):
+    tid = submit_via_api(client, name="Status tool")
+    assert client.get(f"/tools/{tid}", headers=persona(SUPER)).json()["status_label"] == "In review"
+    r = client.post(f"/tools/{tid}/decisions", headers=persona(SUPER),
+                    json={"decision": "rejected", "comment": "Duplicates the welcome letter."})
+    assert r.json()["status_label"] == "Rejected"
+    published = at_publish_step(client, name="Published status tool")
+    assert approve_with_choices(client, published, SUPER).json()["status_label"] == "Published"
+
+
+def test_a_decision_answers_with_everything_the_panel_shows(client):
+    tid = submit_via_api(client, name="Answer tool")
+    r = approve_with_choices(client, tid, SUPER)
+    body = r.json()
+    for field in ("steps", "checks", "ai_review", "history", "rejection", "my_action",
+                  "owner_name", "status_label"):
+        assert field in body, f"the decision's answer has no {field}"
+    # The answer is for the person who decided: it's now the specialist's turn.
+    assert body["my_action"]["can_decide"] is False
+    assert body["my_action"]["reason"] == "Waiting for an AI enablement (technology) specialist."
+
+
+def test_page_keeps_showing_the_decided_tool_and_reloads_the_list():
+    code = queue_page()
+    after = code[code.index("async function afterDecision"):]
+    after = after[:after.index("\n    }\n")]
+    assert "reload()" in after
+    assert "updated" in after
+    assert "Decision recorded." in code and "status_label" in code
+    assert "It has left the queue." in code
+    assert "6f will" not in code  # the stopgap note is gone
