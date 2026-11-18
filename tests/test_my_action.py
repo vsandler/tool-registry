@@ -128,7 +128,7 @@ def test_finished_or_unsubmitted_tools_explain_the_review_is_not_open(flow):
     decide(flow, published, SUPER, "approved", route_to="marketing")
     decide(flow, published, MARKETING, "approved")
     decide(flow, published, SUPER, "approved", visibility="firm-wide")
-    assert action(flow, published, SUPER)["reason"] == "This tool is already published."
+    assert action(flow, published, SUPER)["reason"] == "Published. Nothing left to decide."
     assert action(flow, published, SUPER)["can_decide"] is False
 
 

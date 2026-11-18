@@ -269,7 +269,7 @@ def _check_turn(conn: sqlite3.Connection, tool: dict, user: sqlite3.Row) -> dict
 _NOT_IN_REVIEW = {
     "draft": "This tool hasn't been submitted yet.",
     "rejected": "This tool was rejected, so the review is over.",
-    "published": "This tool is already published.",
+    "published": "Published. Nothing left to decide.",
 }
 
 

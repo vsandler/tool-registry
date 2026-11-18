@@ -532,3 +532,9 @@ def test_confirmation_says_who_is_next_when_still_in_review():
     note = note[:note.index("\n    }\n")]
     assert "waiting_for" in note and ".current" in note
     assert "It's now waiting for" in note
+
+
+def test_after_publishing_the_panel_reads_as_done_not_as_an_error(client):
+    tid = at_publish_step(client, name="Done tool")
+    r = approve_with_choices(client, tid, SUPER)
+    assert r.json()["my_action"]["reason"] == "Published. Nothing left to decide."
