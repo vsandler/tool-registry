@@ -1,6 +1,16 @@
 # Backlog
 
 ## To Do
+- **Design polish: the progress line as a connected progress bar**
+  - **When:** right after Phase 9, step 6 (the Review queue) is finished, and before the README screenshots in Phase 11.
+  - **What it is:** today each step is a separate box (step 6b). It should read as one progress bar: steps joined by a line, done steps clearly marked (for example a tick and a filled connector), the current step stand out, and rejected or not-reached steps look different.
+  - **Steps to build it:**
+    1. Draw connectors between the steps in `web/style.css`, coloured up to the last done step.
+    2. Mark each step's state with a symbol as well as colour (done, current, rejected, not reached), so it doesn't rely on colour alone.
+    3. Keep it readable at phone width: wrap or stack the steps, with no sideways scrolling.
+    4. Keep the screen-reader text as it is: each step's state stays written out in words.
+    5. Check it by hand on the Submit page's results and in the Review queue, for a tool in review, a rejected tool and a published one.
+    6. Only `renderProgress` in `web/app.js` and the styles change; the back end's `steps` stay as they are, so the existing tests still apply.
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**

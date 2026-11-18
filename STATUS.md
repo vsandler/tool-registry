@@ -71,6 +71,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **The Submit page uses them.** Its "What happens next" is now the full progress line instead of a plain list of step names.
 - **Tests:** 4 new, for the shared pieces; the Submit test that looked for "Rule flags" in `submit.html` now looks in the shared code and checks the page calls it.
 - **Not checked in a browser yet.** No JavaScript runtime is installed, so the page code can't be checked for typos here. Check the Submit page's results view by hand.
+- **After step 6 (before the Phase 11 README screenshots):** design polish so the progress line reads as a connected progress bar (BACKLOG.md).
 - **For 6d:** each history entry's `detail` is stored with raw codes ("routed to compliance, then marketing", "published as practice-only"). I'll add a readable version in the back end for the detail panel rather than show those.
 
 - **Refusal messages reworded too** (your go-ahead, 2026-11-17): "Step 1 (…) must be decided by the Super admin, not a Specialist reviewer" and "Step 2 is the Compliance review (this tool was routed to Compliance, then Marketing); a Marketing specialist can't decide it" (were "a super_admin", "a specialist_reviewer", "compliance"). Nine older tests now expect the new text, each as specific as before: the three you named, plus six that matched the same messages in other ways. The persona-by-stage check now also fails if any refusal shows a raw code. History entries ("routed to compliance") are stored records and are unchanged.
