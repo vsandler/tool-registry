@@ -371,3 +371,90 @@ def test_history_shows_readable_words_not_stored_codes():
     for field in ("approver_name", "decided_at", "comment", "detail_label"):
         assert field in code, f"the history doesn't show {field}"
     assert not re.search(r"\.detail(?!_label)\b", code)  # the raw stored text
+
+
+# --- decisions (6e) ----------------------------------------------------------------------------
+
+def at_publish_step(client, **submit):
+    tid = submit_via_api(client, **submit)
+    for user in (SUPER, TECH, COMPLIANCE):
+        assert approve_with_choices(client, tid, user).status_code == 200
+    return tid
+
+
+@pytest.mark.parametrize("route_to, expected", [
+    ([], "Choose at least one specialist area to route to: "
+         "AI enablement (technology), Compliance or Marketing."),
+    (["nowhere"], "Choose a specialist area to route to: "
+                  "AI enablement (technology), Compliance or Marketing."),
+    (["compliance", "compliance"], "Each specialist area can only be chosen once. "
+                                   "Picked more than once: Compliance."),
+])
+def test_route_refusals_use_readable_names(client, route_to, expected):
+    tid = submit_via_api(client, name="Route refusal tool")
+    r = client.post(f"/tools/{tid}/decisions", headers=persona(SUPER),
+                    json={"decision": "approved", "route_to": route_to})
+    assert r.status_code == 400
+    assert r.json()["detail"] == expected
+
+
+@pytest.mark.parametrize("body, expected", [
+    ({}, "Choose a visibility before publishing: Firm-wide or Practice-only."),
+    ({"visibility": "secret"}, "Choose a visibility before publishing: Firm-wide or Practice-only."),
+    ({"visibility": "practice-only", "practice": None},
+     "Choose a practice for a Practice-only tool."),
+])
+def test_publish_refusals_use_readable_names(client, body, expected):
+    tid = at_publish_step(client, name="Publish refusal tool")  # firm-wide: no practice
+    r = client.post(f"/tools/{tid}/decisions", headers=persona(SUPER),
+                    json={"decision": "approved", **body})
+    assert r.status_code == 400
+    assert r.json()["detail"] == expected
+
+
+def test_publishing_with_the_requested_practice(client):
+    tid = at_publish_step(client, name="Practice tool", visibility="practice-only",
+                          practice="Tax")
+    r = approve_with_choices(client, tid, SUPER)
+    assert r.status_code == 200
+    assert r.json()["status"] == "published"
+    assert (r.json()["visibility"], r.json()["practice"]) == ("practice-only", "Tax")
+
+
+def test_a_review_approval_can_carry_a_comment(client):
+    tid = submit_via_api(client, name="Comment tool")
+    approve_with_choices(client, tid, SUPER)
+    r = client.post(f"/tools/{tid}/decisions", headers=persona(TECH),
+                    json={"decision": "approved", "comment": "Checked the wording."})
+    assert r.status_code == 200
+    assert r.json()["history"][-1]["comment"] == "Checked the wording."
+
+
+def test_decision_controls_are_built_from_my_action():
+    code = queue_page()
+    assert "decideOrExplain(" in code
+    assert "buttonsArea" in code and "commentArea" in code
+    for field in ("my_action.can_decide", "a.needs", "a.choices", "choices.areas",
+                  "choices.visibilities", "asks_practice", "choices.practices",
+                  "choices.requested", "reject_comment_min", "a.reason"):
+        assert field in code, f"the decision controls don't use {field}"
+    for sent in ("route_to", "visibility:", "practice:", '"approved"', '"rejected"'):
+        assert sent in code, f"the decision doesn't send {sent}"
+
+
+def test_decision_controls_explain_themselves():
+    code = queue_page()
+    for text in ("in the order you tick them", "Approve and route", "Approve and publish",
+                 '"Approve"', '"Reject"', "The builder will see it."):
+        assert text in code, f"the decision controls don't say {text!r}"
+
+
+def test_decision_controls_do_no_checking_of_their_own():
+    code = queue_page()
+    assert not re.search(r"minlength|maxlength", code, re.I)
+    assert not re.search(r"required\s*:\s*true|required=|setAttribute\(\s*[\"']required[\"']",
+                         code)
+    assert not re.search(r"comment[\w.]*\.length", code)  # the minimum is checked by the back end
+    assert "practice-only" not in code and "firm-wide" not in code
+    for area in SPECIALIST_AREAS:
+        assert f'"{area}"' not in code  # areas come from choices.areas

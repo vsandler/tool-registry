@@ -200,7 +200,7 @@ def test_publish_practice_only_needs_a_practice(flow):
     tid = submitted_tool(flow, practice=None)
     route(flow, tid)
     decide(flow, tid, COMPLIANCE, "approved")
-    with pytest.raises(ApprovalError, match="Name the practice"):
+    with pytest.raises(ApprovalError, match="Choose a practice for a Practice-only tool"):
         decide(flow, tid, SUPER, "approved", visibility="practice-only")
     assert get_tool(flow, tid)["status"] == "in_review"
 
@@ -210,7 +210,7 @@ def test_publish_needs_a_valid_visibility(flow, bad):
     tid = submitted_tool(flow)
     route(flow, tid)
     decide(flow, tid, COMPLIANCE, "approved")
-    with pytest.raises(ApprovalError, match="Set visibility"):
+    with pytest.raises(ApprovalError, match="Choose a visibility before publishing: Firm-wide or Practice-only"):
         decide(flow, tid, SUPER, "approved", visibility=bad)
     assert get_tool(flow, tid)["status"] == "in_review"
 

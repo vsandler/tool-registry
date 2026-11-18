@@ -38,9 +38,9 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a–6d done; 6e–6g next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a–6e done; 6f–6g next |
 
-**Tests:** 474 passing.
+**Tests:** 485 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -82,6 +82,15 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 **6d, the detail panel (done):** picking a tool shows, in order: its name, who built it and when it was submitted; the progress line (with the final-approval note when the back end says so); the "Rejected" note (who, when, at which step, why) if it was rejected; the description, template and "Why it's built this way"; "Rule flags" and "AI advice: you decide" as separate sections (the same shared pieces as the Submit page); and the history, oldest first, with each comment.
 - **Back end:** each history entry has a readable `detail_label` ("Routed to AI enablement (technology), then Marketing", "Published as Practice-only (Tax)"). The stored `detail` is unchanged; the page never shows it.
 - **Tests:** 6 new (the readable labels and that stored text is kept; the panel's sections, rejection note and history fields; the page doesn't read the raw stored text).
+
+**6e, decisions (done):** a "Your decision" section in the detail panel, shown only when the back end says this persona can decide; otherwise it shows the back end's reason, with no buttons.
+- **Route:** a checkbox per area (from `my_action.choices`), numbered 1, 2, 3 in the order ticked, with "Review order: Compliance, then Marketing." written out. Unticking moves the later ones up. "Approve and route".
+- **Review:** "Approve".
+- **Publish:** visibility and practice, starting from what the builder asked for; the Practice box shows only for a visibility that needs one. "Approve and publish".
+- **Every step:** one comment box (optional when approving; to reject, at least 10 characters, shown as a hint) and "Reject". All checks are the back end's: a refusal about the comment appears next to the box, anything else next to the buttons. Everything goes through `decideOrExplain`.
+- **Refusals reworded** to the names people see: "Choose at least one specialist area to route to: AI enablement (technology), Compliance or Marketing.", "Each specialist area can only be chosen once. Picked more than once: Compliance.", "Choose a visibility before publishing: Firm-wide or Practice-only.", "Choose a practice for a Practice-only tool." Two older tests expect the new text.
+- **After a decision,** for now the list reloads; 6f keeps the updated tool on screen even when it leaves the queue.
+- **Tests:** 11 new (the reworded refusals through the API; publishing with the requested practice; an approval with a comment; the controls use only `my_action`, say what they do, and do no checking of their own).
 
 - **After step 6 (before the Phase 11 README screenshots):** design polish so the progress line reads as a connected progress bar (BACKLOG.md).
 

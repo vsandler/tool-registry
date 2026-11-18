@@ -180,18 +180,24 @@ def _routed_areas(steps: list[dict]) -> list[str]:
 def _check_areas(route_to) -> list[str]:
     """Turn route_to (one area as text, or a list of areas in order) into a checked list."""
     areas = [route_to] if isinstance(route_to, str) or route_to is None else list(route_to)
-    choices = ", ".join(SPECIALIST_AREAS)
+    choices = _one_of(SPECIALIST_AREAS.values())
     if not areas:
-        raise ApprovalInputError(f"Choose at least one specialist area to route to: {choices}")
+        raise ApprovalInputError(f"Choose at least one specialist area to route to: {choices}.")
     for area in areas:
         if area not in SPECIALIST_AREAS:
-            raise ApprovalInputError(f"Choose a specialist area to route to: {choices}")
-    repeated = sorted({a for a in areas if areas.count(a) > 1})
+            raise ApprovalInputError(f"Choose a specialist area to route to: {choices}.")
+    repeated = [a for a in SPECIALIST_AREAS if areas.count(a) > 1]
     if repeated:
         raise ApprovalInputError(
-            f"Each specialist area can only be chosen once; picked more than once: "
-            f"{', '.join(repeated)}")
+            "Each specialist area can only be chosen once. Picked more than once: "
+            f"{', '.join(SPECIALIST_AREAS[a] for a in repeated)}.")
     return areas
+
+
+def _one_of(labels) -> str:
+    """"A, B or C", for a message listing the choices."""
+    labels = list(labels)
+    return labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " or " + labels[-1]
 
 
 def _expand_for_areas(steps: list[dict], route_position: int, areas: list[str]) -> list[dict]:
@@ -432,10 +438,11 @@ def decide(
         detail = "routed to " + ", then ".join(areas)
     elif decision == "approved" and step["action"] == "publish":
         if visibility not in VISIBILITIES:
-            raise ApprovalInputError(f"Set visibility to one of {VISIBILITIES} before publishing")
+            raise ApprovalInputError("Choose a visibility before publishing: "
+                                     f"{_one_of(o['label'] for o in VISIBILITY_OPTIONS)}.")
         final_practice = (practice or tool["practice"] or "").strip() or None
         if visibility == "practice-only" and not final_practice:
-            raise ApprovalInputError("Name the practice for a practice-only tool")
+            raise ApprovalInputError("Choose a practice for a Practice-only tool.")
         updates["visibility"] = visibility
         updates["practice"] = final_practice if visibility == "practice-only" else tool["practice"]
         detail = f"published as {visibility}" + (

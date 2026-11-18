@@ -15,7 +15,7 @@
   </main>
   <script type="module">
     import { renderLayout, onPersonaReady, loadOrExplain, h, when, renderProgress, renderFlags,
-             renderAdvice }
+             renderAdvice, decideOrExplain }
       from "./app.js";
 
     await renderLayout("queue");
@@ -123,8 +123,151 @@
         h("p", {}, tool.rationale || "No reason was recorded."),
         renderFlags(tool.checks),
         renderAdvice(tool.ai_review),
+        decisionPanel(tool),
         historyList(tool.history),
       );
+    }
+
+    // The decision controls, built only from the back end's `my_action`: whether this
+    // persona can decide, what deciding needs (`needs`) and what to pick from
+    // (`choices`). Every check on what's picked or typed happens in the back end
+    // (DECISIONS.md #12); its message appears next to the buttons or the comment box.
+    function decisionPanel(tool) {
+      const a = tool.my_action;
+      const heading = h("h2", {}, "Your decision");
+      if (!tool.my_action.can_decide) {
+        return h("section", { className: "panel decision" }, heading,
+          h("p", { className: "message status", role: "status" }, a.reason));
+      }
+
+      const choices = a.choices || {};
+      const buttonsArea = h("div", { className: "form-message", "aria-live": "polite" });
+      const commentArea = h("div", { id: `comment-error-${tool.id}`, className: "field-error" });
+      let picker = null;
+      let collect = () => ({});
+      let approveLabel = "Approve";
+
+      if (a.needs === "areas") {
+        ({ picker, collect } = areaPicker(tool, choices.areas));
+        approveLabel = "Approve and route";
+      } else if (a.needs === "visibility") {
+        ({ picker, collect } = publishPicker(tool, choices));
+        approveLabel = "Approve and publish";
+      }
+
+      const commentId = `comment-${tool.id}`;
+      const hintId = `${commentId}-hint`;
+      const comment = h("textarea", { id: commentId, name: "comment", rows: "3",
+                                      "aria-describedby": hintId });
+      const commentField = h("div", { className: "field" },
+        h("label", { for: commentId }, "Comment"),
+        h("p", { id: hintId, className: "hint" },
+          "Optional when approving. To reject, explain why in at least " +
+          `${a.reject_comment_min} characters. The builder will see it.`),
+        comment,
+        commentArea);
+
+      const approve = h("button", { type: "button" }, approveLabel);
+      const reject = h("button", { type: "button", className: "secondary danger" }, "Reject");
+
+      async function send(decision, extra) {
+        for (const button of [approve, reject]) button.disabled = true;
+        comment.removeAttribute("aria-invalid");
+        comment.setAttribute("aria-describedby", hintId);
+        const updated = await decideOrExplain(tool.id,
+          { decision, comment: comment.value, ...extra }, { buttonsArea, commentArea });
+        for (const button of [approve, reject]) button.disabled = false;
+        if (updated === null) {
+          // The back end said the comment is the problem: point the box at its message.
+          if (commentArea.childElementCount) {
+            comment.setAttribute("aria-invalid", "true");
+            comment.setAttribute("aria-describedby", `${commentArea.id} ${hintId}`);
+            comment.focus();
+          }
+          return;
+        }
+        await afterDecision(updated);
+      }
+      approve.addEventListener("click", () => send("approved", collect()));
+      reject.addEventListener("click", () => send("rejected", {}));
+
+      return h("section", { className: "panel decision" }, heading,
+        h("p", {}, `Step ${a.step_position}: ${a.step_name}`),
+        picker,
+        commentField,
+        h("div", { className: "buttons" }, approve, reject),
+        buttonsArea);
+    }
+
+    // Route: a checkbox per area from the back end. The order is the order they're
+    // ticked, shown as 1, 2, 3; unticking one moves the later ones up.
+    function areaPicker(tool, areas) {
+      const picked = [];
+      const numbers = {};
+      const labels = Object.fromEntries(areas.map((area) => [area.value, area.label]));
+      const order = h("p", { className: "hint", "aria-live": "polite" });
+      const showOrder = () => {
+        for (const [value, number] of Object.entries(numbers)) {
+          const place = picked.indexOf(value);
+          number.textContent = place === -1 ? "" : String(place + 1);
+        }
+        order.textContent = picked.length
+          ? `Review order: ${picked.map((value) => labels[value]).join(", then ")}.`
+          : "No areas ticked yet.";
+      };
+      const items = areas.map((area) => {
+        const id = `area-${tool.id}-${area.value}`;
+        numbers[area.value] = h("span", { className: "order-number", "aria-hidden": "true" });
+        const box = h("input", { type: "checkbox", id, value: area.value });
+        box.addEventListener("change", () => {
+          if (box.checked) picked.push(area.value);
+          else picked.splice(picked.indexOf(area.value), 1);
+          showOrder();
+        });
+        return h("li", {}, box, h("label", { for: id }, area.label), numbers[area.value]);
+      });
+      showOrder();
+      const picker = h("fieldset", { className: "area-picker" },
+        h("legend", {}, "Send it to these specialist areas, in the order you tick them"),
+        h("p", { className: "hint" },
+          "They review one after another. Untick an area to take it out; the rest move up."),
+        h("ul", {}, items),
+        order);
+      return { picker, collect: () => ({ route_to: [...picked] }) };
+    }
+
+    // Publish: visibility and practice, starting from what the builder asked for. The
+    // Practice box shows only for a visibility the back end says needs one.
+    function publishPicker(tool, choices) {
+      const visibility = h("select", { id: `visibility-${tool.id}`, name: "visibility" },
+        choices.visibilities.map((v) => h("option", { value: v.value }, v.label)));
+      visibility.value = choices.requested.visibility || "";
+      const practice = h("select", { id: `practice-${tool.id}`, name: "practice" },
+        h("option", { value: "" }, "Choose a practice…"),
+        choices.practices.map((p) => h("option", { value: p }, p)));
+      practice.value = choices.requested.practice || "";
+      const practiceField = h("div", { className: "field" },
+        h("label", { for: practice.id }, "Practice"), practice);
+      const asksPractice = () => Boolean(
+        (choices.visibilities.find((v) => v.value === visibility.value) || {}).asks_practice);
+      const showPractice = () => { practiceField.hidden = !asksPractice(); };
+      visibility.addEventListener("change", showPractice);
+      showPractice();
+      const picker = h("div", { className: "publish-picker" },
+        h("p", { className: "hint" }, "Starts from what the builder asked for. Change it if needed."),
+        h("div", { className: "field" },
+          h("label", { for: visibility.id }, "Visibility"), visibility),
+        practiceField);
+      return { picker, collect: () => ({
+        visibility: visibility.value,
+        practice: asksPractice() ? (practice.value || null) : null,
+      }) };
+    }
+
+    // After a decision: reload the list (6f will keep showing the updated tool).
+    async function afterDecision(updated) {
+      selectedId = updated.id;
+      await reload();
     }
 
     // Who rejected it, when, at which step and why: all from the back end.
