@@ -14,7 +14,8 @@ OTHER_PRACTICE = "This tool belongs to another practice."
 TAX_ADMIN = "u-practice-admin"          # Morgan Fennel, Tax
 AUDIT_ADMIN = "u-practice-admin-audit"  # made up for these tests, Audit
 TAX_BUILDER = "u-builder"               # Avery Quill, Tax
-AUDIT_OWNER = "u-tool-user"             # Jamie Larkspur, Audit
+AUDIT_OWNER = "u-builder-audit"         # made up for these tests, Audit (Tool users
+                                        # can't submit tools, so not Jamie Larkspur)
 NO_PRACTICE_OWNER = "u-specialist"      # Sam Thistle: specialists have no practice
 
 
@@ -25,6 +26,11 @@ def client():
         "INSERT INTO users (id, name, email, role, practice, specialty) VALUES "
         "(?, 'Robin Example', 'robin.example@example.com', 'practice_admin', 'Audit', NULL)",
         (AUDIT_ADMIN,),
+    )
+    app.state.conn.execute(
+        "INSERT INTO users (id, name, email, role, practice, specialty) VALUES "
+        "(?, 'Casey Example', 'casey.example@example.com', 'builder', 'Audit', NULL)",
+        (AUDIT_OWNER,),
     )
     app.state.conn.commit()
     with TestClient(app) as c:

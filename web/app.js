@@ -2,13 +2,14 @@
 //
 // The screens only ask the back end and display what it says. There are no approval
 // rules here: who may do what comes from the API (for example `my_action` on a tool,
-// and `can_open_queue` on a persona). tests/test_web.py guards this.
+// and `can_open_queue` and `can_submit` on a persona). tests/test_web.py guards this.
 
 const PERSONA_KEY = "tool-registry-persona";
 
 const NAV = [
   { href: "./", name: "Catalog", page: "catalog" },
-  { href: "submit.html", name: "Submit a tool", page: "submit" },
+  // Shown only when the back end says this persona can submit tools.
+  { href: "submit.html", name: "Submit a tool", page: "submit", onlyIfCanSubmit: true },
   // Shown only when the back end says this persona can open the queue.
   { href: "queue.html", name: "Review queue", page: "queue", onlyIfCanOpenQueue: true },
 ];
@@ -309,7 +310,9 @@ export async function renderLayout(activePage) {
 
 function renderNav(nav, activePage) {
   const persona = currentPersona();
-  const links = NAV.filter((item) => !item.onlyIfCanOpenQueue || (persona && persona.can_open_queue))
+  const links = NAV
+    .filter((item) => !item.onlyIfCanOpenQueue || (persona && persona.can_open_queue))
+    .filter((item) => !item.onlyIfCanSubmit || (persona && persona.can_submit))
     .map((item) =>
       h(
         "a",

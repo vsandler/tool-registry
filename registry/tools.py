@@ -5,6 +5,8 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 
+from registry.personas import SUBMIT_REFUSED_MESSAGE, SUBMIT_ROLES, get_user
+
 VISIBILITIES = ("practice-only", "firm-wide")
 
 # The visibility choices on the Submit form, in the order shown. `asks_practice` says
@@ -167,6 +169,7 @@ def create_tool(
     The name and practice are trimmed; a blank practice, or any practice on a
     firm-wide tool, is stored as None.
     """
+    check_can_submit(conn, owner_id)
     refuse_if_problems(input_problems(name=name, template=template, visibility=visibility))
     name = name.strip()
     practice = (practice or "").strip() or None
@@ -194,6 +197,13 @@ def get_tool(conn: sqlite3.Connection, tool_id: int) -> dict | None:
     return tool
 
 
+def check_can_submit(conn: sqlite3.Connection, user_id: str) -> None:
+    """Only the roles in SUBMIT_ROLES may save or submit tools (Tool users can't)."""
+    user = get_user(conn, user_id)
+    if user is not None and user["role"] not in SUBMIT_ROLES:
+        raise NotAllowed(SUBMIT_REFUSED_MESSAGE)
+
+
 def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
                 sample_advice=None) -> dict:
     """Send a draft for review. The rule-based checks and the AI pre-review both run,
@@ -213,6 +223,7 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
     check or AI call runs. The seed's sample submissions are exempt: they stand for
     submissions made before this rule, so the demo keeps its tool with no rationale.
     """
+    check_can_submit(conn, user_id)
     # Imported here to avoid circular imports (both modules import from this one).
     from registry import agent
     from registry.checks import get_check_results, run_checks, save_check_results

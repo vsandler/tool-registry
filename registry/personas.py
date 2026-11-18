@@ -13,6 +13,11 @@ ADMIN_ROLES = ("practice_admin", "super_admin")
 # of it (#13). Practice admins see only their own practice's tools (the owner's
 # practice); the Super admin sees every tool.
 QUEUE_ROLES = ADMIN_ROLES + ("specialist_reviewer",)
+# Who may save and submit tools. Tool users only use published tools. Admins and
+# specialists can build tools too (and can't approve their own, #7).
+SUBMIT_ROLES = ("builder",) + QUEUE_ROLES
+SUBMIT_REFUSED_MESSAGE = ("Tool users can't submit tools. You can use the published tools "
+                          "in the Catalog.")
 
 ROLE_LABELS = {
     "builder": "Builder",

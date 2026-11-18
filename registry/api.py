@@ -37,11 +37,13 @@ from registry.personas import (
     QUEUE_ROLES,
     SPECIALIST_AREAS,
     get_user,
+    SUBMIT_ROLES,
     persona_label,
     practice_names,
 )
 from registry.seed import seed
 from registry.tools import (
+    check_can_submit,
     NotAllowed,
     NotFound,
     ToolError,
@@ -265,7 +267,8 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
         `can_open_queue` so the navigation shows the Review queue link only to those
         the queue lets in (the same QUEUE_ROLES the queue itself checks)."""
         rows = conn.execute("SELECT id, name, role, practice, specialty FROM users ORDER BY id")
-        return [{**dict(r), "label": persona_label(r), "can_open_queue": r["role"] in QUEUE_ROLES}
+        return [{**dict(r), "label": persona_label(r), "can_open_queue": r["role"] in QUEUE_ROLES,
+                 "can_submit": r["role"] in SUBMIT_ROLES}
                 for r in rows]
 
     # -- the screens --
@@ -280,6 +283,7 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
 
     @app.get("/submit-form")
     def submit_form(user=Depends(persona), conn=Depends(db)):
+        check_can_submit(conn, user["id"])
         """The Submit form's boxes (label, hint, and whether it's required) and its
         choices: visibility options (each saying whether it needs a practice), the
         practices people belong to, this persona's own practice to start with, and the

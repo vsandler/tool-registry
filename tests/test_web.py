@@ -234,3 +234,60 @@ def test_screens_use_us_wording_select_not_tick():
     for name, code in _web_code().items():
         found = re.findall(r"\b(?:un)?tick(?:ed|ing|s)?\b", code, re.I)
         assert not found, f"{name} says {found}: use select / clear instead"
+
+
+# --- only people who build tools can submit them ---------------------------------------------------
+
+SUBMIT_REFUSED = ("Tool users can't submit tools. You can use the published tools in the "
+                  "Catalog.")
+NEW_TOOL = dict(name="Persona tool", description="Made-up test tool.", template="Hi {{name}}",
+                visibility="firm-wide", rationale="A clear, reusable greeting for new clients.")
+
+
+def test_can_submit_matches_what_submitting_actually_allows(client):
+    """The navigation shows "Submit a tool" only if the back end says so, and that flag
+    must agree with the back end's answer to a real submission, for every persona."""
+    people = client.get("/personas").json()
+    for person in people:
+        r = client.post("/submissions", headers={"X-Persona": person["id"]},
+                        json={**NEW_TOOL, "name": f"Tool by {person['id']}"})
+        assert person["can_submit"] == (r.status_code == 201), (person["id"], r.text)
+    assert {p["id"] for p in people if not p["can_submit"]} == {"u-tool-user"}
+
+
+@pytest.mark.parametrize("method, path, body", [
+    ("get", "/submit-form", None),
+    ("post", "/submissions", NEW_TOOL),
+    ("post", "/tools", NEW_TOOL),
+])
+def test_tool_users_are_refused_in_plain_words_and_nothing_is_saved(client, method, path, body):
+    before = client.app.state.conn.execute("SELECT count(*) FROM tools").fetchone()[0]
+    kwargs = {"headers": {"X-Persona": "u-tool-user"}}
+    if body is not None:
+        kwargs["json"] = body
+    r = getattr(client, method)(path, **kwargs)
+    assert r.status_code == 403
+    assert r.json()["detail"] == SUBMIT_REFUSED
+    after = client.app.state.conn.execute("SELECT count(*) FROM tools").fetchone()[0]
+    assert after == before
+
+
+def test_a_tool_users_old_draft_cannot_be_submitted(client):
+    """A draft saved before this rule (put straight into the database here) is refused too."""
+    conn = client.app.state.conn
+    tid = conn.execute(
+        "INSERT INTO tools (name, template, visibility, owner_id, rationale, status, created_at) "
+        "VALUES ('Old draft', 'Hi {{name}}', 'firm-wide', 'u-tool-user', "
+        "'A clear, reusable greeting.', 'draft', '2026-11-01T09:00:00+00:00')").lastrowid
+    conn.commit()
+    r = client.post(f"/tools/{tid}/submit", headers={"X-Persona": "u-tool-user"})
+    assert r.status_code == 403 and r.json()["detail"] == SUBMIT_REFUSED
+    assert client.get(f"/tools/{tid}", headers={"X-Persona": "u-tool-user"}).json()["status"] == "draft"
+
+
+def test_submit_link_is_shown_only_when_the_back_end_says_so():
+    js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+    nav = js[js.index("const NAV = ["):js.index("];", js.index("const NAV = ["))]
+    submit_item = next(line for line in nav.split("\n") if "submit.html" in line)
+    assert "onlyIfCanSubmit: true" in submit_item
+    assert "persona.can_submit" in js
