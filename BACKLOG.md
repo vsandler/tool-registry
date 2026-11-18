@@ -40,6 +40,18 @@
   - **Open questions:**
     - **First visit:** is everything new, or nothing?
     - **Where "last looked" is kept:** in the back end (works on any device), or only in this browser (simpler, but lost on another device)? With real sign-in, the back end is the natural home.
+- **Revisit length limits with real data**
+  - **What it is:** the length limits (DECISIONS.md #22: name 100, description 500, template 5,000, rationale 1,000 and comments 1,000 characters) were set from made-up text. Each is at least twice the longest text in the seed data and eval cases (the name about 2.4 times, the template about 13 times). Real tools may be longer.
+  - **Why it matters:** a limit that's too low refuses good tools; one that's too high lets the cost of an AI review grow.
+  - **Steps to build it:**
+    1. In production, log the length of each box of every real submission (the lengths only, never the text, which may hold client details).
+    2. Log each refusal for length: which box, how far over, and whether the person then shortened it and submitted.
+    3. Review the numbers regularly, for example monthly: if good tools keep hitting a limit, raise it; if nothing comes close, consider lowering it.
+    4. Keep the rule that each limit is at least twice the longest real submission on record, and update the test that guards it to use the logged lengths.
+    5. Record each change and its reason in DECISIONS.md, with the new worst-case cost per review.
+  - **Open questions:**
+    - **How long to keep the length logs,** and who may see them?
+    - **Per-box or per-submission:** should there also be a limit on the whole submission's size, since that's what sets the AI's cost?
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**

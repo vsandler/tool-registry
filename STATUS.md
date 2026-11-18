@@ -1,7 +1,7 @@
 # Status
 
 ## Current phase
-**Phase 10: the Codex review** is next, not started.
+**Phase 10: the Codex review** is in progress. Codex reviewed commit `4c23b5c` on 2026-11-18. All 3 findings are fixed, one commit each; see REVIEW.md and DECISIONS.md #22. **Tests: 558 passing.**
 
 **Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`, pushed up to "Least privilege for Practice admins". Everything since is local only, not pushed.
 
