@@ -38,9 +38,9 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a and 6b done; 6c–6g next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a–6c done; 6d–6g next |
 
-**Tests:** 463 passing.
+**Tests:** 468 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -71,6 +71,14 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **The Submit page uses them.** Its "What happens next" is now the full progress line instead of a plain list of step names.
 - **Tests:** 4 new, for the shared pieces; the Submit test that looked for "Rule flags" in `submit.html` now looks in the shared code and checks the page calls it.
 - **Not checked in a browser yet.** No JavaScript runtime is installed, so the page code can't be checked for typos here. Check the Submit page's results view by hand.
+**6c, the list (done):**
+- **Two views:** "Waiting on me" (the default) and "All in review", each with its count. "Waiting on me" uses the back end's `my_action.can_decide` for each tool.
+- **One row per tool,** in the back end's order (oldest submitted first): name, who built it, when it was submitted, the step it's on, and either "Waiting on you" or the back end's own reason (for example "Waiting for a Compliance specialist." or "You built this tool, so you can't approve or reject it."). A "Has rule flags" badge where any check flagged.
+- **Empty views:** "Nothing is waiting on you." with a "Show all in review" button; "Nothing is in review right now." when the queue is empty.
+- **Back end:** a tool's details now include the builder's name (`owner_name`).
+- **Picking a row** shows the tool's name and progress line on the right; the full detail panel is 6d. On a narrow screen the details go below the list.
+- **Tests:** 5 new (builder's name; the views and empty messages; "Waiting on me" from the back end and no rule fields read by the page; rows show the back end's fields in its order).
+
 - **After step 6 (before the Phase 11 README screenshots):** design polish so the progress line reads as a connected progress bar (BACKLOG.md).
 - **For 6d:** each history entry's `detail` is stored with raw codes ("routed to compliance, then marketing", "published as practice-only"). I'll add a readable version in the back end for the detail panel rather than show those.
 

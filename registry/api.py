@@ -177,8 +177,10 @@ def tool_detail(conn: sqlite3.Connection, tool: dict, viewer: sqlite3.Row | None
     """Everything the screens show about one tool. `my_action` is for the persona
     viewing it: can they decide the current step, and if not, why (plain words)."""
     checks = get_check_results(conn, tool["id"])
+    owner = get_user(conn, tool["owner_id"])
     return {
         **tool,
+        "owner_name": owner["name"] if owner else "Unknown",
         "checks": checks,
         "flagged": any(not c["passed"] for c in checks),
         "ai_review": get_ai_review(conn, tool["id"]),  # advice only; never decides

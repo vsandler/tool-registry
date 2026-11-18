@@ -10,23 +10,110 @@
   <header id="layout"></header>
   <main>
     <h1>Review queue</h1>
+    <p class="intro">Tools in review, oldest first. Pick one to see its details.</p>
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
-    import { renderLayout, onPersonaReady, loadOrExplain, showMessage } from "./app.js";
+    import { renderLayout, onPersonaReady, loadOrExplain, h, when, renderProgress }
+      from "./app.js";
 
     await renderLayout("queue");
     const content = document.getElementById("content");
 
+    let tools = [];          // as the back end sent them, already in order
+    let view = "mine";       // "mine" = Waiting on me, "all" = All in review
+    let selectedId = null;
+
     onPersonaReady(async () => {
-      // If this persona can't open the queue, the back end's plain message is shown
-      // here (by loadOrExplain) instead of a blank page or an error code.
-      const tools = await loadOrExplain("/admin/review-queue", content);
-      if (tools === null) return;
-      // The list, detail panel and decision buttons come in Phase 9, step 6.
-      showMessage(content, `${tools.length} tool(s) in this queue. The full screen is coming soon.`,
-                  "status");
+      view = "mine";
+      selectedId = null;
+      await reload();
     });
+
+    // If this persona can't open the queue, the back end's plain message is shown
+    // here (by loadOrExplain) instead of a blank page or an error code.
+    async function reload() {
+      const loaded = await loadOrExplain("/admin/review-queue", content);
+      if (loaded === null) return;
+      tools = loaded;
+      if (!tools.some((t) => t.id === selectedId)) selectedId = null;
+      render();
+    }
+
+    // "Waiting on me" is the back end's answer for each tool, not a rule worked out here.
+    function waitingOnMe() {
+      return tools.filter((t) => t.my_action.can_decide);
+    }
+
+    function render(focusId = null) {
+      const mine = waitingOnMe();
+      const shown = view === "mine" ? mine : tools;
+      const detail = h("section", { className: "detail panel", "aria-live": "polite" });
+
+      content.replaceChildren(
+        h("div", { className: "views", role: "group", "aria-label": "Which tools to show" },
+          viewButton("mine", `Waiting on me (${mine.length})`),
+          viewButton("all", `All in review (${tools.length})`)),
+        h("div", { className: "queue-layout" }, listOrEmpty(shown), detail),
+      );
+      showDetail(detail);
+      if (focusId !== null) content.querySelector(`[data-tool-id="${focusId}"]`)?.focus();
+    }
+
+    function viewButton(name, label) {
+      return h("button", {
+        type: "button",
+        className: view === name ? "view current" : "view secondary",
+        "aria-pressed": String(view === name),
+        onClick: () => { view = name; render(); },
+      }, label);
+    }
+
+    function listOrEmpty(shown) {
+      if (shown.length) return h("ul", { className: "queue-list" }, shown.map(row));
+      if (tools.length === 0) {
+        return h("p", { className: "message status", role: "status" },
+          "Nothing is in review right now.");
+      }
+      return h("div", { className: "queue-empty" },
+        h("p", { className: "message status", role: "status" }, "Nothing is waiting on you."),
+        h("button", { type: "button", className: "secondary",
+                      onClick: () => { view = "all"; render(); } }, "Show all in review"));
+    }
+
+    // One tool: its name, who built it, when it was submitted, the step it's on, and
+    // who must act next, all as the back end said.
+    function row(tool) {
+      const a = tool.my_action;
+      const selected = tool.id === selectedId;
+      return h("li", {},
+        h("button", {
+          type: "button",
+          className: `queue-row${selected ? " selected" : ""}`,
+          "data-tool-id": tool.id,
+          "aria-current": selected ? "true" : null,
+          onClick: () => { selectedId = tool.id; render(tool.id); },
+        },
+          h("span", { className: "row-name" }, tool.name),
+          h("span", { className: "meta" },
+            `Built by ${tool.owner_name} · submitted ${when(tool.submitted_at)}`),
+          h("span", {}, `Step ${a.step_position}: ${a.step_name}`),
+          h("span", { className: a.can_decide ? "row-next mine" : "row-next" },
+            a.can_decide ? "Waiting on you" : a.reason),
+          tool.flagged ? h("span", { className: "badge" }, "Has rule flags") : null));
+    }
+
+    function showDetail(target) {
+      const tool = tools.find((t) => t.id === selectedId);
+      if (!tool) {
+        target.replaceChildren(h("p", { className: "hint" }, "Pick a tool to see its details."));
+        return;
+      }
+      target.replaceChildren(
+        h("h2", {}, tool.name),
+        renderProgress(tool.steps, tool.my_action),
+      );
+    }
   </script>
 </body>
 </html>

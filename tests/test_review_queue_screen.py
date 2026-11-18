@@ -266,3 +266,45 @@ def test_shared_display_pieces_draw_text_only():
     for name in ("renderFlags", "renderAdvice", "renderProgress"):
         code = shared_function(name)
         assert "innerHTML" not in code and "insertAdjacentHTML" not in code
+
+
+# --- the list (6c) -----------------------------------------------------------------------------
+
+def queue_page():
+    return (WEB / "queue.html").read_text(encoding="utf-8")
+
+
+def test_tool_details_name_the_builder(client):
+    tid = submit_via_api(client, name="Named builder tool")
+    detail = client.get(f"/tools/{tid}", headers=persona(SUPER)).json()
+    assert detail["owner_name"] == "Avery Quill"
+    queue = client.get("/admin/review-queue", headers=persona(SUPER)).json()
+    assert all(t["owner_name"] for t in queue)
+
+
+def test_queue_page_is_no_longer_a_placeholder():
+    code = queue_page()
+    assert "coming soon" not in code
+    assert "step 6" not in code
+
+
+def test_queue_page_has_both_views_and_explains_an_empty_one():
+    code = queue_page()
+    for text in ("Waiting on me", "All in review", "Nothing is waiting on you.",
+                 "Show all in review", "Nothing is in review right now."):
+        assert text in code, f"the queue page doesn't say {text!r}"
+
+
+def test_waiting_on_me_comes_from_the_back_end():
+    code = queue_page()
+    # Which tools wait on this persona is the back end's answer, not a rule here.
+    assert "my_action.can_decide" in code
+    for forbidden in ("approver_role", "specialty", "owner_id", "routed_to"):
+        assert forbidden not in code, f"the queue page reads {forbidden} itself"
+
+
+def test_queue_rows_show_what_the_back_end_sends_in_its_order():
+    code = queue_page()
+    for field in ("owner_name", "submitted_at", "step_name", "a.reason"):
+        assert field in code, f"the queue rows don't show {field}"
+    assert ".sort(" not in code  # oldest first is the back end's order
