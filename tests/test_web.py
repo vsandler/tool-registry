@@ -228,3 +228,9 @@ def test_dates_that_are_missing_show_nothing():
     js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
     when = _function_body(js, "when")
     assert 'if (!iso) return "";' in when  # not "1 Jan 1970" or "null"
+
+
+def test_screens_use_us_wording_select_not_tick():
+    for name, code in _web_code().items():
+        found = re.findall(r"\b(?:un)?tick(?:ed|ing|s)?\b", code, re.I)
+        assert not found, f"{name} says {found}: use select / clear instead"

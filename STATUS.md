@@ -60,12 +60,12 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Not checked in a browser yet**, like step 4.
 
 ### Step 6: Review queue (done, 2026-11-17)
-**Your answers:** areas ticked in order (checkboxes, numbered 1, 2, 3); publish starts from what the builder asked for; flags, advice and the progress line drawn by shared code in `app.js` for both screens; an empty "Waiting on me" says "Nothing is waiting on you" with a button to "All in review"; tests that checked the old wording now expect the new text. Recorded in DECISIONS.md #18.
+**Your answers:** areas selected in order (checkboxes, numbered 1, 2, 3); publish starts from what the builder asked for; flags, advice and the progress line drawn by shared code in `app.js` for both screens; an empty "Waiting on me" says "Nothing is waiting on you" with a button to "All in review"; tests that checked the old wording now expect the new text. Recorded in DECISIONS.md #18.
 
 **The screen** (`web/queue.html`):
 - **The list:** "Waiting on me" (the default) and "All in review", each with its count, oldest submitted first. Each row: name, builder, submitted date, the step it's on, and "Waiting on you" or the back end's reason (for example "Waiting for a Compliance specialist."), plus a "Has rule flags" badge.
 - **The detail panel:** builder and date; the progress line (with "This is the final approval. Approving publishes the tool." when the back end says so); the "Rejected" note if rejected; description, template and "Why it's built this way"; "Rule flags" and "AI advice: you decide" as separate sections; "Your decision"; and the history with comments.
-- **Decisions,** shown only when the back end says it's your turn (otherwise its plain reason, no buttons): route by ticking areas in order ("Approve and route"); "Approve" a review; publish with visibility and practice ("Approve and publish"); one comment box and "Reject" on every step. Every check is the back end's; a comment problem shows next to the box, anything else next to the buttons. All through `decideOrExplain`.
+- **Decisions,** shown only when the back end says it's your turn (otherwise its plain reason, no buttons): route by selecting areas in order ("Approve and route"); "Approve" a review; publish with visibility and practice ("Approve and publish"); one comment box and "Reject" on every step. Every check is the back end's; a comment problem shows next to the box, anything else next to the buttons. All through `decideOrExplain`.
 - **After a decision:** "Decision recorded. This tool is now: Published." (or In review / Rejected), plus "It has left the queue." when it has. The panel keeps showing the tool from the decision's own answer, and the list reloads.
 
 **Back end additions,** so the screen only displays:
@@ -80,8 +80,8 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 **Not checked in a browser.** No JavaScript runtime is installed, so the page code hasn't run anywhere yet. Please go through the checklist below.
 
 #### By-hand checklist (start fresh: delete `registry.db`, then `.venv/Scripts/python -m uvicorn registry.api:app --reload`, open http://127.0.0.1:8000/app/queue.html)
-1. **Riley Ashgrove (Super admin):** "Waiting on me (3)". Pick "Meeting summary": flags and AI advice are separate, the AI advice says it's sample advice, and the history says "No decisions yet." Tick Marketing, then Compliance: the numbers read 2 and 1 and the line says "Review order: Marketing, then Compliance." Untick Marketing: Compliance stays 1. Tick Marketing again, then "Approve and route": "Decision recorded. This tool is now: In review." The progress line shows Marketing review, then Compliance review.
-2. **Riley, route with nothing ticked:** the message "Choose at least one specialist area…" appears next to the buttons.
+1. **Riley Ashgrove (Super admin):** "Waiting on me (3)". Pick "Meeting summary": flags and AI advice are separate, the AI advice says it's sample advice, and the history says "No decisions yet." Select Marketing, then Compliance: the numbers read 2 and 1 and the line says "Review order: Marketing, then Compliance." Clear Marketing: Compliance stays 1. Select Marketing again, then "Approve and route": "Decision recorded. This tool is now: In review." The progress line shows Marketing review, then Compliance review.
+2. **Riley, route with nothing selected:** the message "Choose at least one specialist area…" appears next to the buttons.
 3. **Riley, reject with "no":** the message appears next to the comment box, and the box is outlined.
 4. **Quinn Harrow (Marketing):** sees only "Meeting summary". "Approve". Then **Sam Thistle (Compliance)** approves it.
 5. **Riley again:** "Meeting summary" says "This is the final approval. Approving publishes the tool." The visibility starts as the builder asked. Choose Practice-only: the Practice box appears. "Approve and publish": "This tool is now: Published. It has left the queue." The tool appears in the Catalog.

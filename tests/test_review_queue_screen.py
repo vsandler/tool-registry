@@ -444,7 +444,7 @@ def test_decision_controls_are_built_from_my_action():
 
 def test_decision_controls_explain_themselves():
     code = queue_page()
-    for text in ("in the order you tick them", "Approve and route", "Approve and publish",
+    for text in ("in the order you select them", "Approve and route", "Approve and publish",
                  '"Approve"', '"Reject"', "The builder will see it."):
         assert text in code, f"the decision controls don't say {text!r}"
 

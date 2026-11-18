@@ -232,7 +232,7 @@
     }
 
     // Route: a checkbox per area from the back end. The order is the order they're
-    // ticked, shown as 1, 2, 3; unticking one moves the later ones up.
+    // selected, shown as 1, 2, 3; clearing one moves the later ones up.
     function areaPicker(tool, areas) {
       const picked = [];
       const numbers = {};
@@ -245,7 +245,7 @@
         }
         order.textContent = picked.length
           ? `Review order: ${picked.map((value) => labels[value]).join(", then ")}.`
-          : "No areas ticked yet.";
+          : "No areas selected yet.";
       };
       const items = areas.map((area) => {
         const id = `area-${tool.id}-${area.value}`;
@@ -260,9 +260,10 @@
       });
       showOrder();
       const picker = h("fieldset", { className: "area-picker" },
-        h("legend", {}, "Send it to these specialist areas, in the order you tick them"),
+        h("legend", {}, "Send it to these specialist areas, in the order you select them"),
         h("p", { className: "hint" },
-          "They review one after another. Untick an area to take it out; the rest move up."),
+          "They review one after another. Clear an area's checkbox to take it out; the rest " +
+          "move up."),
         h("ul", {}, items),
         order);
       return { picker, collect: () => ({ route_to: [...picked] }) };

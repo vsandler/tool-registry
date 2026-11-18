@@ -3,7 +3,7 @@
 ## To Do
 - **Design polish: the progress line as a connected progress bar**
   - **When:** right after Phase 9, step 6 (the Review queue) is finished, and before the README screenshots in Phase 11.
-  - **What it is:** today each step is a separate box (step 6b). It should read as one progress bar: steps joined by a line, done steps clearly marked (for example a tick and a filled connector), the current step stand out, and rejected or not-reached steps look different.
+  - **What it is:** today each step is a separate box (step 6b). It should read as one progress bar: steps joined by a line, done steps clearly marked (for example a check mark and a filled connector), the current step stand out, and rejected or not-reached steps look different.
   - **Steps to build it:**
     1. Draw connectors between the steps in `web/style.css`, coloured up to the last done step.
     2. Mark each step's state with a symbol as well as colour (done, current, rejected, not reached), so it doesn't rely on colour alone.
