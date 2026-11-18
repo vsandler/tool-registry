@@ -41,6 +41,7 @@ from registry.tools import (
     NotFound,
     get_tool,
     now,
+    unknown_practice_message,
 )
 
 
@@ -462,6 +463,8 @@ def decide(
         final_practice = (practice or tool["practice"] or "").strip() or None
         if visibility == "practice-only" and not final_practice:
             raise ApprovalInputError("Choose a practice for a Practice-only tool.")
+        if visibility == "practice-only" and final_practice not in practice_names(conn):
+            raise ApprovalInputError(unknown_practice_message(conn))  # REVIEW.md finding 1
         updates["visibility"] = visibility
         updates["practice"] = final_practice if visibility == "practice-only" else tool["practice"]
         detail = f"published as {visibility}" + (

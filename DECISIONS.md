@@ -357,3 +357,11 @@ All 11 checks passed. These changes followed:
 **The publish confirmation says where the tool went** (your fix): "Decision recorded. Published firm-wide. It has left the review queue." or "… Published to the Tax practice only. …". The back end sends the words as `published_label` (empty until a tool is published), from what was actually published, which may differ from what the builder asked for. The page doesn't read the visibility itself, keeping #12's rule that screens only display what the back end says.
 
 **Added to the backlog, not built:** "Confirm AI advice" (a specialist selects the AI points they agree with as their reason, shown as the person's decision; agreement rate and decision time tracked against rubber-stamping) and "Require a reason to approve against the AI's advice".
+
+---
+
+## 22. Fixes from the Codex review (2026-11-18)
+
+The findings, who found them and their status are in REVIEW.md. One commit per fix, each with tests written first.
+
+**Finding 1: only practices from the list.** A practice-only tool's practice must be one of the practices people belong to (`practice_names`: Audit and Tax in the demo). This is checked when a tool is saved or submitted, and when the Super admin publishes it as Practice-only. Anything else is refused with "Choose a practice from the list: Audit or Tax.", next to the Practice box, and nothing is saved. Unchanged: a blank practice is still saved and flagged by the checks, not refused, and a firm-wide tool ignores the practice box. The screens already offered only listed practices, so this closes the gap for direct API calls. Once admins keep the practice list (BACKLOG.md "Admin-managed practice list"), the check reads from that list instead.

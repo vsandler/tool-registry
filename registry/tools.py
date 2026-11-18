@@ -5,7 +5,7 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 
-from registry.personas import SUBMIT_REFUSED_MESSAGE, SUBMIT_ROLES, get_user
+from registry.personas import SUBMIT_REFUSED_MESSAGE, SUBMIT_ROLES, get_user, practice_names
 
 VISIBILITIES = ("practice-only", "firm-wide")
 
@@ -84,6 +84,24 @@ def input_problems(*, name, template, visibility, rationale=None) -> dict[str, s
     if rationale is not None and not rationale.strip():
         problems["rationale"] = RATIONALE_REQUIRED
     return problems
+
+
+def unknown_practice_message(conn: sqlite3.Connection) -> str:
+    """"Choose a practice from the list: Audit or Tax." (REVIEW.md finding 1)."""
+    names = practice_names(conn)
+    listed = " or ".join(names) if len(names) <= 2 else (
+        ", ".join(names[:-1]) + " or " + names[-1])
+    return f"Choose a practice from the list: {listed}."
+
+
+def practice_problems(conn: sqlite3.Connection, *, visibility, practice) -> dict[str, str]:
+    """A practice-only tool's practice must be one from the list (the practices people
+    belong to). A blank one is allowed here: the checks flag it instead. A firm-wide
+    tool stores no practice, so what was typed doesn't matter."""
+    practice = (practice or "").strip()
+    if visibility == "practice-only" and practice and practice not in practice_names(conn):
+        return {"practice": unknown_practice_message(conn)}
+    return {}
 
 
 def now() -> str:
@@ -170,7 +188,10 @@ def create_tool(
     firm-wide tool, is stored as None.
     """
     check_can_submit(conn, owner_id)
-    refuse_if_problems(input_problems(name=name, template=template, visibility=visibility))
+    refuse_if_problems({
+        **input_problems(name=name, template=template, visibility=visibility),
+        **practice_problems(conn, visibility=visibility, practice=practice),
+    })
     name = name.strip()
     practice = (practice or "").strip() or None
     if visibility == "firm-wide":
@@ -258,9 +279,13 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
 def create_and_submit(conn: sqlite3.Connection, owner_id: str, **fields) -> dict:
     """The Submit form's one call: check everything first (reporting every problem
     at once), so a refusal saves nothing, then save the tool and send it for review."""
-    refuse_if_problems(input_problems(
-        name=fields.get("name"), template=fields.get("template"),
-        visibility=fields.get("visibility"), rationale=fields.get("rationale") or ""))
+    refuse_if_problems({
+        **input_problems(
+            name=fields.get("name"), template=fields.get("template"),
+            visibility=fields.get("visibility"), rationale=fields.get("rationale") or ""),
+        **practice_problems(conn, visibility=fields.get("visibility"),
+                            practice=fields.get("practice")),
+    })
     tool_id = create_tool(conn, owner_id=owner_id, **fields)
     return submit_tool(conn, tool_id, owner_id)
 

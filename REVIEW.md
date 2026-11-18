@@ -20,7 +20,7 @@ Bugs; security issues; ways around the approval rules (self-approval, the wrong 
 
 | # | Finding | Severity | Area | Found by | Fix | Status |
 |---|---|---|---|---|---|---|
-| 1 | Any non-empty practice name is accepted, both when creating a tool and when publishing it as Practice-only, so a typo such as "Txa" makes a practice nobody belongs to. `registry/tools.py:175-185`, `registry/approvals.py:462-466` | Medium | Input validation | Codex | | Open |
+| 1 | Any non-empty practice name is accepted, both when creating a tool and when publishing it as Practice-only, so a typo such as "Txa" makes a practice nobody belongs to. `registry/tools.py:175-185`, `registry/approvals.py:462-466` | Medium | Input validation | Codex | Saving, submitting and publishing refuse a practice that isn't in the list ("Choose a practice from the list: Audit or Tax."). A blank one is still flagged, not refused. DECISIONS.md #22. | Fixed |
 | 2 | `check_can_submit` lets an unknown user id through: it only refuses a known user whose role can't submit. The API refuses unknown personas first, so it isn't a live hole, but the guard is fragile if another way in is added. `registry/tools.py:200` | Low | Approval rules | Claude (missed by Codex) | | Open |
 | 3 | No length limits on text fields (name, description, template, rationale, comments). A very long template is sent to the AI in full, so input tokens and cost per review are unbounded; `MAX_TOKENS` only caps the reply. `registry/tools.py:73`, `registry/approvals.py:444` | Medium | Input validation (cost) | Claude (missed by Codex) | | Open |
 
