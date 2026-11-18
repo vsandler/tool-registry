@@ -14,7 +14,8 @@
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
-    import { renderLayout, onPersonaReady, loadOrExplain, h, when, renderProgress }
+    import { renderLayout, onPersonaReady, loadOrExplain, h, when, renderProgress, renderFlags,
+             renderAdvice }
       from "./app.js";
 
     await renderLayout("queue");
@@ -111,8 +112,42 @@
       }
       target.replaceChildren(
         h("h2", {}, tool.name),
+        h("p", { className: "meta" },
+          `Built by ${tool.owner_name} · submitted ${when(tool.submitted_at)}`),
         renderProgress(tool.steps, tool.my_action),
+        tool.rejection ? rejectionNote(tool.rejection) : null,
+        tool.description ? h("p", {}, tool.description) : null,
+        h("h3", {}, "Template"),
+        h("pre", { className: "template" }, tool.template),
+        h("h3", {}, "Why it's built this way"),
+        h("p", {}, tool.rationale || "No reason was recorded."),
+        renderFlags(tool.checks),
+        renderAdvice(tool.ai_review),
+        historyList(tool.history),
       );
+    }
+
+    // Who rejected it, when, at which step and why: all from the back end.
+    function rejectionNote(rejection) {
+      return h("div", { className: "message error", role: "note" },
+        h("strong", {}, "Rejected"),
+        ` by ${rejection.by}, ${when(rejection.at)}, at step ${rejection.step_position} ` +
+          `(${rejection.step_name}).`,
+        h("p", {}, `Reason: ${rejection.reason}`));
+    }
+
+    // Every decision so far, oldest first, in readable words (`detail_label`).
+    function historyList(history) {
+      return h("section", { className: "panel" },
+        h("h2", {}, "History"),
+        history.length
+          ? h("ol", { className: "history" }, history.map((entry) =>
+              h("li", {},
+                h("strong", {}, `${entry.approver_name} ${entry.decision}`),
+                ` step ${entry.position} (${entry.step_name}), ${when(entry.decided_at)}.`,
+                entry.detail_label ? ` ${entry.detail_label}.` : "",
+                entry.comment ? h("p", { className: "step-comment" }, `“${entry.comment}”`) : null)))
+          : h("p", {}, "No decisions yet."));
     }
   </script>
 </body>

@@ -496,3 +496,18 @@ button.queue-row.selected {
 .detail {
   min-width: 0;
 }
+/* Sections inside the detail panel: a dividing line instead of a box in a box. */
+.detail .panel {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0.75rem 0 0;
+  margin: 1rem 0 0;
+  background: transparent;
+}
+.history {
+  padding-left: 1.25rem;
+}
+.history li + li {
+  margin-top: 0.5rem;
+}

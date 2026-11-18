@@ -7,6 +7,7 @@ The screen only asks and displays (DECISIONS.md #12). So the back end gives it:
   - `my_action.can_decide`, which must match exactly what a decision would be allowed.
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -308,3 +309,65 @@ def test_queue_rows_show_what_the_back_end_sends_in_its_order():
     for field in ("owner_name", "submitted_at", "step_name", "a.reason"):
         assert field in code, f"the queue rows don't show {field}"
     assert ".sort(" not in code  # oldest first is the back end's order
+
+
+# --- the detail panel (6d) ---------------------------------------------------------------------
+
+def test_history_says_what_each_decision_did_in_readable_words(flow):
+    from registry.approvals import get_history
+    tid = submitted_tool(flow, visibility="practice-only", practice="Tax")
+    decide(flow, tid, SUPER, "approved", route_to=["technology", "marketing"])
+    decide(flow, tid, TECH, "approved", "Looks fine to me.")
+    decide(flow, tid, MARKETING, "approved")
+    decide(flow, tid, SUPER, "approved", visibility="practice-only")
+    history = get_history(flow, tid)
+    assert [h["detail_label"] for h in history] == [
+        "Routed to AI enablement (technology), then Marketing",
+        "",
+        "",
+        "Published as Practice-only (Tax)",
+    ]
+    # The stored record is kept exactly as it was written.
+    assert history[0]["detail"] == "routed to technology, then marketing"
+
+
+def test_history_label_for_a_firm_wide_publish(flow):
+    from registry.approvals import get_history
+    tid = submitted_tool(flow)
+    decide(flow, tid, SUPER, "approved", route_to="compliance")
+    decide(flow, tid, COMPLIANCE, "approved")
+    decide(flow, tid, SUPER, "approved", visibility="firm-wide")
+    assert get_history(flow, tid)[-1]["detail_label"] == "Published as Firm-wide"
+
+
+def test_tool_details_carry_the_readable_history(client):
+    tid = submit_via_api(client, name="History tool")
+    approve_with_choices(client, tid, SUPER)
+    detail = client.get(f"/tools/{tid}", headers=persona(SUPER)).json()
+    assert detail["history"][0]["detail_label"] == (
+        "Routed to AI enablement (technology), then Compliance")
+
+
+def test_detail_panel_shows_the_tool_and_its_review():
+    code = queue_page()
+    for call in ("renderProgress(tool.steps, tool.my_action)", "renderFlags(tool.checks)",
+                 "renderAdvice(tool.ai_review)"):
+        assert call in code, f"the detail panel doesn't use {call}"
+    for field in ("tool.description", "tool.template", "tool.rationale", "tool.history"):
+        assert field in code, f"the detail panel doesn't show {field}"
+    for heading in ("Template", "Why it's built this way", "History"):
+        assert f'"{heading}"' in code
+
+
+def test_detail_panel_shows_the_rejection_note():
+    code = queue_page()
+    assert "tool.rejection" in code
+    for field in ("rejection.by", "rejection.at", "rejection.step_name", "rejection.reason"):
+        assert field in code, f"the rejection note doesn't show {field}"
+
+
+def test_history_shows_readable_words_not_stored_codes():
+    code = queue_page()
+    for field in ("approver_name", "decided_at", "comment", "detail_label"):
+        assert field in code, f"the history doesn't show {field}"
+    assert not re.search(r"\.detail(?!_label)\b", code)  # the raw stored text

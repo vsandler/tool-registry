@@ -38,9 +38,9 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
 | 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
-| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a–6c done; 6d–6g next |
+| 6 | Review queue screen: list, detail panel, progress line, decision buttons | 🔄 In progress: 6a–6d done; 6e–6g next |
 
-**Tests:** 468 passing.
+**Tests:** 474 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
@@ -79,8 +79,11 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Picking a row** shows the tool's name and progress line on the right; the full detail panel is 6d. On a narrow screen the details go below the list.
 - **Tests:** 5 new (builder's name; the views and empty messages; "Waiting on me" from the back end and no rule fields read by the page; rows show the back end's fields in its order).
 
+**6d, the detail panel (done):** picking a tool shows, in order: its name, who built it and when it was submitted; the progress line (with the final-approval note when the back end says so); the "Rejected" note (who, when, at which step, why) if it was rejected; the description, template and "Why it's built this way"; "Rule flags" and "AI advice: you decide" as separate sections (the same shared pieces as the Submit page); and the history, oldest first, with each comment.
+- **Back end:** each history entry has a readable `detail_label` ("Routed to AI enablement (technology), then Marketing", "Published as Practice-only (Tax)"). The stored `detail` is unchanged; the page never shows it.
+- **Tests:** 6 new (the readable labels and that stored text is kept; the panel's sections, rejection note and history fields; the page doesn't read the raw stored text).
+
 - **After step 6 (before the Phase 11 README screenshots):** design polish so the progress line reads as a connected progress bar (BACKLOG.md).
-- **For 6d:** each history entry's `detail` is stored with raw codes ("routed to compliance, then marketing", "published as practice-only"). I'll add a readable version in the back end for the detail panel rather than show those.
 
 - **Refusal messages reworded too** (your go-ahead, 2026-11-17): "Step 1 (…) must be decided by the Super admin, not a Specialist reviewer" and "Step 2 is the Compliance review (this tool was routed to Compliance, then Marketing); a Marketing specialist can't decide it" (were "a super_admin", "a specialist_reviewer", "compliance"). Nine older tests now expect the new text, each as specific as before: the three you named, plus six that matched the same messages in other ways. The persona-by-stage check now also fails if any refusal shows a raw code. History entries ("routed to compliance") are stored records and are unchanged.
 

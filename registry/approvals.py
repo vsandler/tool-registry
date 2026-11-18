@@ -122,7 +122,24 @@ def get_history(conn: sqlite3.Connection, tool_id: int) -> list[dict]:
         "WHERE a.tool_id = ? ORDER BY a.id",
         (tool_id,),
     )
-    return [dict(r) for r in rows]
+    return [{**dict(r), "detail_label": readable_detail(r["detail"])} for r in rows]
+
+
+def readable_detail(detail: str) -> str:
+    """A history entry's stored `detail` in the names people see, for the screens:
+    "routed to technology, then marketing" -> "Routed to AI enablement (technology),
+    then Marketing"; "published as practice-only (Tax)" -> "Published as Practice-only
+    (Tax)". The stored text itself is never changed."""
+    detail = detail or ""
+    if detail.startswith("routed to "):
+        areas = detail[len("routed to "):].split(", then ")
+        return "Routed to " + ", then ".join(SPECIALIST_AREAS.get(a, a) for a in areas)
+    if detail.startswith("published as "):
+        rest = detail[len("published as "):]
+        value, _, practice = rest.partition(" (")
+        labels = {o["value"]: o["label"] for o in VISIBILITY_OPTIONS}
+        return f"Published as {labels.get(value, value)}" + (f" ({practice}" if practice else "")
+    return detail[:1].upper() + detail[1:]
 
 
 def get_tool_steps(conn: sqlite3.Connection, tool_id: int) -> list[dict]:

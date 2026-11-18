@@ -89,3 +89,4 @@ _Terms used in this project, defined in plain language._
 - **Virtual environment (.venv):** A private copy of Python just for this project, so its add-on packages don't mix with the rest of the computer.
 - **Visibility label:** Each tool's setting for who can see it once approved: `practice-only` (one practice) or `firm-wide` (everyone).
 - **Waiting on me:** The Review queue's default view: only the tools whose current step the viewing persona can decide.
+- **detail_label:** The readable version of what a decision did, shown in a tool's history (for example "Routed to Compliance, then Marketing"). Worked out by the back end from the stored record, which is never changed.
