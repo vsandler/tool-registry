@@ -79,7 +79,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 
 **Not checked in a browser.** No JavaScript runtime is installed, so the page code hasn't run anywhere yet. Please go through the checklist below.
 
-#### By-hand checklist (start fresh: delete `registry.db`, then `.venv/Scripts/python -m uvicorn registry.api:app --reload`, open http://127.0.0.1:8000/app/queue.html)
+#### By-hand checklist (start fresh: delete `registry.db`, then `.venv/Scripts/python -m uvicorn registry.api:create_app --factory --reload`, open http://127.0.0.1:8000/app/queue.html)
 1. **Riley Ashgrove (Super admin):** "Waiting on me (3)". Pick "Meeting summary": flags and AI advice are separate, the AI advice says it's sample advice, and the history says "No decisions yet." Select Marketing, then Compliance: the numbers read 2 and 1 and the line says "Review order: Marketing, then Compliance." Clear Marketing: Compliance stays 1. Select Marketing again, then "Approve and route": "Decision recorded. This tool is now: In review." The progress line shows Marketing review, then Compliance review.
 2. **Riley, route with nothing selected:** the message "Choose at least one specialist area…" appears next to the buttons.
 3. **Riley, reject with "no":** the message appears next to the comment box, and the box is outlined.

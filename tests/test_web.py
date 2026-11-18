@@ -291,3 +291,13 @@ def test_submit_link_is_shown_only_when_the_back_end_says_so():
     submit_item = next(line for line in nav.split("\n") if "submit.html" in line)
     assert "onlyIfCanSubmit: true" in submit_item
     assert "persona.can_submit" in js
+
+
+def test_docs_give_the_start_command_that_works():
+    """The app is made by create_app(), so uvicorn needs --factory: `registry.api:app`
+    doesn't exist and fails to start."""
+    root = WEB_DIR.parent
+    for doc in sorted(root.glob("*.md")):
+        for line in doc.read_text(encoding="utf-8").splitlines():
+            if "uvicorn registry.api" in line:
+                assert "uvicorn registry.api:create_app --factory" in line, (doc.name, line)
