@@ -1,7 +1,9 @@
 # Status
 
 ## Current phase
-Phase 9: the front end (branch `phase-9-frontend`, made from `phase-8-agent`). **Steps 1–6 are done** (step 6, the Review queue, on 2026-11-17). The branch is pushed up to "Least privilege for Practice admins". Everything since (steps 4–6, the backlog items, the AI fixes and the docs) is local only, not pushed.
+**Phase 10: the Codex review** is next, not started.
+
+**Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`, pushed up to "Least privilege for Practice admins". Everything since is local only, not pushed.
 
 Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
 
@@ -29,7 +31,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Not rerun with real calls** (your choice): normal replies are well under the limit.
 - **Watch for:** if the effort level in `config.json` is raised, the model may think for longer. The guard only knows replies already on record, so run the eval after such a change.
 
-## Phase 9: where it stands (2026-11-17)
+## Phase 9: complete (2026-11-18)
 
 | Step | What | State |
 |---|---|---|
@@ -181,7 +183,7 @@ Phase 9 steps 1–4 are summarised at the top. Phase 8 and earlier:
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing right now. Phase 9 step 5 (Submit screen) is next.
+- Nothing right now. Phase 10 (the Codex review) is next.
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
