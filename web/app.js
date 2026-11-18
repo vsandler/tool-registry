@@ -235,20 +235,34 @@ export function renderAdvice(advice) {
       : h("p", {}, "No AI advice for this tool."));
 }
 
-// The progress line: every step, done (who, when), waiting (for whom), rejected, or
-// skipped after a rejection (the back end says why). `myAction` is the viewer's
-// `my_action`: when the back end says they can
-// decide the final step, a note says approving publishes the tool.
+// The progress line, drawn as a connected progress bar: every step, done (who, when),
+// waiting (for whom), rejected, or skipped after a rejection (the back end says why).
+// Each step has a symbol as well as a colour (✓ done, ● now, ✕ rejected, – skipped,
+// an empty circle for later). The symbol is hidden from screen readers, which read
+// the state in words. `myAction` is the viewer's `my_action`: when the back end says
+// they can decide the final step, a note says approving publishes the tool.
 export function renderProgress(steps, myAction = null) {
   const items = steps.map((s) => {
     let state;
-    if (s.status === "done") state = `Done by ${s.decided_by}, ${when(s.decided_at)}`;
-    else if (s.status === "rejected") state = `Rejected by ${s.decided_by}, ${when(s.decided_at)}`;
-    else if (s.status === "not_reached") state = s.skipped_reason;
-    else if (s.current) state = `Now: waiting for ${s.waiting_for}`;
-    else state = `Later: ${s.waiting_for}`;
+    let symbol = "";
+    if (s.status === "done") {
+      state = `Done by ${s.decided_by}, ${when(s.decided_at)}`;
+      symbol = "✓";
+    } else if (s.status === "rejected") {
+      state = `Rejected by ${s.decided_by}, ${when(s.decided_at)}`;
+      symbol = "✕";
+    } else if (s.status === "not_reached") {
+      state = s.skipped_reason;
+      symbol = "–";
+    } else if (s.current) {
+      state = `Now: waiting for ${s.waiting_for}`;
+      symbol = "●";
+    } else {
+      state = `Later: ${s.waiting_for}`;
+    }
     return h("li", { className: `step step-${s.status}${s.current ? " step-current" : ""}`,
                      "aria-current": s.current ? "step" : null },
+      h("span", { className: "step-marker", "aria-hidden": "true" }, symbol),
       h("span", { className: "step-name" }, s.name),
       h("span", { className: "step-state" }, state),
       s.comment ? h("span", { className: "step-comment" }, `“${s.comment}”`) : null);

@@ -40,7 +40,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
 | 6 | Review queue screen: list, detail panel, progress line, decision buttons | ✅ Done |
 
-**Tests:** 504 passing.
+**Tests:** 511 passing.
 
 ### Step 4: Catalog (done)
 - **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.

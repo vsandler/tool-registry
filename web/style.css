@@ -385,50 +385,167 @@ button:disabled {
   cursor: progress;
 }
 
-/* --- the progress line (shared: Submit page and Review queue) --- */
+/* --- the progress bar (shared: Submit page and Review queue) ---
+   Each step is a circle with a symbol, joined to the next by a line. The line between
+   two steps is drawn in two halves: the earlier step's ::after and the later step's
+   ::before. Both turn green once the earlier step is done, so the bar is coloured up
+   to the last done step. Steps stack down the page by default (phones), and sit side
+   by side when the box is wide enough (the @container rule below). */
+.progress {
+  container-type: inline-size;
+  --marker: 1.75rem;
+  --track: #bcccdc;
+}
 .progress-line {
   list-style: none;
   counter-reset: step;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
+  flex-direction: column;
+  margin: 0.75rem 0;
   padding: 0;
 }
 .progress-line .step {
   counter-increment: step;
-  flex: 1 1 10rem;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0 0 1rem calc(var(--marker) + 0.75rem);
+  overflow-wrap: anywhere;
+}
+.progress-line .step:last-child {
+  padding-bottom: 0;
+}
+.progress-line .step-marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  width: var(--marker);
+  height: var(--marker);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--track);
+  border-radius: 999px;
   background: var(--paper);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+}
+/* The two halves of the joining line (stacked: down the left, through the circles). */
+.progress-line .step::before,
+.progress-line .step::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--marker) / 2 - 1px);
+  width: 2px;
+  background: var(--track);
+}
+.progress-line .step::before {
+  top: 0;
+  height: 0;
+}
+.progress-line .step::after {
+  top: var(--marker);
+  bottom: 0;
+}
+.progress-line .step:first-child::before,
+.progress-line .step:last-child::after {
+  display: none;
+}
+.progress-line .step-done::after,
+.progress-line .step-done + .step::before {
+  background: var(--ok);
 }
 .progress-line .step-name::before {
   content: counter(step) ". ";
 }
 .progress-line .step-name {
   font-weight: 600;
+  line-height: var(--marker);
 }
 .progress-line .step-state,
 .progress-line .step-comment {
   color: var(--muted);
   font-size: 0.9em;
 }
-.progress-line .step-done {
+/* Done: a filled green circle with a check mark. */
+.progress-line .step-done .step-marker {
   border-color: var(--ok);
+  background: var(--ok);
+  color: #fff;
 }
-.progress-line .step-current {
-  border: 2px solid var(--accent);
+/* Now: a filled blue circle with a dot, ringed, and its words in full colour. */
+.progress-line .step-current .step-marker {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  box-shadow: 0 0 0 4px #dbe4ff;
 }
-.progress-line .step-rejected {
+.progress-line .step-current .step-name {
+  color: var(--accent);
+}
+.progress-line .step-current .step-state {
+  color: var(--ink);
+  font-weight: 600;
+}
+/* Rejected: a filled red circle with a cross. */
+.progress-line .step-rejected .step-marker {
   border-color: var(--error);
-  background: var(--error-ground);
+  background: var(--error);
+  color: #fff;
 }
-.progress-line .step-not_reached {
-  opacity: 0.65;
+.progress-line .step-rejected .step-name,
+.progress-line .step-rejected .step-state {
+  color: var(--error);
+}
+/* Skipped after a rejection: a dashed circle with a dash, faded. */
+.progress-line .step-not_reached .step-marker {
+  border-style: dashed;
+}
+.progress-line .step-not_reached .step-name,
+.progress-line .step-not_reached .step-state {
+  opacity: 0.7;
+}
+/* Wide enough: steps side by side, circles on one line, words centred below. */
+@container (min-width: 34rem) {
+  .progress-line {
+    flex-direction: row;
+  }
+  .progress-line .step {
+    flex: 1 1 0;
+    align-items: center;
+    text-align: center;
+    padding: calc(var(--marker) + 0.5rem) 0.35rem 0;
+  }
+  .progress-line .step:last-child {
+    padding-bottom: 0;
+  }
+  .progress-line .step-marker {
+    left: calc(50% - var(--marker) / 2);
+  }
+  .progress-line .step::before,
+  .progress-line .step::after {
+    top: calc(var(--marker) / 2 - 1px);
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+  .progress-line .step::before {
+    left: 0;
+    right: 50%;
+  }
+  .progress-line .step::after {
+    left: 50%;
+    right: 0;
+  }
+  .progress-line .step-name {
+    line-height: 1.35;
+  }
 }
 .final-note {
   font-weight: 600;
@@ -451,6 +568,15 @@ button:disabled {
   .queue-layout {
     grid-template-columns: 1fr;
   }
+}
+/* An empty list with no details box beside it: the message uses the full width. */
+.queue-layout.single {
+  grid-template-columns: 1fr;
+}
+/* The empty message's top lines up with the details box's top. */
+.queue-layout > .message,
+.queue-empty .message {
+  margin: 0;
 }
 .queue-list {
   list-style: none;

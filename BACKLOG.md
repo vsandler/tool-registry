@@ -1,24 +1,6 @@
 # Backlog
 
 ## To Do
-- **Design polish: the progress line as a connected progress bar**
-  - **When:** right after Phase 9, step 6 (the Review queue) is finished, and before the README screenshots in Phase 11.
-  - **What it is:** today each step is a separate box (step 6b). It should read as one progress bar: steps joined by a line, done steps clearly marked (for example a check mark and a filled connector), the current step stand out, and rejected or skipped steps look different.
-  - **Steps to build it:**
-    1. Draw connectors between the steps in `web/style.css`, coloured up to the last done step.
-    2. Mark each step's state with a symbol as well as colour (done, current, rejected, skipped), so it doesn't rely on colour alone.
-    3. Keep it readable at phone width: wrap or stack the steps, with no sideways scrolling.
-    4. Keep the screen-reader text as it is: each step's state stays written out in words.
-    5. Check it by hand on the Submit page's results and in the Review queue, for a tool in review, a rejected tool and a published one.
-    6. Only `renderProgress` in `web/app.js` and the styles change; the back end's `steps` stay as they are, so the existing tests still apply.
-- **Design polish: the Review queue's empty views**
-  - **When:** with the progress bar polish above, before the README screenshots in Phase 11.
-  - **What it is:** found in the by-hand check (2026-11-17). When a view is empty, the "Nothing is waiting on you." box and the details box beside it don't line up. And "Pick a tool to see its details." still shows when there's nothing to pick.
-  - **Steps to build it:**
-    1. Line up the tops of the empty message and the details box in `web/style.css`.
-    2. When the list being shown is empty, leave out the details box and let the empty message use the full width. Keep it when a just-decided tool is still being shown.
-    3. Check it at phone width and in both views, as a Practice admin (always empty "Waiting on me") and a specialist with nothing routed to them.
-    4. Add a page test that the "Pick a tool" hint isn't shown with an empty list.
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**
@@ -252,3 +234,6 @@
 ## In Progress
 
 ## Done
+- **Design polish: the progress bar and the Review queue's empty views** (2026-11-18)
+  - The progress line is now one connected bar on the Submit page and in the Review queue: a circle per step (✓ done, ● now, ✕ rejected, – skipped, empty for later), joined by a line that turns green up to the last done step. Side by side when there's room, stacked on a phone. Screen readers still hear each step's state in words.
+  - Review queue: when the list is empty, the "Pick a tool" box is left out and the empty message uses the full width; when a just-decided tool is still shown, the two boxes' tops line up.

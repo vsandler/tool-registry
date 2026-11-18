@@ -554,3 +554,79 @@ def test_progress_line_shows_the_skipped_reason():
     code = shared_function("renderProgress")
     assert "s.skipped_reason" in code
     assert "Not reached" not in code
+
+
+# --- design polish: the progress bar and the empty views (BACKLOG.md) ---------------------------
+
+def css():
+    """style.css without its comments, so they aren't read as part of a selector."""
+    return re.sub(r"/\*.*?\*/", "", (WEB / "style.css").read_text(encoding="utf-8"), flags=re.S)
+
+
+def css_rule(selector):
+    """The body of the first CSS rule whose selector list includes `selector`."""
+    for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", css()):
+        if selector in [s.strip() for s in match.group(1).split(",")]:
+            return match.group(2)
+    raise AssertionError(f"style.css has no rule for {selector}")
+
+
+def test_each_step_has_a_symbol_as_well_as_a_colour():
+    code = shared_function("renderProgress")
+    assert '"step-marker"' in code
+    # A symbol per state, so it doesn't rely on colour alone (a later step is an
+    # empty circle).
+    for symbol in ("✓", "✕", "●", "–"):
+        assert symbol in code, f"the progress bar has no {symbol} marker"
+    # The symbol is decoration: screen readers keep reading the state in words.
+    marker = code[code.index('"step-marker"') - 40:code.index('"step-marker"') + 80]
+    assert '"aria-hidden": "true"' in marker
+    for words in ("Done by ", "Rejected by ", "Now: waiting for ", "Later: ", "s.skipped_reason"):
+        assert words in code, f"the progress bar no longer says {words!r}"
+
+
+def test_progress_bar_symbols_follow_the_back_ends_status_only():
+    code = shared_function("renderProgress")
+    # The status and `current` come from the back end; the page works nothing out.
+    for status in ('"done"', '"rejected"', '"not_reached"'):
+        assert status in code
+    assert "steps.length" not in code and "at(-1)" not in code and "index" not in code
+
+
+def test_steps_are_joined_by_a_line_coloured_up_to_the_last_done_step():
+    connector = css_rule(".progress-line .step::before")
+    assert "content" in connector and "background" in connector
+    assert "var(--ok)" in css_rule(".progress-line .step-done + .step::before")
+    # No line before the first step.
+    assert "display: none" in css_rule(".progress-line .step:first-child::before")
+
+
+def test_progress_bar_states_look_different():
+    for state, colour in (("done", "--ok"), ("current", "--accent"), ("rejected", "--error")):
+        rule = css_rule(f".progress-line .step-{state} .step-marker")
+        assert f"var({colour})" in rule, f"a {state} step's marker isn't coloured {colour}"
+    assert "dashed" in css_rule(".progress-line .step-not_reached .step-marker")
+
+
+def test_progress_bar_fits_a_phone_without_sideways_scrolling():
+    assert "container-type: inline-size" in css_rule(".progress")
+    # Side by side only when there's room; otherwise the steps stack.
+    assert re.search(r"@container \(min-width: \d+rem\)", css())
+    assert "overflow-x" not in css_rule(".progress-line")
+
+
+def test_empty_list_leaves_out_the_pick_a_tool_hint():
+    code = queue_page()
+    render = code[code.index("function render("):]
+    render = render[:render.index("\n    }\n")]
+    # The details box is only made when there's something to pick, or a just-decided
+    # tool is still shown.
+    assert "shown.length || justDecided()" in render
+    assert "queue-layout single" in render
+
+
+def test_empty_message_lines_up_with_the_details_box():
+    rule = css_rule(".queue-layout > .message")
+    assert "margin: 0" in rule
+    assert "margin: 0" in css_rule(".queue-empty .message")
+    assert "grid-template-columns: 1fr" in css_rule(".queue-layout.single")

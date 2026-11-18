@@ -52,15 +52,20 @@
     function render(focusId = null) {
       const mine = waitingOnMe();
       const shown = view === "mine" ? mine : tools;
-      const detail = h("section", { className: "tool-details panel", "aria-live": "polite" });
+      // The details box only when there's a tool to pick, or a just-decided tool is
+      // still shown. Otherwise the empty message uses the full width on its own.
+      const detail = shown.length || justDecided()
+        ? h("section", { className: "tool-details panel", "aria-live": "polite" })
+        : null;
 
       fill(content,
         h("div", { className: "views", role: "group", "aria-label": "Which tools to show" },
           viewButton("mine", `Waiting on me (${mine.length})`),
           viewButton("all", `All in review (${tools.length})`)),
-        h("div", { className: "queue-layout" }, listOrEmpty(shown), detail),
+        h("div", { className: detail ? "queue-layout" : "queue-layout single" },
+          listOrEmpty(shown), detail),
       );
-      showDetail(detail);
+      if (detail) showDetail(detail);
       if (focusId !== null) content.querySelector(`[data-tool-id="${focusId}"]`)?.focus();
     }
 
