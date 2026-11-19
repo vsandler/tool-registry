@@ -297,25 +297,31 @@
     4. Show the summary to Practice admins and the Super admin too. In their Review queue, add a **"Looks similar"** flag when a tool looks like one another practice is building, so they can connect the two builders. The flag shows only the summary fields of the other tool, never its review details.
     5. Add tests: other practices see only the summary fields; rule flags, AI advice and reviewer comments are never included for them; a similar tool from another practice raises the flag in the admin's queue without showing its review details.
   - **Links to:** least privilege (DECISIONS.md #13). The summary list is a deliberate, limited exception to "see only what your job needs".
-- **Support skills and hosted HTML tools**
-  - **What it is:** today every tool is a prompt template: text with `{{blanks}}`. Real tools would be Claude skills (instructions, and often code, that the AI follows) and interactive HTML tools built in Claude and hosted on a firm-owned subdomain. Both can run code, call APIs or reach data, so they need stronger checks than a template, and they take inputs while running instead of blanks filled in up front.
+- **Support skills, hosted HTML tools and shared Claude artifacts**
+  - **What it is:** today every tool is a prompt template: text with `{{blanks}}`. Real tools would be Claude skills (instructions, and often code, that the AI follows) and interactive HTML tools built in Claude, delivered one of two ways: hosted on a firm-owned subdomain, or shared as a Claude artifact. Both kinds can run code, call APIs or reach data, so they need stronger checks than a template, and they take inputs while running instead of blanks filled in up front.
   - **Why it was cut:** a prompt template is the simplest unit that proves the governance workflow (submit, check, AI pre-review, approve, publish, reuse). The same pipeline carries over; the checks get stronger.
   - **Steps to build it:**
-    1. **Tool type field:** add a type to each tool (prompt template, skill or hosted HTML tool), chosen on the Submit form and shown in the Review queue and the Catalog. Existing tools are prompt templates.
-    2. **Access list:** a skill or hosted HTML tool declares what it can reach (for example which APIs, data sources, files or network addresses). Reviewers see the list, approval covers exactly that list, and anything not on it is refused when the tool runs.
+    1. **Tool type field:** add a type to each tool (prompt template, skill or HTML tool), chosen on the Submit form and shown in the Review queue and the Catalog. Existing tools are prompt templates.
+    2. **Access list:** a skill or HTML tool declares what it can reach (for example which APIs, data sources, files or network addresses). Reviewers see the list, approval covers exactly that list, and anything not on it is refused when the tool runs.
     3. **Sandbox test before approval:** run the tool in a sealed-off test environment with made-up data, and record what it actually tried to reach. Anything it tried that isn't on its access list is flagged to the reviewers. The tool can't be approved until the test has run.
     4. **AI pre-review of instructions and code:** extend the agent's rules to read a skill's instructions and any code, not just template text: hidden data sends, credentials, reaching beyond the access list, and anything that skips human checks. Still advice only.
     5. **Version re-review:** every new version goes through the full review again, including the sandbox test, with no self-approval (see "Update a published tool"). The published version stays in use until the new one is approved.
     6. **Prompt-injection checks on skill instructions:** check that a skill's instructions treat the content it reads (documents, web pages, user input) as data, not as orders, and add eval cases where that content tries to take over the skill.
-    7. **Hosting HTML tools:**
-       - **Publish means deploy, unpublish means take it offline:** publishing a hosted HTML tool deploys it to the firm-owned subdomain; unpublishing takes it offline.
+    7. **Delivery field:** an HTML tool records how it reaches people: **firm subdomain** or **Claude artifact**. It's chosen on the Submit form and shown to reviewers, approval covers that choice, and changing it is a new version that needs a full review.
+    8. **Delivered on the firm subdomain:**
+       - **Publish means deploy, unpublish means take it offline:** publishing deploys the tool to the firm-owned subdomain; unpublishing takes it offline.
        - **Company sign-in (SSO):** people reach a tool only through the firm's sign-in, with access matching the tool's visibility (firm-wide, or practice-only for that practice).
        - **Isolation:** each tool runs separately from the others (for example, each at its own address under the subdomain), so one tool can't read another's browser data.
-    8. Add tests and eval cases for each step: a tool reaching beyond its access list is refused; a skill or hosted HTML tool can't be approved before its sandbox test; a new version needs a full review; the AI flags credentials and hidden data sends in code; the injection cases are caught; publishing deploys and unpublishing takes the tool offline; someone outside a practice-only tool's practice is refused at sign-in; one tool can't read another's browser data.
+    9. **Delivered as a shared Claude artifact:**
+       - **Sharing scope matches visibility:** a firm-wide tool is shared with the firm; a practice-only tool is shared only with that practice, never org-wide.
+       - **No public links, ever:** a tool shared by a public link is refused, at review and if it's ever found published that way.
+       - **Publish means share, unpublish means unshare:** publishing shares the artifact at the approved scope; unpublishing removes the sharing.
+    10. Add tests and eval cases for each step: a tool reaching beyond its access list is refused; a skill or HTML tool can't be approved before its sandbox test; a new version, or a change of delivery, needs a full review; the AI flags credentials and hidden data sends in code; the injection cases are caught; publishing deploys and unpublishing takes the tool offline; someone outside a practice-only tool's practice is refused at sign-in; one tool can't read another's browser data; an artifact shared wider than its visibility (for example a practice-only tool shared org-wide) is refused; a public link is refused; unpublishing an artifact removes its sharing.
   - **Open questions:**
     - **Who tests:** who runs and reads the sandbox test: the technology specialists, or an automatic step before routing?
     - **Changing access:** does widening a published tool's access list need the full review, or only a technology review?
-    - **Personalizing:** what replaces "fill in the blanks" for a skill or hosted HTML tool, for example settings chosen at install time?
+    - **Personalizing:** what replaces "fill in the blanks" for a skill or HTML tool, for example settings chosen at install time?
+    - **Checking artifact sharing:** can the registry read and change an artifact's sharing settings itself, or does a reviewer check them by hand? If by hand, how is a later change to the sharing noticed?
 - Separate libraries for each practice
 - Cost/ROI dashboard
 - Live hosted demo

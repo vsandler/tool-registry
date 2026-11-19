@@ -1,6 +1,6 @@
 # Tool Registry
 
-**AI tools are spreading through firms faster than the rules for managing them.** Tools reach clients before anyone has checked them, client data leaks out with shared workspaces, teams build the same tool twice, tools are orphaned when their builders leave, and nobody remembers why a template was written the way it was. Tool Registry is one governed catalog for AI tools: **review once, reuse many times.** Here each tool is a prompt template, the simplest unit that proves the workflow; real tools would be Claude skills and interactive HTML tools built in Claude and hosted on a firm-owned subdomain. A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalog, and anyone allowed can fill in the blanks to make their own copy.
+**AI tools are spreading through firms faster than the rules for managing them.** Tools reach clients before anyone has checked them, client data leaks out with shared workspaces, teams build the same tool twice, tools are orphaned when their builders leave, and nobody remembers why a template was written the way it was. Tool Registry is one governed catalog for AI tools: **review once, reuse many times.** Here each tool is a prompt template, the simplest unit that proves the workflow; real tools would be Claude skills and interactive HTML tools built in Claude, hosted on a firm-owned subdomain or shared as Claude artifacts. A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalog, and anyone allowed can fill in the blanks to make their own copy.
 
 ![Review queue: a submitted tool with its rule flags, AI advice and approval progress](docs/screenshots/01-hero-review-queue.png)
 
@@ -140,7 +140,7 @@ The tests use a fake AI, so they're free and need no key. To rerun the AI eval (
 - **One machine, one small database.** Data lives in a single SQLite file on the computer running the app. There's no hosting, backups or multi-user setup.
 - **Made-up data only.** Every person, client, practice and number is invented. It has never seen real client data.
 - **The AI is advice only.** It never approves, rejects or blocks a tool. People make every decision, and a wrong "safe" still meets every human approval step.
-- **Tools are prompt templates, not skills or hosted HTML tools.** Skills and hosted HTML tools can run code, call APIs or reach data, so they'd need stronger checks: a list of what each one can access, a record of what data it keeps, testing in a sandbox before approval, and a fresh review of every new version. They'd also take inputs while running, instead of blanks filled into a template.
+- **Tools are prompt templates, not skills, hosted HTML tools or shared Claude artifacts.** These can run code, call APIs or reach data, so they'd need stronger checks: a list of what each one can access, a record of what data it keeps, testing in a sandbox before approval, and a fresh review of every new version. They'd also take inputs while running, instead of blanks filled into a template.
 
 ---
 
@@ -181,7 +181,7 @@ Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
 - **Spot overlap:** practices see a summary of what others are building, to avoid building twice.
 - **Let anyone propose a tool:** Tool users can submit, and become Builders when they do.
 - **Admin-managed practice list:** practices come from a list admins keep, not from what people type.
-- **Support skills and hosted HTML tools:** a tool type field, a list of what each tool can access, a sandbox test before approval, AI pre-review of instructions and code, a full re-review of every version, prompt-injection checks on skill instructions, and for HTML tools: publish means deploy to a firm-owned subdomain, access through company sign-in (SSO), and each tool isolated from the others.
+- **Support skills, hosted HTML tools and shared Claude artifacts:** a tool type field, a list of what each tool can access, a sandbox test before approval, AI pre-review of instructions and code, a full re-review of every version, and prompt-injection checks on skill instructions. HTML tools get a delivery choice: a firm-owned subdomain (publish means deploy, access through company sign-in (SSO), each tool isolated from the others) or a shared Claude artifact (sharing scope matches visibility, never a public link, unpublish means unshare).
 
 **Polish and limits**
 - **Live character counter on the Submit form and the Review queue's Comment box:** shows how much of each length limit is used as you type.
