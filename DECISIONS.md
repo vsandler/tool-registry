@@ -397,7 +397,8 @@ The findings, who found them and their status are in REVIEW.md. One commit per f
 - **The AI's instructions** (`SYSTEM_PROMPT`, which says "catalogue"): changing them changes what the AI sees, makes the sample advice stale (paid AI calls to refresh) and means the eval results no longer strictly apply.
 - **The seeded tools** (for example "Summarise these notes…"): their content is fingerprinted by the sample advice.
 - **The eval cases and sample advice:** what the AI was tested on and what it said.
-- **REVIEW.md's past entries, BRIEF.md and EVALS.md,** and the copy of the AI's instructions quoted in STATUS.md.
+- **REVIEW.md's past entries,** and the copy of the AI's instructions quoted in STATUS.md.
+- **EVALS.md,** because it quotes the AI's own output word for word. (BRIEF.md was converted to US spelling afterwards.)
 
 **Safeguard:** `tests/test_us_spelling.py` fails if a British spelling from its list appears anywhere in `web/` (comments included) or in any text in `registry/` (messages, labels, hints, docstrings), except the instructions and seeded tools above. A test checks those exemptions still name real code, so a rename can't quietly widen them. The list is explicit (for example `personalis…`, `catalogue`, `colour`, `labell…`), not a general "-ise" rule, so words spelled the same in US English (advise, promise, exercise) never trip it.
 

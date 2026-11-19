@@ -10,14 +10,14 @@ AI tools are spreading faster than the rules for managing them. That causes five
 5. **Lost reasoning.** People edit templates by hand, and nobody remembers why they were built the way they were.
 
 ## Solution
-One governed catalogue. Each tool is reviewed once, as a template ("review once, reuse many times"). Templates are stored clean, with no client data. Each one keeps a short record of why it was built that way. Users then make their own copy and personalise it.
+One governed catalog. Each tool is reviewed once, as a template ("review once, reuse many times"). Templates are stored clean, with no client data. Each one keeps a short record of why it was built that way. Users then make their own copy and personalize it.
 
 ## Users
 - **Builder:** creates and submits tools.
 - **Practice admin:** reviews tools submitted from their practice and decides what goes in that practice's library.
 - **Super admin:** sends submissions to the right specialists and decides whether a tool is for one practice only or the whole firm.
 - **Specialist reviewers** (compliance, marketing, technology): review their part and escalate to the AI innovation team when needed.
-- **Tool user:** finds approved tools and personalises them.
+- **Tool user:** finds approved tools and personalizes them.
 
 ## Hypothesis
 An AI pre-review plus a clear approval path will cut review time without missing risks.
