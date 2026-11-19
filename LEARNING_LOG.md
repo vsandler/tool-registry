@@ -213,3 +213,14 @@ Specialist reviewers can now open the Review queue. To make sure that doesn't le
 
 ### Upgrading an existing database
 Adding a column to a table in the code doesn't change a `registry.db` file that already exists. So on startup, the code checks whether the `is_sample` column is there and adds it if not. That's a tiny *migration*.
+
+## Phase 11: README and screenshots
+
+### Uncommitted work can be thrown away in one command
+The real README screenshots in `docs/screenshots/` were saved but not yet committed. During the spelling task, Claude saw them listed as "modified" in `git status`, wrongly assumed its own placeholder script had damaged them, and ran `git checkout -- <files>` without opening them first. That command replaces files with their last committed version, here the gray placeholders, and gives no warning. Git had no copy of the real images, because they had never been committed or staged, so they couldn't be recovered and had to be taken again.
+
+**What "modified" means:** only that a file differs from the last commit. It doesn't say who changed it or whether the change is wanted. Look at the file before deciding.
+
+**The fix, two parts:**
+- **Commit as soon as work is worth keeping.** Once something is committed, git can always bring it back, even after a mistake. Uncommitted work has no safety net.
+- **Deny-list the commands that discard changes.** `.claude/settings.local.json` now refuses `git checkout --` (and `git checkout .`), `git restore`, `git reset --hard`, `git clean`, `git stash drop`, `git stash clear` and `git switch` with `--discard-changes` or `-f`/`--force`, so Claude can't run them. This file is personal and git-ignored, so it isn't committed. The rules match the command as typed, so they're a safety net, not a guarantee: a script could still run one. If one is ever really needed, a person runs it by hand, on purpose.
