@@ -63,6 +63,14 @@
     5. Count characters the same way the back end does (Python's `len`), so the counter and the refusal agree, including for emoji and other unusual characters. The Comment box is counted after trimming spaces at each end, as the back end does.
     6. One shared counter in `web/app.js`, used by both screens, like the progress bar.
     7. Add tests: every limit the Submit form shows matches `TEXT_LIMITS`, and `comment_max` matches `MAX_COMMENT`; both pages read the limits from the back end and have no numbers of their own; no `maxlength` on either page.
+- **Clearer Comment hint in the Review queue**
+  - **What it is:** the hint under the Review queue's Comment box reads "Optional when approving. To reject, explain why in at least 10 characters. The builder will see it." Someone skimming sees "Optional" first and can miss the rule for rejecting. Put the requirement first: "Required to reject (at least 10 characters). Optional when approving. The builder will see it."
+  - **Why it matters:** a rejection without a proper comment is refused (DECISIONS.md #12), so the rule people are most likely to trip over should be the first thing they read.
+  - **Steps to build it:**
+    1. Reword the hint in `web/queue.html` (the Comment box's `hint`), keeping the number from the back end's `reject_comment_min`, not typed into the page.
+    2. Keep the hint linked to the Comment box for screen readers (`aria-describedby`).
+    3. Add a test: the hint starts with the requirement to reject, and still reads its minimum from `reject_comment_min`.
+    4. If "Require a reason to approve against the AI's advice" is built later, update this hint to match, for example "Required to reject, and to approve a tool the AI flagged (at least 10 characters). The builder will see it.", worded from the back end's `needs_reason` so the hint and the refusal can't disagree.
 - **Configurable approval order**
   - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
   - **Steps to build it:**

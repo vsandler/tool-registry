@@ -160,7 +160,7 @@ Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
 ### Later
 
 <details>
-<summary>The rest of the backlog, by theme (23 items)</summary>
+<summary>The rest of the backlog, by theme (24 items)</summary>
 
 **Keeping people in charge of the AI**
 - **Require a reason to approve against the AI's advice:** going against a flag becomes a deliberate, recorded choice, not a click.
@@ -183,6 +183,7 @@ Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
 
 **Polish and limits**
 - **Live character counter on the Submit form and the Review queue's Comment box:** shows how much of each length limit is used as you type.
+- **Clearer Comment hint in the Review queue:** put "Required to reject (at least 10 characters)" before "Optional when approving", so people skimming don't miss the rule.
 - **Revisit length limits with real data:** today's limits were set from made-up text, so adjust them using real submission lengths.
 
 **Running it for real**
