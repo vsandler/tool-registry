@@ -134,59 +134,65 @@ The tests use a fake AI, so they're free and need no key. To rerun the AI eval (
 
 ---
 
+## Limits (what this demo isn't)
+
+- **No real sign-in.** You pick who you are from a persona dropdown, which the browser sends as an `X-Persona` header. Anyone could fake that header and act as anyone, so the approval rules are only as safe as the sign-in in front of them. Real use would need proper authentication, with roles from the firm's directory.
+- **One machine, one small database.** Data lives in a single SQLite file on the computer running the app. There's no hosting, backups or multi-user setup.
+- **Made-up data only.** Every person, client, practice and number is invented. It has never seen real client data.
+- **The AI is advice only.** It never approves, rejects or blocks a tool. People make every decision, and a wrong "safe" still meets every human approval step.
+
+---
+
 ## What I'd build next
 
-The full list, with the steps for each, is in [BACKLOG.md](BACKLOG.md).
+Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
+
+### Next
+
+| Item | Why it's next |
+|---|---|
+| **Real sign-in instead of the persona dropdown** | Every approval rule depends on knowing who's really acting. Until then, none of them can be trusted with real people. |
+| **Configurable approval order** | Firms differ in who must sign off. Today the order is fixed, though it's already saved as a list, so this needs no rewrite. |
+| **Fix and resubmit after rejection** | Today a rejection is final, so a builder with a fixable problem has to start over. Most rejections should lead to a better tool, not a dead end. |
+| **Confirm AI advice** | A specialist selects the AI points they agree with as their reason, recorded as *their* decision, never the AI's. To guard against rubber-stamping (automation bias), each reviewer's agreement rate and decision time are tracked. |
+| **Fill blanks from an approved data source** | Typing client details by hand is slow and error-prone. Filling blanks from a firm-approved source, using the person's own access, removes the typing without widening anyone's access. |
+
+### Later
+
+<details>
+<summary>The rest of the backlog, by theme (23 items)</summary>
 
 **Keeping people in charge of the AI**
-
-| Item | What it is |
-|---|---|
-| Confirm AI advice | A specialist selects the AI points they agree with as their reason, recorded as *their* decision. Agreement rate and decision time are tracked to catch rubber-stamping. |
-| Require a reason to approve against the AI's advice | Going against a flag should be a deliberate, recorded choice, not a click. |
-| Make the eval set harder | Trick cases written by a second AI, and cases from real reviewer disagreements. |
-| Model cascade | Haiku reviews everything; a stronger model gives a second opinion on anything flagged. Only once a harder set shows Haiku missing things. |
+- **Require a reason to approve against the AI's advice:** going against a flag becomes a deliberate, recorded choice, not a click.
+- **Make the eval set harder:** trick cases written by a second AI, and cases from real reviewer disagreements.
+- **Model cascade:** Haiku reviews everything, and a stronger model gives a second opinion on anything flagged. Only worth it once a harder set shows Haiku missing things.
 
 **Approvals**
-
-| Item | What it is |
-|---|---|
-| Configurable approval order | A Super admin adds, removes and reorders approval steps. |
-| Hub-and-spoke routing (partly done) | Choose the next specialist after seeing each review, not all up front. |
-| Parallel approvals | Specialist reviews at the same time; publish only when all approve. |
-| Fix and resubmit after rejection | A builder edits a rejected tool and sends it back. |
-| Approved outside the registry | The Super admin records a sign-off given elsewhere, with a reference. |
-| Reassign orphaned tools | An admin hands a departed owner's tool to a current user. |
+- **Hub-and-spoke routing (partly done):** choose the next specialist after seeing each review, not all of them up front.
+- **Parallel approvals:** specialists review at the same time, and the tool is published only when all of them approve.
+- **Approved outside the registry:** the Super admin records a sign-off given elsewhere, with a reference.
+- **Reassign orphaned tools to a new owner:** an admin hands a departed owner's tool to a current user.
 
 **Catalog and tools**
-
-| Item | What it is |
-|---|---|
-| Update a published tool | A change becomes a new version with a full review; each tool keeps a never-edited decision log. |
-| Practice versions | A practice adapts a published tool, with review routed by what the change touches. |
-| Fill blanks from an approved data source | Blanks filled from a firm-approved source, using the person's own access. |
-| "New" badge on the Catalog tab | Shows how many tools were published since you last looked. |
-| Spot overlap | Practices see a summary of what others are building, to avoid building twice. |
-| Let anyone propose a tool | Tool users can submit and become Builders. |
-| Admin-managed practice list | Practices come from a list admins keep. |
+- **Update a published tool:** a change becomes a new version with a full review, and each tool keeps a decision log that's never edited.
+- **Practice versions:** a practice adapts a published tool, with review routed by what the change touches.
+- **"New" badge on the Catalog tab:** shows how many tools were published since you last looked.
+- **Spot overlap:** practices see a summary of what others are building, to avoid building twice.
+- **Let anyone propose a tool:** Tool users can submit, and become Builders when they do.
+- **Admin-managed practice list:** practices come from a list admins keep, not from what people type.
 
 **Polish and limits**
-
-| Item | What it is |
-|---|---|
-| Live character counter | Shows how much of each text limit is used as you type, on the Submit form and the Comment box. |
-| Revisit length limits with real data | Today's limits were set from made-up text; adjust them from real submission lengths. |
+- **Live character counter on the Submit form and the Review queue's Comment box:** shows how much of each length limit is used as you type.
+- **Revisit length limits with real data:** today's limits were set from made-up text, so adjust them using real submission lengths.
 
 **Running it for real**
+- **Full audit trail for a real firm:** nothing can be deleted or quietly changed, and logs are kept for an agreed time.
+- **Notifications:** tell people when a tool reaches their step, and tell builders when it's decided.
+- **Ticketing integration:** open a ticket in the reviewer's system and sync the decision back.
+- **Browser tests (Playwright):** automated clicks through the real pages as each persona.
+- **Move the front end to React:** once there are more screens and more shared pieces.
+- **Separate libraries for each practice:** each practice arranges its own library (today: one catalogue with a visibility label).
+- **Cost/ROI dashboard:** what the tools cost to run and what they save.
+- **Live hosted demo:** a hosted copy to try without installing anything.
 
-| Item | What it is |
-|---|---|
-| Real sign-in instead of the persona dropdown | Roles come from the firm's directory. |
-| Full audit trail for a real firm | Nothing can be deleted or quietly changed; logs kept for an agreed time. |
-| Notifications | Tell people when a tool reaches their step, and builders when it's decided. |
-| Ticketing integration | Open a ticket in the reviewer's system and sync the decision back. |
-| Browser tests (Playwright) | Click through the real pages as each persona. |
-| Move the front end to React | When there are more screens and more shared pieces. |
-| Separate libraries for each practice | |
-| Cost/ROI dashboard | |
-| Live hosted demo | |
+</details>
