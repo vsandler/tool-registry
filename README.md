@@ -1,6 +1,12 @@
 # Tool Registry
 
-**AI tools are spreading through firms faster than the rules for managing them.** Tools reach clients before anyone has checked them, client data leaks out with shared workspaces, teams build the same tool twice, tools are orphaned when their builders leave, and nobody remembers why a template was written the way it was. Tool Registry is one governed catalog for AI tools: **review once, reuse many times.** Here each tool is a prompt template, the simplest unit that proves the workflow; real tools would be Claude skills and interactive HTML tools built in Claude, hosted on a firm-owned subdomain or shared as Claude artifacts. A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalog, and anyone allowed can fill in the blanks to make their own copy.
+**The problem.** AI tools are spreading through firms faster than the rules for managing them. Tools reach clients before anyone has checked them, client data leaks out with shared workspaces, teams build the same tool twice, tools are orphaned when their builders leave, and nobody remembers why a template was written the way it was.
+
+**The idea: review once, reuse many times.** Tool Registry is one governed catalog for AI tools. Each tool is checked once, as a clean template with no client data, then reused across the firm. Here each tool is a prompt template, the simplest unit that proves the workflow; real tools would be Claude skills and interactive HTML tools built in Claude, hosted on a firm-owned subdomain or shared as Claude artifacts.
+
+**How it works.** A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalog, and anyone allowed can fill in the blanks to make their own copy.
+
+**Results at a glance:** 19/19 risky submissions caught in every run · 16/17 safe ones passed (94–100% per run) · about $0.0002 per AI review · an independent Codex code review, with all 3 findings fixed · 605 tests passing.
 
 ![Review queue: a submitted tool with its rule flags, AI advice and approval progress](docs/screenshots/01-hero-review-queue.png)
 
@@ -75,6 +81,8 @@ Each change was measured before and after on the same cases.
 ### Haiku 5.5 vs Sonnet 5.5
 
 Same 34 cases, same instructions, 3 runs each (102 calls per model):
+
+*Why 34, not 36:* this comparison ran on 2026-11-16. The two firm-wide, no-practice cases were added the next day, after a real review wrongly flagged a missing practice, and the comparison wasn't rerun.
 
 | | **Claude Haiku 5.5** | Claude Sonnet 5.5 |
 |---|---|---|
@@ -153,7 +161,7 @@ Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
 | Item | Why it's next |
 |---|---|
 | **Real sign-in instead of the persona dropdown** | Every approval rule depends on knowing who's really acting. Until then, none of them can be trusted with real people. |
-| **Configurable approval order** | Firms differ in who must sign off. Today the order is fixed, though it's already saved as a list, so this needs no rewrite. |
+| **Configurable approval order** | Firms differ in who must sign off. Today the Super admin already picks which specialists review each tool, and in what order. What's fixed is the frame: the Super admin always routes first and publishes last, only specialist reviews go in between, the three areas are set in the code, and no area is ever required. Steps are already saved as a list, so this needs no rewrite. |
 | **Fix and resubmit after rejection** | Today a rejection is final, so a builder with a fixable problem has to start over. Most rejections should lead to a better tool, not a dead end. |
 | **Confirm AI advice** | A specialist selects the AI points they agree with as their reason, recorded as *their* decision, never the AI's. To guard against rubber-stamping (automation bias), each reviewer's agreement rate and decision time are tracked. |
 | **Fill blanks from an approved data source** | Typing client details by hand is slow and error-prone. Filling blanks from a firm-approved source, using the person's own access, removes the typing without widening anyone's access. |

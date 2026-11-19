@@ -72,14 +72,20 @@
     3. Add a test: the hint starts with the requirement to reject, and still reads its minimum from `reject_comment_min`.
     4. If "Require a reason to approve against the AI's advice" is built later, update this hint to match, for example "Required to reject, and to approve a tool the AI flagged (at least 10 characters). The builder will see it.", worded from the back end's `needs_reason` so the hint and the refusal can't disagree.
 - **Configurable approval order**
-  - **Why it was cut:** The back end couldn't be finished by Saturday evening, so the order is fixed for now: AI enablement, then one other approver. See DECISIONS.md #1.
+  - **What's fixed today:** the Super admin already picks which specialist areas review each tool, and in what order (DECISIONS.md #11). What's fixed is the frame around that:
+    - the Super admin always routes first and publishes last;
+    - the only steps in between are specialist reviews (for example, there's no Practice admin sign-off step);
+    - the three specialist areas (technology, compliance, marketing) are set in the code;
+    - no area is ever required: the Super admin could route a firm-wide tool past compliance.
+  - **What would become configurable:** admins set the default order, including kinds of step other than specialist reviews, keep the list of specialist areas, and set rules for which areas a tool must go through.
+  - **Why it was cut:** a configurable order needs more back-end work than the weekend build allowed (DECISIONS.md #1). Each tool's steps are already saved as an ordered list, so it needs no rewrite.
   - **Steps to build it:**
-    1. Add a settings screen where a Super admin can add, remove, and reorder approval steps.
-    2. Save each order as an ordered list of steps (this is the same list format used today).
-    3. Choose which order applies to a tool, for example based on its visibility label (practice-only or firm-wide).
-    4. Update the approval flow so it reads the saved order instead of the fixed default.
-    5. Keep the current fixed order as the default when nothing has been set up.
-    6. Add tests: a custom order runs in the right sequence, and the default still works.
+    1. Add a settings screen where a Super admin can add, remove and reorder the steps in the default order, including steps other than specialist reviews (for example a Practice admin sign-off).
+    2. Let admins keep the list of specialist areas, instead of it being set in the code.
+    3. Add rules for required areas, for example based on visibility (every firm-wide tool goes through compliance). At routing, the Super admin starts from the required areas, can add more and change the order, but can't remove a required one.
+    4. Save each order as an ordered list of steps (the same list format used today).
+    5. Keep today's order (route, the chosen specialist reviews, publish, with nothing required) as the default when nothing has been set up.
+    6. Add tests: a custom order runs in the right sequence; a required area can't be removed at routing; new kinds of step keep no self-approval and one person per step; the default still works.
 - **Hub-and-spoke routing (partly done)**
   - **What it is:** After each specialist approves, the tool returns to the Super admin. The Super admin can then send it to another specialist, as many times as needed, or publish it as practice-only or firm-wide.
   - **Already done by multi-specialist routing (DECISIONS.md #11):** a tool can have several specialist reviews, each its own step with its own history entry. The progress line shows every review. "Specialist must be a different person" and "no self-approval" apply at every step, and a rejection at any review ends it.
