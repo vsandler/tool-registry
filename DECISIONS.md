@@ -384,3 +384,21 @@ The findings, who found them and their status are in REVIEW.md. One commit per f
 - **Where it's checked:** when a tool is saved, submitted or decided. A refusal names each box with a plain message, "Keep the template to 5,000 characters or fewer (it has 6,001).", and nothing is saved. A draft saved before the limits is refused at submit, before any check or AI call. A comment over its limit is refused next to the Comment box, and nothing is recorded.
 - **`registry/agent.py` unchanged,** so the eval results and sample advice still apply. The limits stop long input before it reaches the agent.
 - **Not covered:** the values typed when personalising a Catalog tool (never saved or sent to the AI), and the Submit form's live list of blanks (`POST /templates/blanks`, which saves nothing and calls no AI). The Submit form doesn't show the limits ahead of time. It shows the back end's message once the limit is passed.
+
+---
+
+## 23. US spelling in the app's own wording (2026-11-18)
+
+**Decision:** everything the app says on screen, every message from the back end, and the docs (README, GLOSSARY, BACKLOG, STATUS, LEARNING_LOG) use US spelling: "Personalize", "personalized", "catalog", "labeled", "color", "recognize", "judgment", "defense". This goes further than #20's "select" and "clear". Earlier entries in this file keep their original wording, as a record of what was decided then.
+
+**Code names:** the `personalise` family became `personalize`, because it shows in a web address: the route `POST /tools/{id}/personalize`, the request model `Personalize`, the functions `personalize` (in `registry/tools.py` and `registry/api.py`), `PersonalizeError`, the Catalog page's `personalizeForm` and the CSS class `.personalize`. Every one is covered by tests that call the route or check the page. The download name for a tool with no letters in its name is now `personalized-tool.txt`. The internal names `catalogue`, `catalogue_entry` and `CATALOGUE_FIELDS` in `registry/api.py` stay: they never reach a person, and renaming them changes nothing anyone sees.
+
+**Left in British spelling on purpose:**
+- **The AI's instructions** (`SYSTEM_PROMPT`, which says "catalogue"): changing them changes what the AI sees, makes the sample advice stale (paid AI calls to refresh) and means the eval results no longer strictly apply.
+- **The seeded tools** (for example "Summarise these notes…"): their content is fingerprinted by the sample advice.
+- **The eval cases and sample advice:** what the AI was tested on and what it said.
+- **REVIEW.md's past entries, BRIEF.md and EVALS.md,** and the copy of the AI's instructions quoted in STATUS.md.
+
+**Safeguard:** `tests/test_us_spelling.py` fails if a British spelling from its list appears anywhere in `web/` (comments included) or in any text in `registry/` (messages, labels, hints, docstrings), except the instructions and seeded tools above. A test checks those exemptions still name real code, so a rename can't quietly widen them. The list is explicit (for example `personalis…`, `catalogue`, `colour`, `labell…`), not a general "-ise" rule, so words spelled the same in US English (advise, promise, exercise) never trip it.
+
+**Trade-off:** the app's wording ("catalog") and the AI's instructions ("catalogue") differ. That's invisible to people using it. If the instructions are next changed for another reason, switch them to US spelling at the same time and rerun the eval.

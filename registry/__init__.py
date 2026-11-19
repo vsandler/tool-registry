@@ -1,1 +1,1 @@
-"""Tool Registry back end: a governed catalogue of reusable AI tool templates."""
+"""Tool Registry back end: a governed catalog of reusable AI tool templates."""

@@ -1,4 +1,4 @@
-"""Run the AI pre-review agent over the labelled eval set and score it against BRIEF.md.
+"""Run the AI pre-review agent over the labeled eval set and score it against BRIEF.md.
 
 Usage (from the project root):
     .venv/Scripts/python.exe -m evals.run_eval            # 3 runs of every case

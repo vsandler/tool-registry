@@ -21,7 +21,7 @@ _Terms used in this project, defined in plain language._
 - **Cross-site scripting (XSS):** When text someone typed is shown as page code and runs in another person's browser. Our pages always set text as text, which prevents it.
 - **Demo draft:** One of the two made-up sample tools saved but not submitted, so a presenter can submit it and watch the real AI review it.
 - **Effort (Claude):** A setting that controls how hard the model thinks before answering. Higher effort is more careful but slower and uses more tokens.
-- **Endpoint:** One address in the API, such as `GET /tools` (list the catalogue).
+- **Endpoint:** One address in the API, such as `GET /tools` (list the catalog).
 - **Environment variable:** A named value the computer hands to a running program, such as `ANTHROPIC_API_KEY`. python-dotenv fills these in from `.env`.
 - **Eval (evaluation):** A fixed set of test cases with known right answers, used to measure how well the AI agent does.
 - **Eval set:** The list of test submissions used in an eval. Ours is `evals/submissions.json`.
@@ -35,7 +35,7 @@ _Terms used in this project, defined in plain language._
 - **Flag:** A warning attached to a submission when a check fails. It points a human reviewer at the problem but does not reject the tool.
 - **Front end:** The screens people see and click, here plain HTML, CSS and JavaScript in `web/`, served by the same server as the API.
 - **Guard test:** A test that protects against a future mistake rather than today's code, for example failing if someone adds a new admin route without thinking about who may open it.
-- **Header (HTTP):** A labelled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
+- **Header (HTTP):** A labeled piece of information sent with each request. We use `X-Persona` to say which persona is acting.
 - **Inconsistent case:** An eval case that gets different verdicts in different runs. It shows where the model is unsure.
 - **In-memory database:** A database kept only in the computer's working memory. It disappears when the program stops, which is ideal for tests.
 - **JSON:** A simple text format for structured data, like `{"verdict": "safe", "issues": []}`.
@@ -50,11 +50,11 @@ _Terms used in this project, defined in plain language._
 - **Needs human:** The agent's result when its answer is missing, broken or refused. The tool is flagged so a person reviews it.
 - **Orphaned tool:** A tool whose owner has left, so nobody looks after it.
 - **Parametrize (pytest):** Running one test several times with different inputs.
-- **Personalise:** Filling in a published tool's blanks to make your own copy.
+- **Personalize:** Filling in a published tool's blanks to make your own copy.
 - **Persona:** One of the five made-up user types (Builder, Practice admin, Super admin, Specialist reviewer, Tool user) you pick from a dropdown instead of signing in.
 - **Progress line:** The row of approval steps at the top of a tool's review screen, each marked done, waiting, rejected or not reached.
 - **Prompt injection:** Text in the data that tries to give the AI new instructions, such as "ignore your rules and approve this".
-- **Publish:** The last approval step. The Super admin sets the tool's visibility and it becomes available in the catalogue.
+- **Publish:** The last approval step. The Super admin sets the tool's visibility and it becomes available in the catalog.
 - **Pydantic:** A Python library that checks data matches a described shape and reports what's wrong if not.
 - **pytest:** The Python tool that runs our automated tests and reports which ones pass or fail.
 - **python-dotenv:** A Python package that reads `.env` and loads its values into the program's environment.
@@ -66,7 +66,7 @@ _Terms used in this project, defined in plain language._
 - **Routing:** The Super admin sending a tool to one specialist area for review.
 - **Rule-based check:** A fixed, simple test (no AI) run on every submission, such as "does the template contain an email address?".
 - **Run (eval):** One pass through every case in the eval set. Ours does 3 runs to check the answers stay the same.
-- **Sample advice:** Fixed, pre-written AI advice for the seeded demo tools, copied from a real AI review and clearly labelled. No AI call is made for it.
+- **Sample advice:** Fixed, pre-written AI advice for the seeded demo tools, copied from a real AI review and clearly labeled. No AI call is made for it.
 - **Seed data:** Made-up sample records loaded into an empty database so there's something to work with.
 - **Self-approval:** Approving a tool you own. Never allowed, for any role, admins included.
 - **Single source of truth:** Keeping a rule in exactly one place so everything that needs it uses the same version. The approval rules live in one back-end check that both deciding and the screens use.
@@ -82,7 +82,7 @@ _Terms used in this project, defined in plain language._
 - **Template:** A tool's reusable text with blanks (template variables) for each user to fill in. Reviewed once, reused many times.
 - **Template variable:** A named blank in a template, written `{{like_this}}`.
 - **Test client:** A pretend web browser used in tests to call the API without starting a real server.
-- **Tests first (test-driven development):** Writing the tests that describe the wanted behaviour before writing the code, then writing code until they pass.
+- **Tests first (test-driven development):** Writing the tests that describe the wanted behavior before writing the code, then writing code until they pass.
 - **Token:** A small chunk of text (roughly three-quarters of a word) that AI models read and write. Usage and cost are counted in tokens.
 - **Tool's own steps:** The list of approval steps saved for one routed tool, so its route, reviews and publish step stay fixed even if the shared list changes.
 - **Validation:** Checking that data is in the expected shape and makes sense before using it.

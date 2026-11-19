@@ -173,7 +173,7 @@ def test_tool_user_cannot_view_unpublished_tool(client):
 def test_personalise_published_tool(client):
     tid = new_tool(client)
     publish(client, tid)
-    r = client.post(f"/tools/{tid}/personalise", headers=as_("u-tool-user"),
+    r = client.post(f"/tools/{tid}/personalize", headers=as_("u-tool-user"),
                     json={"values": {"topic": "quarterly planning"}})
     assert r.json()["text"] == "Draft a note about quarterly planning."
 
@@ -181,13 +181,13 @@ def test_personalise_published_tool(client):
 def test_personalise_missing_value_is_400(client):
     tid = new_tool(client)
     publish(client, tid)
-    r = client.post(f"/tools/{tid}/personalise", headers=as_("u-tool-user"), json={"values": {}})
+    r = client.post(f"/tools/{tid}/personalize", headers=as_("u-tool-user"), json={"values": {}})
     assert r.status_code == 400
 
 
 def test_cannot_personalise_unpublished_tool(client):
     tid = new_tool(client)
-    r = client.post(f"/tools/{tid}/personalise", headers=as_("u-tool-user"),
+    r = client.post(f"/tools/{tid}/personalize", headers=as_("u-tool-user"),
                     json={"values": {"topic": "x"}})
     assert r.status_code == 403
 

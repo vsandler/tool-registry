@@ -1,6 +1,6 @@
 # Screenshots for the README
 
-Each image here is a grey placeholder. Replace it with a real screenshot **of the same file name**, so the README needs no changes. Suggested size: a desktop browser window about 1600 × 900, at 100% zoom.
+Each image here is a gray placeholder. Replace it with a real screenshot **of the same file name**, so the README needs no changes. Suggested size: a desktop browser window about 1600 × 900, at 100% zoom.
 
 **Before you start**
 - Delete `registry.db` and start the app, so you begin from the clean sample data.
@@ -15,4 +15,4 @@ Each image here is a grey placeholder. Replace it with a real screenshot **of th
 | 3 | `03-routing.png` | Review queue, routing step | Riley Ashgrove (Super admin) | "Meeting summary" selected, with **Compliance** and **Marketing** selected and numbered **1** and **2**, before clicking the button | None |
 | 4 | `04-cannot-act.png` | Review queue, a tool you can't decide | Sam Thistle (Compliance specialist) | After Sam approves the compliance step of "Meeting summary": the progress bar with step 2 done (✓) and step 3 waiting, and the plain message that it's now waiting for a Marketing specialist, with no decision buttons | Route "Meeting summary" to Compliance then Marketing (shot 3), then approve it as Sam |
 | 5 | `05-rejection.png` | Review queue, just rejected | Quinn Harrow (Marketing specialist) | The **Rejected** note (who, when, which step, the comment) and the progress bar with ✕ at the marketing step and the publish step "Skipped: rejected at step 3" | Continue from shot 4: as Quinn, reject "Meeting summary" with a made-up comment such as "Please add the standard disclaimer before the summary." |
-| 6 | `06-catalog-personalise.png` | Catalog, Personalise form | Jamie Larkspur (Tool user) | A published card with its "Firm-wide" label, owner and rationale, and the Personalise form with every blank filled with made-up values | Publish "Engagement letter draft" first: as Riley, route it to Technology; as Devon Marsh (Technology specialist), approve; as Riley, change the visibility to **Firm-wide** and publish (the builder asked for Tax only, and Jamie is in Audit, so a Tax-only tool wouldn't show for Jamie). Then switch to Jamie. |
+| 6 | `06-catalog-personalize.png` | Catalog, Personalize form | Jamie Larkspur (Tool user) | A published card with its "Firm-wide" label, owner and rationale, and the Personalize form with every blank filled with made-up values | Publish "Engagement letter draft" first: as Riley, route it to Technology; as Devon Marsh (Technology specialist), approve; as Riley, change the visibility to **Firm-wide** and publish (the builder asked for Tax only, and Jamie is in Audit, so a Tax-only tool wouldn't show for Jamie). Then switch to Jamie. |

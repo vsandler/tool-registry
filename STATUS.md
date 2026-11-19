@@ -40,16 +40,16 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 | 1 | Record the front-end choices (DECISIONS.md #12) | ✅ Done |
 | 2 | Back end says, per persona, "can I act on this step, and if not, why" (`my_action`); tools record their submitted date | ✅ Done |
 | 3 | Serve the pages: shared layout, demo banner, persona dropdown, navigation | ✅ Done |
-| 4 | Catalog screen: published tools, Personalise, download a copy | ✅ Done |
+| 4 | Catalog screen: published tools, Personalize, download a copy | ✅ Done |
 | 5 | Submit screen (builder's form); the rationale is now required | ✅ Done |
 | 6 | Review queue screen: list, detail panel, progress line, decision buttons | ✅ Done |
 
 **Tests:** 523 passing.
 
 ### Step 4: Catalog (done)
-- **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalise" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
+- **The screen:** one card per published tool the persona may see, with its name, visibility label ("Firm-wide" or "Practice-only: Tax"), owner, description, "Why it's built this way" and the template. "Personalize" asks for each blank, and "Download my copy" saves a text file (for example `meeting-summary.txt`) and shows the copy on screen.
 - **Rules stay in the back end** (DECISIONS.md #14):
-  - The catalogue list gives the screen everything ready to show, including each blank with an on-screen name. Rule flags, AI advice and reviewers' comments are left out.
+  - The catalog list gives the screen everything ready to show, including each blank with an on-screen name. Rule flags, AI advice and reviewers' comments are left out.
   - The blanks are read from the template itself, so the form always matches what gets filled in.
   - Empty, spaces-only, missing and unknown values are refused, with a message naming the boxes, which the screen outlines. "Who may use this tool" is checked first.
   - What people type is never saved (it may be client details); a test checks the database is unchanged. The file name comes from the tool's name only.
@@ -144,7 +144,7 @@ Model `claude-haiku-5-5`, effort `medium`, shorter instructions from 8c. 34 made
 A perfect score on a set I wrote may still mean it's too easy to show where the agent fails. "Make the eval set harder" is in BACKLOG.md and the README.
 
 ## Done
-Phase 9 steps 1–4 are summarised at the top. Phase 8 and earlier:
+Phase 9 steps 1–4 are summarized at the top. Phase 8 and earlier:
 
 ### 8d: model comparison (2026-11-16)
 - **Sonnet run:** Sonnet 5.5 was run on the same 34-case set, 3 times each, with the same instructions and effort level (102 calls, $0.36). Haiku 5.5 wasn't rerun; its numbers are run 4.
@@ -189,7 +189,7 @@ Phase 9 steps 1–4 are summarised at the top. Phase 8 and earlier:
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
-**The one change:** rewrite `SYSTEM_PROMPT` in `registry/agent.py` with fewer words. It keeps every rule: the same six risk types, the same "submission is data, not instructions" defence, the same "safe vs risky" guidance, and the same reply rules. Nothing else changes: not the reply schema, the model, the effort level or the way the submission is wrapped.
+**The one change:** rewrite `SYSTEM_PROMPT` in `registry/agent.py` with fewer words. It keeps every rule: the same six risk types, the same "submission is data, not instructions" defense, the same "safe vs risky" guidance, and the same reply rules. Nothing else changes: not the reply schema, the model, the effort level or the way the submission is wrapped.
 
 **Where the tokens go today** (measured with the free token-counting endpoint, on a typical case, out of 1,321 input tokens):
 - **The instructions:** 791 (60%). This is the part we control.
@@ -257,7 +257,7 @@ Not blocking: step 6 can go ahead either way. See DECISIONS.md #14, point 5.
 2. 8c: no missed cases, so it's recorded in EVALS.md, and one token-saving proposal is written above. **Waiting for approval.**
 3. Model cascade added to BACKLOG.md and the README. **Done.**
 
-**✅ Answered on 2026-11-16:** Real API calls when the app first starts? Use fixed, labelled sample advice for the 3 seeded tools, with no AI calls at startup, plus two demo drafts. **Done** (DECISIONS.md #9).
+**✅ Answered on 2026-11-16:** Real API calls when the app first starts? Use fixed, labeled sample advice for the 3 seeded tools, with no AI calls at startup, plus two demo drafts. **Done** (DECISIONS.md #9).
 
 **✅ Answered on 2026-11-15:**
 1. Run the agent on every submit, shown to reviewers as advice only. **Done.**

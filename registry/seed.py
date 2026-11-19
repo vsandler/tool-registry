@@ -50,7 +50,7 @@ FAILING_TOOL = dict(
 
 # Two drafts for live demos: saved but NOT submitted, so a presenter can submit them
 # and watch the real AI review them. Both pass all six rule-based checks, so any
-# flag on the first one comes from the AI's judgement alone.
+# flag on the first one comes from the AI's judgment alone.
 DEMO_DRAFTS = [
     # Subtly risky: a soft promise about returns ("steadily grow faster than inflation").
     dict(
@@ -82,7 +82,7 @@ def seed(conn: sqlite3.Connection) -> dict:
     """Load personas and sample tools. Returns the tool ids by name.
 
     The three sample submissions get fixed, pre-written AI advice from
-    registry/sample_advice.json (labelled as sample advice), so seeding makes no API
+    registry/sample_advice.json (labeled as sample advice), so seeding makes no API
     calls. The two demo drafts are saved but not submitted.
     """
     from registry import sample_advice

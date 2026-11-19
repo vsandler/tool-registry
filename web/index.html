@@ -11,7 +11,7 @@
   <main>
     <h1>Catalog</h1>
     <p class="intro">Published tools you can use. Each was reviewed once, as a template.
-      Personalise one to fill in its blanks and download your own copy.</p>
+      Personalize one to fill in its blanks and download your own copy.</p>
     <section id="content" aria-live="polite"></section>
   </main>
   <script type="module">
@@ -37,10 +37,10 @@
 
     // One tool: everything shown comes straight from the back end's answer.
     function toolCard(tool) {
-      const form = personaliseForm(tool);
+      const form = personalizeForm(tool);
       form.hidden = true;
       const toggle = h("button", { type: "button", className: "secondary",
-                                   "aria-expanded": "false" }, "Personalise");
+                                   "aria-expanded": "false" }, "Personalize");
       toggle.addEventListener("click", () => {
         form.hidden = !form.hidden;
         toggle.setAttribute("aria-expanded", String(!form.hidden));
@@ -65,7 +65,7 @@
 
     // The blanks to fill come from the back end (`blanks`), and so does every check
     // on the values: empty boxes are refused there, with a message naming them.
-    function personaliseForm(tool) {
+    function personalizeForm(tool) {
       const boxes = {};
       const message = h("div", { id: `message-${tool.id}`, className: "form-message" });
       const result = h("div", { className: "result" });
@@ -77,7 +77,7 @@
           h("label", { for: id }, blank.label), boxes[blank.name]);
       });
 
-      const form = h("form", { className: "personalise", "aria-label": `Personalise ${tool.name}` },
+      const form = h("form", { className: "personalize", "aria-label": `Personalize ${tool.name}` },
         tool.blanks.length ? fields : h("p", { className: "meta" }, "This tool has no blanks to fill in."),
         message,
         h("button", { type: "submit" }, "Download my copy"),
@@ -94,7 +94,7 @@
 
         let copy;
         try {
-          copy = await api(`/tools/${encodeURIComponent(tool.id)}/personalise`,
+          copy = await api(`/tools/${encodeURIComponent(tool.id)}/personalize`,
                            { method: "POST", body: { values } });
         } catch (err) {
           // Show the back end's words once, and mark the boxes it names (none if,

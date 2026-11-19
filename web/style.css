@@ -233,7 +233,7 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-.personalise {
+.personalize {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
@@ -388,7 +388,7 @@ button:disabled {
 /* --- the progress bar (shared: Submit page and Review queue) ---
    Each step is a circle with a symbol, joined to the next by a line. The line between
    two steps is drawn in two halves: the earlier step's ::after and the later step's
-   ::before. Both turn green once the earlier step is done, so the bar is coloured up
+   ::before. Both turn green once the earlier step is done, so the bar is colored up
    to the last done step. Steps stack down the page by default (phones), and sit side
    by side when the box is wide enough (the @container rule below). */
 .progress {
@@ -478,7 +478,7 @@ button:disabled {
   background: var(--ok);
   color: #fff;
 }
-/* Now: a filled blue circle with a dot, ringed, and its words in full colour. */
+/* Now: a filled blue circle with a dot, ringed, and its words in full color. */
 .progress-line .step-current .step-marker {
   border-color: var(--accent);
   background: var(--accent);
@@ -517,7 +517,7 @@ button:disabled {
 .tool-details .progress:has(> .progress-line > .step:nth-child(4)) {
   container-name: none;
 }
-/* Wide enough: steps side by side, circles on one line, words centred below. */
+/* Wide enough: steps side by side, circles on one line, words centered below. */
 @container progress (min-width: 34rem) {
   .progress-line {
     flex-direction: row;

@@ -86,7 +86,7 @@ def check_practice_for_practice_only(tool: dict, conn: sqlite3.Connection) -> Ch
 
 
 def check_unique_name(tool: dict, conn: sqlite3.Connection) -> CheckResult:
-    """Avoid building the same tool twice: flag a name already in the catalogue."""
+    """Avoid building the same tool twice: flag a name already in the catalog."""
     clash = conn.execute(
         "SELECT id FROM tools WHERE lower(trim(name)) = lower(trim(?)) AND id != ? "
         "AND status IN ('in_review', 'published')",

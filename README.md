@@ -1,6 +1,6 @@
 # Tool Registry
 
-**AI tools are spreading through firms faster than the rules for managing them.** Tools reach clients before anyone has checked them, client data leaks out with shared workspaces, teams build the same tool twice, tools are orphaned when their builders leave, and nobody remembers why a template was written the way it was. Tool Registry is one governed catalogue for AI prompt templates: **review once, reuse many times.** A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalogue, and anyone allowed can fill in the blanks to make their own copy.
+**AI tools are spreading through firms faster than the rules for managing them.** Tools reach clients before anyone has checked them, client data leaks out with shared workspaces, teams build the same tool twice, tools are orphaned when their builders leave, and nobody remembers why a template was written the way it was. Tool Registry is one governed catalog for AI prompt templates: **review once, reuse many times.** A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalog, and anyone allowed can fill in the blanks to make their own copy.
 
 ![Review queue: a submitted tool with its rule flags, AI advice and approval progress](docs/screenshots/01-hero-review-queue.png)
 
@@ -16,7 +16,7 @@
 | **2. Rule checks** | Six fixed checks run: blanks match, no client data, reason recorded, owner is current, practice named, unique name. Free, instant, and the same every time. | Automatic |
 | **3. AI pre-review** | Claude Haiku 5.5 reads the submission against six risk rules (client data, promised returns, meaningless rationale, tricks aimed at the reviewer, credentials, instructions to leak or hide data) and returns *risky* or *safe*, with issues and a reason. **Advice only:** it never approves, rejects or blocks. If it fails, the tool is marked "needs a human". | AI |
 | **4. Approvals** | People approve in a set order (below). They see rule flags and AI advice in separate boxes, so a fixed fact is never confused with an AI opinion. | Admins and specialists |
-| **5. Catalog and personalise** | Published tools show their owner, visibility and rationale. "Personalise" asks for each blank and returns a filled-in copy. **The values typed are never saved**, because they may be client details, so stored templates stay clean. | Anyone allowed to see it |
+| **5. Catalog and personalize** | Published tools show their owner, visibility and rationale. "Personalize" asks for each blank and returns a filled-in copy. **The values typed are never saved**, because they may be client details, so stored templates stay clean. | Anyone allowed to see it |
 
 **Flags never block.** A flagged tool still goes to a person, who decides. That follows the brief: anything flagged goes to a human, nothing is auto-rejected.
 
@@ -42,13 +42,13 @@
 | | |
 |---|---|
 | ![Routing: two specialist areas selected, numbered in order](docs/screenshots/03-routing.png) | ![A compliance specialist told the tool is waiting for marketing, not them](docs/screenshots/04-cannot-act.png) |
-| ![A rejected tool: the rejection note and the progress bar showing where it stopped](docs/screenshots/05-rejection.png) | ![Catalog: personalising a published tool with made-up values](docs/screenshots/06-catalog-personalise.png) |
+| ![A rejected tool: the rejection note and the progress bar showing where it stopped](docs/screenshots/05-rejection.png) | ![Catalog: personalizing a published tool with made-up values](docs/screenshots/06-catalog-personalize.png) |
 
 ---
 
 ## How I evaluate the AI
 
-**The test set:** 36 made-up submissions (19 risky, 17 safe), each labelled by hand before the AI saw it. They include deliberately hard cases: a single client name mentioned in passing, a soft promise ("will comfortably outpace inflation"), tricks hidden in a variable name or a polite note to "automated reviewers", a role-play trick, and safe cases built to *look* risky ("we cannot guarantee returns").
+**The test set:** 36 made-up submissions (19 risky, 17 safe), each labeled by hand before the AI saw it. They include deliberately hard cases: a single client name mentioned in passing, a soft promise ("will comfortably outpace inflation"), tricks hidden in a variable name or a polite note to "automated reviewers", a role-play trick, and safe cases built to *look* risky ("we cannot guarantee returns").
 
 **Strict scoring:** every case runs 3 times. A risky case counts as caught only if it's flagged in **all 3** runs, because a risk that slips through once in three would slip through in real use.
 
@@ -116,7 +116,7 @@ python -m venv .venv
 
 Open **http://127.0.0.1:8000/** and pick a persona from the "Viewing as" dropdown. The first run creates `registry.db` with sample data; delete it to start fresh. http://127.0.0.1:8000/docs lists every endpoint.
 
-- **No API key needed to look around.** The three sample submissions come with pre-written AI advice copied from a real review and labelled as sample advice, so starting the app makes no AI calls.
+- **No API key needed to look around.** The three sample submissions come with pre-written AI advice copied from a real review and labeled as sample advice, so starting the app makes no AI calls.
 - **To see the AI live,** add your own Anthropic API key to `.env`, then submit a tool as Avery Quill (Builder). The sample draft "Savings check-in note" is a good one: it passes every rule check but quietly promises savings "will steadily grow faster than inflation", so any flag comes from the AI.
 - **The Catalog starts empty.** Take a sample tool through route → review → publish to see it fill.
 
@@ -192,7 +192,7 @@ Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
 - **Ticketing integration:** open a ticket in the reviewer's system and sync the decision back.
 - **Browser tests (Playwright):** automated clicks through the real pages as each persona.
 - **Move the front end to React:** once there are more screens and more shared pieces.
-- **Separate libraries for each practice:** each practice arranges its own library (today: one catalogue with a visibility label).
+- **Separate libraries for each practice:** each practice arranges its own library (today: one catalog with a visibility label).
 - **Cost/ROI dashboard:** what the tools cost to run and what they save.
 - **Live hosted demo:** a hosted copy to try without installing anything.
 

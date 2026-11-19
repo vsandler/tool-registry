@@ -66,7 +66,7 @@ def entry(client, persona, tid):
 
 
 def personalise(client, tid, values, persona="u-tool-user"):
-    return client.post(f"/tools/{tid}/personalise", headers=as_(persona), json={"values": values})
+    return client.post(f"/tools/{tid}/personalize", headers=as_(persona), json={"values": values})
 
 
 # --- what each catalogue entry carries ---------------------------------------------------
@@ -168,7 +168,7 @@ def test_file_name_is_safe_for_odd_tool_names(client):
 def test_file_name_falls_back_when_the_name_has_no_letters(client):
     tid = published_tool(client, name="✨✨")
     body = personalise(client, tid, {"client_name": "A", "topic": "B"}).json()
-    assert body["filename"] == "personalised-tool.txt"
+    assert body["filename"] == "personalized-tool.txt"
 
 
 def test_values_that_look_like_blanks_are_not_filled_again(client):
@@ -224,7 +224,7 @@ def test_cannot_personalise_a_practice_only_tool_from_another_practice(client):
     tid = published_tool(client, visibility="practice-only", practice="Tax")
     r = personalise(client, tid, {"client_name": "A", "topic": "B"}, persona="u-tool-user")
     assert r.status_code == 403
-    assert r.json() == {"detail": "Only published tools you can see can be personalised"}
+    assert r.json() == {"detail": "Only published tools you can see can be personalized"}
 
 
 def test_who_may_personalise_is_checked_before_the_values(client):
@@ -262,7 +262,7 @@ def test_catalog_page_does_not_find_or_fill_blanks_itself():
     page = page_script()
     assert "{{" not in page and "\\{\\{" not in page
     assert ".replace(" not in page and "replaceAll(" not in page
-    assert "/personalise" in page and 'method: "POST"' in page
+    assert "/personalize" in page and 'method: "POST"' in page
 
 
 def test_catalog_page_leaves_checking_values_to_the_back_end():

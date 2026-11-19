@@ -23,7 +23,7 @@
     2. Refuse such an approval without a reason, in plain words next to the Comment box (for example "The AI flagged this tool. Say why you're approving it anyway."), using the same minimum length as a rejection comment.
     3. Send it in `my_action` (for example `needs_reason: true`), so the Comment box's hint says a reason is needed before the person clicks Approve.
     4. Label it in the history, for example "Approved against the AI's advice: …".
-    5. Add tests: a flagged tool approved with no reason is refused and nothing is saved; with a reason it's accepted and labelled; a tool the AI called safe needs no reason; the hint matches what the back end refuses.
+    5. Add tests: a flagged tool approved with no reason is refused and nothing is saved; with a reason it's accepted and labeled; a tool the AI called safe needs no reason; the hint matches what the back end refuses.
   - **Open questions:**
     - **"Needs a human":** when the AI couldn't give advice (for example it timed out), does approving need a reason too?
     - **Which steps:** every approval step, or only the specialist reviews and the final publish?
@@ -35,7 +35,7 @@
     1. The back end records when each person last opened the Catalog, and counts the published tools they may see that were published after that. Tools don't record when they were published yet, so add a `published_at` date, set at the publish step.
     2. Send the count with the persona (for example `new_in_catalog`), the same way `can_submit` is sent, so the navigation only displays it.
     3. Opening the Catalog marks it as seen, and the cards of tools published since the last visit show "New".
-    4. Write it out for screen readers ("Catalog, 2 new tools"), not just a coloured dot.
+    4. Write it out for screen readers ("Catalog, 2 new tools"), not just a colored dot.
     5. Add tests: a tool published after the last visit counts; one the person may not see (another practice's practice-only tool) never counts; opening the Catalog clears the count; a first visit doesn't mark everything new.
   - **Open questions:**
     - **First visit:** is everything new, or nothing?
@@ -53,7 +53,7 @@
     - **How long to keep the length logs,** and who may see them?
     - **Per-box or per-submission:** should there also be a limit on the whole submission's size, since that's what sets the AI's cost?
 - **Live character counter on the Submit form and the Review queue's Comment box**
-  - **What it is:** under each text box on the Submit form (name, description, template, rationale) and under the Review queue's Comment box, a counter shows how much of the limit is used as the person types, for example "382 / 5,000 characters". It changes colour and says so in words when close to or over the limit.
+  - **What it is:** under each text box on the Submit form (name, description, template, rationale) and under the Review queue's Comment box, a counter shows how much of the limit is used as the person types, for example "382 / 5,000 characters". It changes color and says so in words when close to or over the limit.
   - **Why it matters:** today people only find out about a length limit after submitting or deciding, when the back end refuses (DECISIONS.md #22). A counter tells them first.
   - **Steps to build it:**
     1. The back end sends each limit with what the screen already asks for, so the limits stay in one place: `TEXT_LIMITS` with the Submit form (`GET /submit-form`, for example `max_length` on each field in `FORM_FIELDS`), and `MAX_COMMENT` with each tool's `my_action` (for example `comment_max`, next to the `reject_comment_min` it already sends).
@@ -153,23 +153,23 @@
     3. Rebuild the screens one at a time, keeping the same API calls.
     4. Add component tests, and browser tests if not already done.
 - **Update a published tool**
-  - **What it is:** The builder can submit a change to a tool that's already published. The change becomes a new version that goes through the full review again, with no self-approval. The current published version stays in the catalogue until the new one is approved.
+  - **What it is:** The builder can submit a change to a tool that's already published. The change becomes a new version that goes through the full review again, with no self-approval. The current published version stays in the catalog until the new one is approved.
   - **Why it was cut:** Today a published tool can't be changed, which keeps versions and history simple for the demo.
   - **Steps to build it:**
     1. Let the owner start a new draft version from a published tool, linked to it.
     2. Run the rule-based checks and the AI pre-review on the new version, then the full approval flow, with no self-approval at every step.
-    3. Keep the current version in the catalogue while the new one is in review; swap them only when the new one is published.
+    3. Keep the current version in the catalog while the new one is in review; swap them only when the new one is published.
     4. Keep every version, and show who changed what and when (for example, the template and rationale before and after).
     5. Give each tool its own **decision log**, like DECISIONS.md but per tool. Every version adds one entry: what changed, why (in the builder's words), who approved or rejected it at each step with their comments, and the date. Entries are never edited or deleted. This is the per-tool part of the "Full audit trail for a real firm" item below.
     6. Show the log by role:
        - **Builders:** the full log for their own tools.
        - **Approvers:** the full log.
        - **Tool users:** only a short "what changed" note per version, without reviewer comments.
-    7. When someone personalises a tool from the catalogue, show a short **"Why it's built this way"** note listing the key decisions and conditions from the tool's decision log (for example, "The disclaimer must stay: required by compliance"). Then they know what's safe to change and what a change would affect. Reviewers' internal comments stay hidden from tool users.
-    8. Add tests: a tool user personalising a tool sees the "Why it's built this way" note but no reviewer comments; the old version stays visible during review; the swap happens only on approval; a rejected version leaves the old one in place; the owner can't approve their own change; a log entry can't be edited or deleted; tool users never see reviewer comments.
+    7. When someone personalizes a tool from the catalog, show a short **"Why it's built this way"** note listing the key decisions and conditions from the tool's decision log (for example, "The disclaimer must stay: required by compliance"). Then they know what's safe to change and what a change would affect. Reviewers' internal comments stay hidden from tool users.
+    8. Add tests: a tool user personalizing a tool sees the "Why it's built this way" note but no reviewer comments; the old version stays visible during review; the swap happens only on approval; a rejected version leaves the old one in place; the owner can't approve their own change; a log entry can't be edited or deleted; tool users never see reviewer comments.
   - **Open questions:**
     - **Small changes:** does fixing a typo or a wording change need the full review, or a lighter one? Who decides what counts as small?
-    - **People's own copies:** what happens to copies people already personalised and saved from the old version? Are they told about the update, and can they move to the new version?
+    - **People's own copies:** what happens to copies people already personalized and saved from the old version? Are they told about the update, and can they move to the new version?
 - **Practice versions**
   - **What it is:** A practice can adapt a published tool for its own use. How much review the change needs depends on what it touches.
   - **Why it was cut:** Separate practice libraries are out of scope for now (DECISIONS.md #2). Which changes need which review still has to be confirmed with each specialist area.
@@ -188,14 +188,14 @@
 - **Fill blanks from an approved data source**
   - **What it is:** A tool's blanks can be filled automatically from a firm-approved data source that already filters by permission. The registry asks the source as the person using the tool, with their own access. It never uses a shared account that sees everything, so the source's permission rules always apply.
   - **More than one source per tool:** a tool can be approved with more than one data source (for example, two market data providers). The person using it picks which approved source to fill from, with no new review. Adding a source the tool wasn't approved for goes back through technology review (and compliance if the data reaches clients), as in "Practice versions". The downloaded copy notes which source was used.
-  - **Why it was cut:** This is a demo with no real systems or data sources (BRIEF.md "Out of Scope"). For now people type the values into the Catalog's Personalise form themselves.
+  - **Why it was cut:** This is a demo with no real systems or data sources (BRIEF.md "Out of Scope"). For now people type the values into the Catalog's Personalize form themselves.
   - **Steps to build it:**
     1. Keep a list of approved data sources. Only sources on that list can be used.
     2. Let a tool link its blanks to one or more approved sources. Adding a source to a tool needs technology review, plus compliance if the data reaches clients (see "Practice versions").
-    3. When someone personalises the tool, let them pick one of the sources the tool was approved for, with no new review. Ask the source as that person, using their own access, never a shared account. Whatever the source won't show them stays empty.
+    3. When someone personalizes the tool, let them pick one of the sources the tool was approved for, with no new review. Ask the source as that person, using their own access, never a shared account. Whatever the source won't show them stays empty.
     4. Use the filled values only for that person's copy. Never save them in the registry and never send them to the AI reviewer.
     5. Note in the downloaded copy which source was used.
-    6. Add tests with pretend data sources: each person gets only what their own access allows; a source not on the approved list is refused; a source the tool wasn't approved for is refused at personalising; picking between a tool's approved sources needs no review; adding a source to a tool goes to technology review, and to compliance when the data reaches clients; the download names the source used; filled values never appear in the database or in what the AI reviewer is sent.
+    6. Add tests with pretend data sources: each person gets only what their own access allows; a source not on the approved list is refused; a source the tool wasn't approved for is refused at personalizing; picking between a tool's approved sources needs no review; adding a source to a tool goes to technology review, and to compliance when the data reaches clients; the download names the source used; filled values never appear in the database or in what the AI reviewer is sent.
   - **Open questions (not yet confirmed):**
     - **Source down or empty:** what happens if the source can't be reached or returns nothing? For example, leave the box for the person to fill in, or stop the download.
     - **Editing filled values:** can people change a filled value before downloading, or must it stay as the source gave it?
@@ -241,7 +241,7 @@
     - **No self-approval across both systems:** how do we know the person who approved the ticket is the same person as in the registry, and not the tool's owner? This needs a reliable match between the two systems' user accounts. The registry should still refuse the decision if they don't match.
     - **If the ticketing system is down:** do reviews wait, can specialists decide in the registry directly, and how are missed tickets created later without making duplicates?
 - **Approved outside the registry**
-  - **What it is:** sometimes a step is signed off somewhere else, for example a compliance approval given in a ticket or a meeting. Only the Super admin can mark that step "approved elsewhere", recording who approved it, when, and a reference (such as a ticket number). It's shown, clearly labelled, in the history and the progress line, for example "Approved outside the registry by Sam Thistle on 17 Nov 2026 (ref. COMP-1042), recorded by Riley Ashgrove".
+  - **What it is:** sometimes a step is signed off somewhere else, for example a compliance approval given in a ticket or a meeting. Only the Super admin can mark that step "approved elsewhere", recording who approved it, when, and a reference (such as a ticket number). It's shown, clearly labeled, in the history and the progress line, for example "Approved outside the registry by Sam Thistle on 17 Nov 2026 (ref. COMP-1042), recorded by Riley Ashgrove".
   - **Link to "Ticketing integration" above:** once that exists, the reference becomes a link to the ticket, and a ticket approved in the other system could fill this in instead of the Super admin typing it.
   - **Why it was cut:** the demo has no outside systems, and every decision is made in the registry.
   - **Steps to build it:**
@@ -249,7 +249,7 @@
     2. Record it as an approval of that step, marked as outside the registry, with who recorded it. It's add-only, like every decision.
     3. Keep the usual rules: steps in order, the tool's owner can't be the approver or the one recording it, and a specialist step still needs someone who decided no other step.
     4. Label it in the history and the progress line ("Approved outside the registry"), with the reference.
-    5. Add tests: only the Super admin can do it; each detail is required; it's labelled in the history; the owner can't be named as the approver; it can't skip a step.
+    5. Add tests: only the Super admin can do it; each detail is required; it's labeled in the history; the owner can't be named as the approver; it can't skip a step.
   - **Open questions:**
     - **Evidence:** is a reference enough, or should the Super admin attach the sign-off itself (an email or document)?
     - **People outside the registry:** can the approver be someone with no account, and how are they named?

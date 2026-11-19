@@ -23,7 +23,7 @@ RATIONALE_REQUIRED = "Explain why you built it this way."
 # tests/test_submit_screen.py checks `required` matches what is actually refused.
 FORM_FIELDS = [
     {"name": "name", "label": "Name", "required": True,
-     "hint": "A short, clear name people will recognise, such as \"Meeting summary\"."},
+     "hint": "A short, clear name people will recognize, such as \"Meeting summary\"."},
     {"name": "description", "label": "Description", "required": False,
      "hint": "One sentence on what the tool does."},
     {"name": "template", "label": "Template", "required": True,
@@ -155,9 +155,9 @@ def render(template: str, values: dict[str, str]) -> str:
     return VARIABLE_PATTERN.sub(lambda m: str(values[m.group(1)]), template)
 
 
-# --- personalising from the catalogue ------------------------------------------------
+# --- personalizing from the catalog ------------------------------------------------
 
-class PersonaliseError(InputError):
+class PersonalizeError(InputError):
     """Values for a personal copy that can't be used. `fields` names the blanks."""
 
 
@@ -173,18 +173,18 @@ def blanks_for(template: str) -> list[dict]:
     return [{"name": n, "label": blank_label(n)} for n in find_variables(template)]
 
 
-def personalise(template: str, values: dict[str, str]) -> str:
+def personalize(template: str, values: dict[str, str]) -> str:
     """Fill in a template for someone's own copy. Every blank needs a value with
     something other than spaces in it, and every value must be for a real blank.
     Nothing is saved: the values may be client details."""
     names = find_variables(template)
     unknown = [k for k in values if k not in names]
     if unknown:
-        raise PersonaliseError(f"This tool has no blank called: {', '.join(unknown)}.", unknown)
+        raise PersonalizeError(f"This tool has no blank called: {', '.join(unknown)}.", unknown)
     missing = [n for n in names if not str(values.get(n, "")).strip()]
     if missing:
         labels = ", ".join(blank_label(n) for n in missing)
-        raise PersonaliseError(f"Fill in every blank before downloading your copy: {labels}.",
+        raise PersonalizeError(f"Fill in every blank before downloading your copy: {labels}.",
                                missing)
     return render(template, values)
 
@@ -193,7 +193,7 @@ def download_filename(tool_name: str) -> str:
     """A safe file name for a personal copy, from the tool's name only (never from the
     values typed in): "Meeting summary" -> "meeting-summary.txt"."""
     slug = re.sub(r"[^a-z0-9]+", "-", tool_name.lower()).strip("-")
-    return f"{slug or 'personalised-tool'}.txt"
+    return f"{slug or 'personalized-tool'}.txt"
 
 
 def create_tool(
@@ -276,7 +276,7 @@ def submit_tool(conn: sqlite3.Connection, tool_id: int, user_id: str, *,
     `flagged` is the rule-based checks only; the AI's own flag is in `ai_review`.
 
     `sample_advice` (a ReviewResult) is used only by the seed data: it stores that
-    pre-written advice, labelled as sample advice, instead of calling the AI.
+    pre-written advice, labeled as sample advice, instead of calling the AI.
     Real submissions never pass it, so they always call the AI.
 
     A rationale is required (DECISIONS.md #15): an empty one is refused before any

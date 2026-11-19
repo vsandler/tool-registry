@@ -237,7 +237,7 @@ export function renderAdvice(advice) {
 
 // The progress line, drawn as a connected progress bar: every step, done (who, when),
 // waiting (for whom), rejected, or skipped after a rejection (the back end says why).
-// Each step has a symbol as well as a colour (✓ done, ● now, ✕ rejected, – skipped,
+// Each step has a symbol as well as a color (✓ done, ● now, ✕ rejected, – skipped,
 // an empty circle for later). The symbol is hidden from screen readers, which read
 // the state in words. `myAction` is the viewer's `my_action`: when the back end says
 // they can decide the final step, a note says approving publishes the tool.

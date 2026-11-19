@@ -55,7 +55,7 @@ from registry.tools import (
     download_filename,
     get_tool,
     list_tools,
-    personalise as fill_in_blanks,
+    personalize as fill_in_blanks,
     submit_tool,
 )
 
@@ -90,7 +90,7 @@ class Decision(BaseModel):
     practice: str | None = None    # step 3, practice-only
 
 
-class Personalise(BaseModel):
+class Personalize(BaseModel):
     values: dict[str, str]
 
 
@@ -129,7 +129,7 @@ def check_can_view(conn: sqlite3.Connection, user: sqlite3.Row, tool: dict) -> N
     """Who may see a tool's details (DECISIONS.md #13). Raises NotAllowed if not.
 
     - The owner, always. The Super admin, always.
-    - Anyone, once it's published and visible to them in the catalogue.
+    - Anyone, once it's published and visible to them in the catalog.
     - A Practice admin only for tools from their own practice (the owner's practice).
     - A Specialist reviewer only while its current step is a review for their area,
       or if they already decided a step of it (least privilege).
@@ -328,12 +328,12 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     def approval_steps(conn: sqlite3.Connection = Depends(db)):
         return {"steps": get_steps(conn), "specialist_areas": SPECIALIST_AREAS}
 
-    # -- catalogue and tools --
+    # -- catalog and tools --
 
     @app.get("/tools")
     def catalogue(user=Depends(persona), conn=Depends(db)):
         """Published tools this persona can see, each with its owner's name, a
-        visibility label and the blanks to fill in when personalising."""
+        visibility label and the blanks to fill in when personalizing."""
         return [catalogue_entry(conn, t) for t in list_tools(conn, status="published")
                 if can_see_published(user, t)]
 
@@ -375,14 +375,14 @@ def create_app(db_path: str = "registry.db") -> FastAPI:
     def history(tool_id: int, user=Depends(persona), conn=Depends(db)):
         return one_tool(tool_id, user, conn)["history"]
 
-    @app.post("/tools/{tool_id}/personalise")
-    def personalise(tool_id: int, body: Personalise, user=Depends(persona), conn=Depends(db)):
+    @app.post("/tools/{tool_id}/personalize")
+    def personalize(tool_id: int, body: Personalize, user=Depends(persona), conn=Depends(db)):
         """Fill in a published tool's blanks to make this persona's own copy, to
         download. Every blank needs a value; a refusal names the boxes in `fields`.
         Nothing is saved: the values may be client details."""
         tool = load_tool(tool_id, conn)
         if not can_see_published(user, tool):
-            raise NotAllowed("Only published tools you can see can be personalised")
+            raise NotAllowed("Only published tools you can see can be personalized")
         return {"tool_id": tool_id, "text": fill_in_blanks(tool["template"], body.values),
                 "filename": download_filename(tool["name"])}
 
