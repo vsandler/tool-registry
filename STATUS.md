@@ -1,9 +1,18 @@
 # Status
 
 ## Current phase
-**Phase 10 (the Codex review) is complete (2026-11-18). Tests: 558 passing.** Codex reviewed commit `4c23b5c` read-only, and the free plan was enough (no upgrade needed). All 3 findings are fixed, one commit each, tests first: practices only from the list, unknown people refused, and length limits. `registry/agent.py` is unchanged, so the evals didn't need rerunning. See REVIEW.md and DECISIONS.md #22.
+**Phase 11 (the README) is complete (2026-11-18). Tests: 605 passing.** The README is rewritten for a hiring manager:
+- **Intro** in three short parts (the problem, the idea, how it works), with **results at a glance**: 19/19 risky caught, 16/17 safe passed, about $0.0002 per review, the Codex review with all 3 findings fixed, and the test count.
+- **How it works, how approvals work, how the AI is evaluated** (before and after, Haiku vs Sonnet), **how AI was used to build it** (Claude Code, Codex read-only, the blind test), and how to run it and the tests.
+- **6 real screenshots** in `docs/screenshots/`.
+- **A Limits section** (no real sign-in, one SQLite file, made-up data, AI advice only, prompt templates as a stand-in for skills, hosted HTML tools and shared Claude artifacts).
+- **A Next / Later roadmap**, in sync with BACKLOG.md (30 items).
 
-**Next:** Phase 11 (the README, with screenshots).
+Also in this phase: the app's wording moved to US spelling, with a guard test (DECISIONS.md #23), which is where the 47 new tests come from. Deny rules for commands that discard uncommitted work were added to the local settings after uncommitted screenshots were lost (LEARNING_LOG.md). Still on branch `phase-9-frontend`; Phase 10 and 11 commits are local only, not pushed.
+
+**Next:** Phase 12.
+
+**Phase 10 (the Codex review) is complete (2026-11-18). Tests: 558 passing.** Codex reviewed commit `4c23b5c` read-only, and the free plan was enough (no upgrade needed). All 3 findings are fixed, one commit each, tests first: practices only from the list, unknown people refused, and length limits. `registry/agent.py` is unchanged, so the evals didn't need rerunning. See REVIEW.md and DECISIONS.md #22.
 
 **Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`, pushed up to "Least privilege for Practice admins". Everything since is local only, not pushed.
 
@@ -185,7 +194,7 @@ Phase 9 steps 1–4 are summarized at the top. Phase 8 and earlier:
 - Database, personas, tools, six rule-based checks, seed data, the three-step approval flow, the FastAPI API with the read-only admin review queue. See git history and DECISIONS.md #1.
 
 ## In progress
-- Nothing right now. Phase 11 (the README, with screenshots) is next.
+- Nothing right now. Phase 12 is next.
 
 ## 8c proposal: tighten the agent's instructions (approved, applied and kept, see Done)
 
