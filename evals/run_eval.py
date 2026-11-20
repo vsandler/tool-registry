@@ -43,6 +43,17 @@ TARGETS = {
 }
 
 
+def recorded_path(path: Path) -> str:
+    """How a cases file is named in a saved result: relative to the project (for
+    example "evals/submissions.json"), or just its file name if it's outside the
+    project. A saved result never holds a full path from someone's computer."""
+    path = Path(path).resolve()
+    try:
+        return path.relative_to(agent.PROJECT_ROOT.resolve()).as_posix()
+    except ValueError:
+        return path.name
+
+
 def load_submissions(path: Path = SUBMISSIONS_PATH) -> list[dict]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -206,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     out = RESULTS_DIR / f"{stamp}.json"
     out.write_text(json.dumps({"run_at": stamp, "model": config["model"],
                                "effort": config.get("effort"),
-                               "file": str(args.file),
+                               "file": recorded_path(args.file),
                                "selected_cases": args.cases or "all", "summary": summary,
                                "cases": cases}, indent=2), encoding="utf-8")
 

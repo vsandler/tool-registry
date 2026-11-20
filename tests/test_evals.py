@@ -254,7 +254,34 @@ def test_file_option_runs_cases_from_another_file(fake_ai, monkeypatch, tmp_path
     assert len(fake_ai.calls) == 2
     saved = json.loads(next(out_dir.glob("*.json")).read_text(encoding="utf-8"))
     assert [c["id"] for c in saved["cases"]] == ["probe-1"]
-    assert saved["file"] == str(probe)
+    # The probe is outside the project, so only its file name is saved, never a full
+    # path from this computer.
+    assert saved["file"] == "probe.json"
+
+
+def test_saved_result_names_the_default_cases_file_relative_to_the_project(
+        fake_ai, monkeypatch, tmp_path):
+    """With no --file, the saved result says "evals/submissions.json", not a full path
+    that would include someone's home folder."""
+    from evals import run_eval
+    monkeypatch.setattr(run_eval, "RESULTS_DIR", tmp_path)
+    monkeypatch.setattr(run_eval.agent, "make_client", lambda: object())
+    monkeypatch.setattr(run_eval, "LOG_PATH", None)
+    assert run_eval.main(["--runs", "1", "--case", SUBMISSIONS[0]["id"]]) == 0
+    saved = json.loads(next(tmp_path.glob("*.json")).read_text(encoding="utf-8"))
+    assert saved["file"] == "evals/submissions.json"
+
+
+def test_recorded_path_is_never_absolute(tmp_path):
+    from pathlib import Path
+    from evals.run_eval import EVAL_DIR, recorded_path
+    inside = recorded_path(EVAL_DIR / "probe_practice.json")
+    outside = recorded_path(tmp_path / "elsewhere" / "cases.json")
+    assert inside == "evals/probe_practice.json"
+    assert outside == "cases.json"
+    for shown in (inside, outside):
+        assert not Path(shown).is_absolute()
+        assert str(Path.home()) not in shown and Path.home().name not in shown
 
 
 def test_practice_probe_copies_the_real_tool():
