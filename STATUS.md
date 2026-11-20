@@ -1,20 +1,22 @@
 # Status
 
+_This is the working log between me and Claude Code during the build, kept as a record of the process._
+
 ## Current phase
-**Phase 11 (the README) is complete (2026-11-18). Tests: 605 passing.** The README is rewritten for a hiring manager:
+**Phase 11 (the README) is complete (2026-11-18). Tests: 605 passing.** The README is rewritten for a first-time reader:
 - **Intro** in three short parts (the problem, the idea, how it works), with **results at a glance**: 19/19 risky caught, 16/17 safe passed, about $0.0002 per review, the Codex review with all 3 findings fixed, and the test count.
 - **How it works, how approvals work, how the AI is evaluated** (before and after, Haiku vs Sonnet), **how AI was used to build it** (Claude Code, Codex read-only, the blind test), and how to run it and the tests.
 - **6 real screenshots** in `docs/screenshots/`.
 - **A Limits section** (no real sign-in, one SQLite file, made-up data, AI advice only, prompt templates as a stand-in for skills, hosted HTML tools and shared Claude artifacts).
 - **A Next / Later roadmap**, in sync with BACKLOG.md (30 items).
 
-Also in this phase: the app's wording moved to US spelling, with a guard test (DECISIONS.md #23), which is where the 47 new tests come from. Deny rules for commands that discard uncommitted work were added to the local settings after uncommitted screenshots were lost (LEARNING_LOG.md). Still on branch `phase-9-frontend`; Phase 10 and 11 commits are local only, not pushed.
+Also in this phase: the app's wording moved to US spelling, with a guard test (DECISIONS.md #23), which is where the 47 new tests come from. Deny rules for commands that discard uncommitted work were added to the local settings after uncommitted screenshots were lost (LEARNING_LOG.md). Phases 10 and 11 were built on branch `phase-9-frontend`.
 
 **Next:** Phase 12.
 
 **Phase 10 (the Codex review) is complete (2026-11-18). Tests: 558 passing.** Codex reviewed commit `b89a8f1` read-only, and the free plan was enough (no upgrade needed). All 3 findings are fixed, one commit each, tests first: practices only from the list, unknown people refused, and length limits. `registry/agent.py` is unchanged, so the evals didn't need rerunning. See REVIEW.md and DECISIONS.md #22.
 
-**Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`, pushed up to "Least privilege for Practice admins". Everything since is local only, not pushed.
+**Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`.
 
 Phase 8 (the AI pre-review agent) is complete. Its results stay below for reference.
 
@@ -30,7 +32,7 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Eval additions:** two cases (safe-17, hard-risky-21), an "unwanted issues" report, and `--case` and `--file` options. The probe `evals/probe_practice.json` is an exact copy of the real tool, kept out of the scored set because its "N/A" rationale is too short for it.
 - **Before:** the probe listed a practice issue in **9 of 10** runs; hard-risky-21 in 0 of 10. My first, looser copy hadn't reproduced it: the trigger seems to be a submission that looks like an unfilled form.
 - **After:** the probe dropped to **0 of 10**, still risky every time.
-- **Full eval, run 5** (108 calls): 19/19 risky and 17/17 safe on every judged answer, no unwanted issues. One reply in run 1 (hard-safe-12) ran to the 8,000-token limit and was cut off (22.4 s). It safely became "needs a human", but it missed the 10-second target in that run. It's the first cut-off in about 560 eval calls. Rerun 10 times with the new sentence: 0 cut off.
+- **Full eval, run 5** (108 calls): 19/19 risky caught and 16/17 safe passed, no unwanted issues. The one safe case not passed (hard-safe-12) wasn't a wrong answer: its reply was cut off in one run (below), so it became "needs a human". Every answer the AI actually gave was right. One reply in run 1 (hard-safe-12) ran to the 8,000-token limit and was cut off (22.4 s). It safely became "needs a human", but it missed the 10-second target in that run. It's the first cut-off in about 560 eval calls. Rerun 10 times with the new sentence: 0 cut off.
 - **Sample advice** refreshed (3 calls). All three verdicts unchanged.
 - **Cost of all of this:** about $0.032.
 
@@ -114,8 +116,8 @@ Phase 8 (the AI pre-review agent) is complete. Its results stay below for refere
 - **Least privilege** (DECISIONS.md #13): Specialist reviewers see only tools waiting for their area or ones they've decided; Practice admins see only their own practice's tools.
 - **Backlog:** "Real sign-in", "Spot overlap", and "Fill blanks from an approved data source" (with more than one approved source per tool) added to BACKLOG.md and the README.
 
-### What's next
-- **Design polish** (BACKLOG.md), before the Phase 11 README screenshots: the progress line as a connected progress bar, and the Review queue's empty views lined up with no "Pick a tool" hint when there's nothing to pick.
+### What came next
+- **Design polish:** done on 2026-11-18, before the Phase 11 README screenshots: the connected progress bar and the Review queue's empty views (BACKLOG.md "Done", DECISIONS.md #21).
 - **A quick second look** at checklist items 2, 3, 6, 9, 11 and 12, whose wording changed.
 
 ## Phase 8, 8d: Haiku 5.5 vs Sonnet 5.5 (decided 2026-11-16: keep Haiku 5.5)
@@ -170,7 +172,7 @@ Phase 9 steps 1–4 are summarized at the top. Phase 8 and earlier:
 
 ### Sample advice and audit trail (your answers of 2026-11-16)
 - **No AI calls at startup.** The 3 seeded submissions show fixed sample advice from `registry/sample_advice.json`, marked `"sample": true` with a label. Real submissions always call the AI. Only the seed setup can pass sample advice: a test sends fake sample advice to the API's submit route and checks it's ignored, and another scans the code for any other caller.
-- **Two demo drafts** for live demos: "Savings check-in note" (subtly risky: a soft promise about returns) and "Call notes tidy-up" (safe). Both pass all six rule-based checks. See the README's "Run a demo".
+- **Two demo drafts** for live demos: "Savings check-in note" (subtly risky: a soft promise about returns) and "Call notes tidy-up" (safe). Both pass all six rule-based checks. See the README's "How to run it".
 - **Staleness warning:** the sample advice stores the model, a fingerprint of the agent's instructions and a fingerprint of each seeded tool. `tests/test_sample_advice.py` fails with step-by-step instructions if any of them changes.
 - **Manual refresh:** `.venv/Scripts/python -m registry.refresh_sample_advice`. It never runs automatically. I ran it once (3 calls, $0.00055) because the advice copied from the last real run had been made with the instructions from before the rationale split.
 - **DECISIONS.md #6–#9** record this session's choices.
@@ -209,8 +211,8 @@ Phase 9 steps 1–4 are summarized at the top. Phase 8 and earlier:
 
 | | Input tokens per review | Saving |
 |---|---|---|
-| Current instructions (394 words) | 1,307 | n/a |
-| **Proposed instructions (279 words)** | **1,101** | **206 tokens (15.8%)** |
+| Current instructions (394 words) | 1,307.5 | n/a |
+| **Proposed instructions (279 words)** | **1,101.5** | **206 tokens (15.8%)** |
 | Considered instead: trim only the "Reply with JSON only…" paragraph | 1,265 | 42 tokens (3.2%) |
 
 **What that's worth, honestly:** very little money at Haiku prices. 206 input tokens is about $0.00002 per review, roughly 10% of today's $0.0002, or about $0.21 per 10,000 reviews. The bigger gains are a shorter prompt that's easier to read and maintain, and savings that would matter more on a pricier model (about $0.0004 per review on Sonnet 5.5).

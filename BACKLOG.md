@@ -115,14 +115,14 @@
     5. Add tests: only the owner can resubmit; checks re-run; old history is kept; the review restarts at step 1.
     6. Change the progress line's "Skipped: rejected at step N" to "On hold: waiting for the builder to fix and resubmit" while the builder can still resubmit. It's one sentence in the back end (`skipped_reason` in `get_progress`), so the screens need no change.
 - **Make the eval set harder**
-  - **Why it's needed:** The improved eval scored 17/17 risky and 16/16 safe in all 3 runs, so the test may be too easy to show where the agent fails. See EVALS.md.
+  - **Why it's needed:** The current eval (run 5) caught 19/19 risky cases in all 3 runs and passed 16/17 safe ones (the one not passed was a cut-off reply, not a wrong answer), so the test may be too easy to show where the agent fails. See EVALS.md.
   - **Steps to build it:**
     1. Ask a second AI (for example Codex) to write new made-up trick cases without seeing the agent's instructions.
     2. Add cases from real mistakes, once people use the tool: every time a human reviewer disagrees with the AI's advice, save it as a new eval case.
     3. Rerun the eval and record the new score in EVALS.md.
 - **Model cascade**
   - **What it is:** The cheaper model reviews every submission. Anything it flags or is unsure about (risky or needs_human) goes to a stronger model for a second opinion.
-  - **Why it was cut:** It's only worth building once a harder eval set shows the cheaper model missing things. Today Claude Haiku 5.5 scores 17/17 risky and 16/16 safe in all 3 runs, so a second model would add cost and time without catching anything more. See EVALS.md.
+  - **Why it was cut:** It's only worth building once a harder eval set shows the cheaper model missing things. Today Claude Haiku 5.5 catches 19/19 risky cases in all 3 runs and passes 16/17 safe ones (run 5), and in the Sonnet 5.5 comparison it missed nothing Sonnet caught, so a second model would add cost and time without catching anything more. See EVALS.md.
   - **Steps to build it:**
     1. Add a second model to config.json.
     2. Route flagged or needs_human results to it.
@@ -214,7 +214,7 @@
     1. Store the practice list, and let an admin add, rename or retire a practice.
     2. Fill the Submit form's Practice dropdown from that list.
     3. Add "My practice isn't listed": the builder gives the practice's name and a short reason, and the request goes to an admin's list of requests.
-    4. On submit, the back end refuses a practice that isn't on the list, with a plain message next to the Practice box.
+    4. **Done** (DECISIONS.md #22): on save, submit and publish, the back end refuses a practice that isn't on the list, with a plain message next to the Practice box. Today it checks against the practices people belong to; once admins keep the list, it reads from that instead.
     5. Add tests: only practices on the list are accepted; only admins can change the list; a request reaches an admin; a retired practice can't be picked for new tools.
   - **Open questions (not yet confirmed):**
     - **Who approves a request:** the Super admin, or any admin? Can a Practice admin add only their own practice?

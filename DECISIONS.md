@@ -65,7 +65,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 **Decision:** The outside code review uses Codex on the free ChatGPT plan, running on this computer.
 
-**Why:** Hands-on Codex experience is a requirement for the role, and a second AI tool gives an independent review.
+**Why:** I wanted hands-on experience using Codex as an independent reviewer, and a second AI tool gives an independent review.
 
 **Trade-off:** The free plan has a usage cap. If we hit it, we upgrade to ChatGPT Plus.
 
@@ -119,7 +119,7 @@ The same Super admin may do steps 1 and 3. The specialist must be a different pe
 
 ## 10. Front end: three screens and a persona dropdown (approved 2026-11-16)
 
-**Persona dropdown (top bar, every screen).** Shows name, role and practice or specialist area ("Sam Specialist: Specialist reviewer, compliance"), under a banner: "Demo: pick a persona, no real sign-in". *Why:* an approver should always know whose eyes they're looking through, because that decides what they can see and do.
+**Persona dropdown (top bar, every screen).** Shows name, role and practice or specialist area ("Sam Thistle: Specialist reviewer, compliance"), under a banner: "Demo: pick a persona, no real sign-in". *Why:* an approver should always know whose eyes they're looking through, because that decides what they can see and do.
 
 **Review queue (the approver's main screen).**
 - **Who sees it:** Super and Practice admins see every tool in review. Specialist reviewers see only tools waiting for their area (option A). The queue is read-only; decisions go through the buttons below. *Why:* Specialists need to find their work, and a short, relevant list helps.

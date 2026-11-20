@@ -73,7 +73,7 @@ Each change was measured before and after on the same cases.
 
 | Change | Why | Before | After |
 |---|---|---|---|
-| **Shorter instructions** (same six rules, 394 → 279 words) | Cut cost without losing accuracy. Rule set up front: keep it only if the score stays perfect. | 17/17 risky, 16/16 safe; 1,308 input tokens | **17/17, 16/16; 1,102 tokens (−16%), cost −10%.** Kept. |
+| **Shorter instructions** (same six rules, 394 → 279 words) | Cut cost without losing accuracy. Rule set up front: keep it only if the score stays perfect. | 17/17 risky, 16/16 safe; 1,307.5 input tokens | **17/17, 16/16; 1,101.5 tokens (−15.8%), cost −10%.** Kept. |
 | **One sentence: "a missing practice isn't a risk"** | A real review wrongly listed "practice field is null" for a firm-wide tool, which has no practice by design. I reproduced it before changing anything. | Wrong issue in **9 of 10** runs | **0 of 10**; verdicts unchanged; full eval still right on every judged answer |
 | **Reply limit 8,000 → 1,000 tokens** | One reply in about 560 calls ran away: 22 s and $0.004 before it was cut off. It was safely sent to a person, but too slow. Normal replies use about 120 tokens. | Worst case 22 s, $0.004 | Worst case about **3 s, $0.0005** (estimated; a test keeps the limit at least twice the longest real reply) |
 | **Harder cases added** (20 → 36) | A perfect score on easy cases proves little. Added subtle data, soft promises, disguised tricks, and look-alike safe cases. | | Still caught every risky case |

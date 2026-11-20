@@ -143,7 +143,7 @@ Average input tokens per review: 1,103. The 102 calls cost $0.0185 in total.
 ## 8d: Haiku 5.5 vs Sonnet 5.5 (2026-11-16)
 Both models were run on the same 34-case set (18 risky, 16 safe), each case 3 times (102 calls per model). Both used the same shorter instructions from 8c and the same effort level (`medium`). Haiku's numbers are run 4 above, which wasn't rerun. Sonnet was run with `--model claude-sonnet-5-5`, which swaps the model for that run only. `config.json` still says `claude-haiku-5-5`.
 
-| | **Claude Haiku 5.5** (run 4) | **Claude Sonnet 5.5** (run 5) |
+| | **Claude Haiku 5.5** (run 4) | **Claude Sonnet 5.5** (8d Sonnet run) |
 |---|---|---|
 | Risky caught in every run | **18 / 18** | **18 / 18** |
 | Safe passed in every run | **16 / 16** | **16 / 16** |
@@ -223,4 +223,4 @@ Instead, 8c looked for one change that cuts input tokens without losing accuracy
 | 3 | 2026-11-16 | 33 cases × 3 runs, shorter instructions (8c) | 17 / 17 | 16 / 16 | $0.00018 | 1.66 s | `evals/results/20261116T042838Z.json` |
 | 4 | 2026-11-16 | 34 cases × 3 runs (+ role-play case), shorter instructions | 18 / 18 | 16 / 16 | $0.00018 | 1.73 s | `evals/results/20261116T043633Z.json` |
 | 5 | 2026-11-17 | 36 cases × 3 runs (+ 2 firm-wide no-practice cases), + the practice sentence | 19 / 19 | 16 / 17 (one cut-off reply) | $0.00022 | 1.95 s | `evals/results/20261117T051020Z.json` |
-| 5 | 2026-11-16 | Same as run 4, on **Sonnet 5.5** (8d comparison, model swapped for this run only) | 18 / 18 | 16 / 16 | $0.0035 | 2.62 s | `evals/results/20261116T050015Z.json` |
+| 8d Sonnet | 2026-11-16 | Same as run 4, on **Sonnet 5.5** (8d comparison, model swapped for this run only) | 18 / 18 | 16 / 16 | $0.0035 | 2.62 s | `evals/results/20261116T050015Z.json` |

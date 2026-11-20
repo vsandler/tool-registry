@@ -38,4 +38,8 @@ While preparing the prompt, Claude spotted 3 possible problems (findings 1–3).
 4. Update the Fix and Status columns, and record any rule change in DECISIONS.md.
 
 ## Summary
-_(To fill in after the review: how many findings by severity, how many fixed, and what was learned.)_
+- **Findings:** 3 in all: 2 Medium (the practice name, the missing length limits) and 1 Low (the unknown-user guard). No Critical or High.
+- **Fixed:** all 3, one commit each, each with a test written first that failed before the fix. The test suite went from 523 to 558 passing.
+- **Who found what:** Codex found 1 of the 3 on its own (finding 1). Claude had spotted all 3 beforehand and added findings 2 and 3 after Codex reported.
+- **AI pre-review:** `registry/agent.py` was unchanged, so the eval results and sample advice still apply.
+- **What was learned:** a second AI reviewer adds a real check, but it missed 2 of the 3 known problems. Neither reviewer is a guarantee, so every finding gets a test.

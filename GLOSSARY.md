@@ -63,7 +63,7 @@ _Terms used in this project, defined in plain language._
 - **Render:** Filling in a template's blanks with real values to produce a finished copy.
 - **Response time (latency):** How long one AI call takes, from sending the request to getting the answer.
 - **Retention period:** How long records such as call logs are kept before they may be deleted.
-- **Routing:** The Super admin sending a tool to one specialist area for review.
+- **Routing:** The Super admin sending a tool to one or more specialist areas for review, in the order they pick. Each area becomes its own review step.
 - **Rule-based check:** A fixed, simple test (no AI) run on every submission, such as "does the template contain an email address?".
 - **Run (eval):** One pass through every case in the eval set. Ours does 3 runs to check the answers stay the same.
 - **Sample advice:** Fixed, pre-written AI advice for the seeded demo tools, copied from a real AI review and clearly labeled. No AI call is made for it.
@@ -88,10 +88,9 @@ _Terms used in this project, defined in plain language._
 - **Validation:** Checking that data is in the expected shape and makes sense before using it.
 - **Virtual environment (.venv):** A private copy of Python just for this project, so its add-on packages don't mix with the rest of the computer.
 - **Visibility label:** Each tool's setting for who can see it once approved: `practice-only` (one practice) or `firm-wide` (everyone).
-- **Waiting on me:** The Review queue's default view: only the tools whose current step the viewing persona can decide.
+- **Waiting on me:** The Review queue's default view: only the tools whose current step the viewing persona can decide, as the back end says (`my_action.can_decide`).
 - **detail_label:** The readable version of what a decision did, shown in a tool's history (for example "Routed to Compliance, then Marketing"). Worked out by the back end from the stored record, which is never changed.
 - **status_label:** A tool's status in plain words ("In review", "Published", "Rejected"), sent by the back end for the screens to show as-is.
-- **Waiting on me:** The Review queue view listing the tools whose current step the persona can decide, as the back end says (`my_action.can_decide`).
 - **can_submit:** Sent with each persona: whether they may submit tools (Tool users can't). The navigation shows "Submit a tool" only when it's true.
 - **skipped_reason:** On a progress-line step after a rejection, the back end's words for why it wasn't reached, for example "Skipped: rejected at step 2".
 - **fill():** The shared helper the pages use to put content on screen. It skips empty values, so nothing ever shows the word "null".

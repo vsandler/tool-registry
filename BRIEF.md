@@ -14,9 +14,9 @@ One governed catalog. Each tool is reviewed once, as a template ("review once, r
 
 ## Users
 - **Builder:** creates and submits tools.
-- **Practice admin:** reviews tools submitted from their practice and decides what goes in that practice's library.
+- **Practice admin:** reviews tools submitted from their practice and decides what goes in that practice's library. _(In the built demo, Practice admins became read-only viewers of their own practice's tools and decide no approval step; see DECISIONS.md #13.)_
 - **Super admin:** sends submissions to the right specialists and decides whether a tool is for one practice only or the whole firm.
-- **Specialist reviewers** (compliance, marketing, technology): review their part and escalate to the AI innovation team when needed.
+- **Specialist reviewers** (compliance, marketing, technology): review their part and escalate to AI enablement (technology) when needed.
 - **Tool user:** finds approved tools and personalizes them.
 
 ## Hypothesis
