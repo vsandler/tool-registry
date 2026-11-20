@@ -207,3 +207,7 @@ Each item's steps and open questions are in [BACKLOG.md](BACKLOG.md).
 - **Live hosted demo:** a hosted copy to try without installing anything.
 
 </details>
+
+---
+
+© 2026 Vanessa Sandler. All rights reserved. Shared for portfolio review only; not licensed for reuse.
