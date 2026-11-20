@@ -6,7 +6,7 @@
 
 **How it works.** A builder submits a template with a short "why I built it this way". Fixed rules check it, an AI pre-review gives advice (it never decides), and people approve it in a set order. Approved tools go into a catalog, and anyone allowed can fill in the blanks to make their own copy.
 
-**Results at a glance:** 19/19 risky submissions caught in every run · 16/17 safe ones passed (94–100% per run) · about $0.0002 per AI review · an independent Codex code review, with all 3 findings fixed · 605 tests passing.
+**Results at a glance:** 19/19 risky submissions caught in every run · 17/17 safe ones passed in every run · about $0.0002 per AI review, 1.7 s on average · an independent Codex code review, with all 3 findings fixed · 607 tests passing.
 
 ![Review queue: a submitted tool with its rule flags, AI advice and approval progress](docs/screenshots/01-hero-review-queue.png)
 
@@ -60,12 +60,12 @@
 
 ### Current score vs the targets in the brief
 
-| Measure | Target | Result (run 5, 108 calls) |
+| Measure | Target | Result (run 6, 108 calls) |
 |---|---|---|
 | Risky submissions caught | All | **19 / 19** ✅ |
-| Safe submissions passed | At least 80% in every run | **94%, 100%, 100%** ✅ |
-| Cost per review | Under 1 cent | **$0.0002** on average ✅ |
-| Response time | Under 10 s | **1.95 s** on average; one reply ran away to 22 s (see below) |
+| Safe submissions passed | At least 80% in every run | **17 / 17**, 100% in every run ✅ |
+| Cost per review | Under 1 cent | **$0.00018** on average, $0.00026 at most ✅ |
+| Response time | Under 10 s | **1.72 s** on average, 2.61 s at most ✅ |
 
 ### What changed, and why
 
@@ -75,7 +75,7 @@ Each change was measured before and after on the same cases.
 |---|---|---|---|
 | **Shorter instructions** (same six rules, 394 → 279 words) | Cut cost without losing accuracy. Rule set up front: keep it only if the score stays perfect. | 17/17 risky, 16/16 safe; 1,307.5 input tokens | **17/17, 16/16; 1,101.5 tokens (−15.8%), cost −10%.** Kept. |
 | **One sentence: "a missing practice isn't a risk"** | A real review wrongly listed "practice field is null" for a firm-wide tool, which has no practice by design. I reproduced it before changing anything. | Wrong issue in **9 of 10** runs | **0 of 10**; verdicts unchanged; full eval still right on every judged answer |
-| **Reply limit 8,000 → 1,000 tokens** | One reply in about 560 calls ran away: 22 s and $0.004 before it was cut off. It was safely sent to a person, but too slow. Normal replies use about 120 tokens. | Worst case 22 s, $0.004 | Worst case about **3 s, $0.0005** (estimated; a test keeps the limit at least twice the longest real reply) |
+| **Reply limit 8,000 → 1,000 tokens** | One reply in about 560 calls ran away: 22 s and $0.004 before it was cut off. It was safely sent to a person, but too slow. Normal replies use about 140 tokens. | Worst case 22 s, $0.004 (run 5) | **Run 6: no reply cut off in 108 calls; slowest 2.6 s, highest $0.00026, longest reply 272 tokens.** Scores unchanged or better. A test keeps the limit at least twice the longest real reply |
 | **Harder cases added** (20 → 36) | A perfect score on easy cases proves little. Added subtle data, soft promises, disguised tricks, and look-alike safe cases. | | Still caught every risky case |
 
 ### Haiku 5.5 vs Sonnet 5.5

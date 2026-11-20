@@ -115,14 +115,14 @@
     5. Add tests: only the owner can resubmit; checks re-run; old history is kept; the review restarts at step 1.
     6. Change the progress line's "Skipped: rejected at step N" to "On hold: waiting for the builder to fix and resubmit" while the builder can still resubmit. It's one sentence in the back end (`skipped_reason` in `get_progress`), so the screens need no change.
 - **Make the eval set harder**
-  - **Why it's needed:** The current eval (run 5) caught 19/19 risky cases in all 3 runs and passed 16/17 safe ones (the one not passed was a cut-off reply, not a wrong answer), so the test may be too easy to show where the agent fails. See EVALS.md.
+  - **Why it's needed:** The current eval (run 6) caught 19/19 risky cases and passed 17/17 safe ones in all 3 runs, so the test may be too easy to show where the agent fails. See EVALS.md.
   - **Steps to build it:**
     1. Ask a second AI (for example Codex) to write new made-up trick cases without seeing the agent's instructions.
     2. Add cases from real mistakes, once people use the tool: every time a human reviewer disagrees with the AI's advice, save it as a new eval case.
     3. Rerun the eval and record the new score in EVALS.md.
 - **Model cascade**
   - **What it is:** The cheaper model reviews every submission. Anything it flags or is unsure about (risky or needs_human) goes to a stronger model for a second opinion.
-  - **Why it was cut:** It's only worth building once a harder eval set shows the cheaper model missing things. Today Claude Haiku 5.5 catches 19/19 risky cases in all 3 runs and passes 16/17 safe ones (run 5), and in the Sonnet 5.5 comparison it missed nothing Sonnet caught, so a second model would add cost and time without catching anything more. See EVALS.md.
+  - **Why it was cut:** It's only worth building once a harder eval set shows the cheaper model missing things. Today Claude Haiku 5.5 catches 19/19 risky cases and passes 17/17 safe ones in all 3 runs (run 6), and in the Sonnet 5.5 comparison it missed nothing Sonnet caught, so a second model would add cost and time without catching anything more. See EVALS.md.
   - **Steps to build it:**
     1. Add a second model to config.json.
     2. Route flagged or needs_human results to it.
