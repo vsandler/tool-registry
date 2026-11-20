@@ -2,6 +2,8 @@
 
 _How well the AI pre-review agent does on a fixed, labelled test set, measured against the targets in BRIEF.md._
 
+Run dates come from the results file names, which are in UTC.
+
 ## The eval set
 `evals/submissions.json`: 36 made-up submissions (19 risky, 17 safe; 34 until 2026-11-17), each labelled by hand before the agent saw them. All names, numbers and addresses are invented. The only email address is on the reserved `example.com` domain, and the phone number uses the fictional 555 range.
 
