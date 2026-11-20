@@ -12,7 +12,7 @@ Also in this phase: the app's wording moved to US spelling, with a guard test (D
 
 **Next:** Phase 12.
 
-**Phase 10 (the Codex review) is complete (2026-11-18). Tests: 558 passing.** Codex reviewed commit `4c23b5c` read-only, and the free plan was enough (no upgrade needed). All 3 findings are fixed, one commit each, tests first: practices only from the list, unknown people refused, and length limits. `registry/agent.py` is unchanged, so the evals didn't need rerunning. See REVIEW.md and DECISIONS.md #22.
+**Phase 10 (the Codex review) is complete (2026-11-18). Tests: 558 passing.** Codex reviewed commit `b89a8f1` read-only, and the free plan was enough (no upgrade needed). All 3 findings are fixed, one commit each, tests first: practices only from the list, unknown people refused, and length limits. `registry/agent.py` is unchanged, so the evals didn't need rerunning. See REVIEW.md and DECISIONS.md #22.
 
 **Phase 9 (the front end) is complete (2026-11-18). Tests: 523 passing.** Three screens (Catalog, Submit, Review queue) that only ask the back end and display its answers, with the shared progress bar, published badges and every by-hand check fix. No [NICE] items were listed in the plan, so nothing is left over. Branch `phase-9-frontend`, made from `phase-8-agent`, pushed up to "Least privilege for Practice admins". Everything since is local only, not pushed.
 
